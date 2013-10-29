@@ -2,10 +2,10 @@
 *ekapadi/dragonfly/mjp*:
 ==================================
 
- .. image:: MJP_2D_0.png
+ .. image:: MJP_2D_1.png
    :height: 250px
    :width: 250 px
-   :scale: 25 %
+   :scale: 100 %
    :alt: 2D MJP example
    :align: right
 
