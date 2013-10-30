@@ -20,7 +20,7 @@ is based on pseudo-code and discussion from the reference::
     "Geometric Properties of Random Disk Packings",
     Journal of Statistical Physics, Vol. 60, Nos. 5/6, Pp. 561-583, (1990).
 
-A video representation of the *evolution* of a single algorithm run (for the *3D* case) is viewable here: `MJP instantiation`__ [1]_.
+A video representation of the *evolution* of a single algorithm run (for the *3D* case) is view-able here: `MJP instantiation`__ [1]_.
 
 .. __: file:./mjp_simulation.mpg
 
@@ -43,7 +43,7 @@ Source files
     (At present, ``multi-threaded`` and ``parallel_python multi-threaded`` versions of these MJP classes are for experimental use only, and should not be used for production simulation.)
     
   vector_linalg.py:
-    Miscellaneous linear algebra utilities such as cartesian to spherical co-ordinate transformation and Euler rotation and its inverse.
+    Miscellaneous linear algebra utilities such as Cartesian to spherical co-ordinate transformation and Euler rotation and its inverse.
 
   parallel_util.py:
     Python implementation of selected C++ ``parallelUtil`` classes.
@@ -63,28 +63,28 @@ Source files (main ones):
   Further, these classes support the ``abstractCommHandle`` class, which provides a unified interface to disk-resident, memory-resident, and MPI inter-process data transfer.
   
   particle_packing.h:
-    This header file includes the declaration of the abstract ``system`` class with nested ``state``, ``particle``, ``cell``, and ``event`` classes, as well as the ``mjp_system`` specialization of the ``system`` class to spherical particles. Additional utility routines are provided which allow all structures to be *persistant* both to disk, and with respect to inter-process communication (e.g., for use by MPI).  This latter utility support is consistent with that used by the entire ``TMatrix`` namespace, although the ``particle_packing`` namespace has been deliberately designed to function in a stand-alone manner (i.e., without any dependence on the ``TMatrix`` namespace itself).
+    This header file includes the declaration of the abstract ``system`` class with nested ``state``, ``particle``, ``cell``, and ``event`` classes, as well as the ``mjp_system`` specialization of the ``system`` class to spherical particles. Additional utility routines are provided which allow all structures to be *persistent* both to disk, and with respect to inter-process communication (e.g., for use by MPI).  This latter utility support is consistent with that used by the entire ``TMatrix`` namespace, although the ``particle_packing`` namespace has been deliberately designed to function in a stand-alone manner (i.e., without any dependence on the ``TMatrix`` namespace itself).
     
   particle_packing_template.h:
     Template class method definitions for classes defined in ``particle_packing.h``.
   
-  commUtil.h:    
+  base/commUtil.h:    
     Template class method definitions supporting a unified low-level binary interface to 
     disk-resident, memory-resident, and MPI inter-process data transfer.
 
-  parallelUtil.h 
+  base/parallelUtil.h 
     Support classes and methods for object-oriented multi-thread and multi-process coding.
 
-  ntuple.h:
+  base/ntuple.h:
     N-dimensional fully-templated numerical tuple implementation.
   
-  linalgUtil.h:
+  base/linalgUtil.h:
     Miscellaneous linear algebra utility methods.  
   
   ND_matrix.h:
     N-dimensional matrix and associated interpolation classes.
        
-External library dependancies:
+External library dependencies:
 ------------------------------
   In addition to depending on the *Universal Function Interface* (ufi) provided in the present *github* repository at *ekapadi/ufi*, 
   the C++ MJP implementation is also dependent on the *Generic Matrix Methods* (``gmm++``) template library, which is available from `GetFEM++`__ 
@@ -98,6 +98,6 @@ External library dependancies:
 Concurrent *Programming Languages* benchmark project:
 =====================================================
 
-Through adjustment of its initialization parameter values, the computational *concurrency* requirements of the MJP algorithm can be made to range from *embarassingly parallel* computation (i.e., CPU-bound and requiring only rare inter-process communication,) to completely inter-process I/O-bound computation.  As such, it provides an excellent *benchmark* algorithm for comparing the effectiveness of concurrency solutions for multiple computer languages.
+Through adjustment of its initialization parameter values, the computational *concurrency* requirements of the MJP algorithm can be made to range from *embarrassingly parallel* computation (i.e., CPU-bound and requiring only rare inter-process communication,) to completely inter-process I/O-bound computation.  As such, it provides an excellent *benchmark* algorithm for comparing the effectiveness of concurrency solutions for multiple computer languages.
 To serve this end, development work is in progress to provide reference versions of the MJP algorithm in several additional languages, namely *OCaml*, *Haskell*, and *Clojure*.  As soon as these implementations are available they will be added to this repository, and the associated benchmark results will be published at the http://www.ekapadi.com website. 
 
