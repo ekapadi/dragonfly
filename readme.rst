@@ -10,6 +10,25 @@ The *dragonfly*  repository is Ekapadi's public target repository for:
 .. __: http://repositories.tdl.org/tdl-ir/handle/2152/ETD-UT-2010-12-2247
 
 .. [#] As soon as is practical, the complete code-base associated with the dissertation
-  will be released into the public domain.  Release specifics depend on the publication scheduling of our forthcoming articles.
+  will be released into the public domain.  Release specifics depend on the publication scheduling of forthcoming articles.
   
 .. |qing1ting2| unicode:: 0x8713 .. dragonfly
+
+Table of Contents
+=================
+
+*ekapadi/dragonfly/mjp*:
+------------------------
+
+The *dragonfly/mjp* directory contains Python and C++ source code implementing an event-driven dynamics simulation of maximally-jammed particle packing (MJP).
+
+*ekapadi/dragonfly/ufi*:
+------------------------
+
+The *dragonfly/ufi* directory contains source code implementing a universal function interface (UFI).  The UFI was developed as an interface technique to allow the ``numericalFunctor``-derived
+classes in the dissertation code-base, to be quickly interfaced from a scripting language such as Python.
+
+*ekapadi/dragonfly/base*:
+-------------------------
+
+The *dragonfly/base*directory contains source code shared among the various ``dragonfly`` sub-projects.

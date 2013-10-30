@@ -9,7 +9,7 @@
    :alt: 2D MJP example
    :align: right
 
-The *dragonfly/mjp* repository contains codes implementing an event-driven dynamics simulation of maximally-jammed particle packing (MJP).
+The *dragonfly/mjp* directory contains codes implementing an event-driven dynamics simulation of maximally-jammed particle packing (MJP).
 
 
 These codes were initially developed to provide high statistical-quality
