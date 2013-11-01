@@ -22,18 +22,11 @@ is based on pseudo-code and discussion from the reference::
 
 A video representation of the *evolution* of a single algorithm run (for the *3D* case) is view-able here: `MJP instantiation`__ [1]_.
 
-.. raw:: html
-
-   <video width="320" height="240" controls>
-   <source src="mjp_simulation.mpg" type="video/mpg">
-   Your browser does not support the video tag.
-   </video>
-
-.. __: file:./mjp_simulation.mpg
+.. __: file:./mjp_video.html
 
 In order to generate particle-packing instantiations within a specified boundary region, this *hypercube* implementation of the MJP algorithm requires that an additional region-constraining *filter* step be applied to the simulation end-point particle distribution after the simulation's completion.  Clearly this is only a stop-gap solution and a more accurate calculation of volume-constrained particle packing requires extension of the hypercube version of the algorithm.  Such an extension would be straightforward, and would for example allow particle-packing evolution within a volume defined by a closed triangular-mesh. (Such an extension is planned for the near future, however please contact Ekapadi if you have an *urgent* need for such an extension.)
 
-.. [1] For some browser installations, it may be required to download the video file ``mjp_simulation.mpg`` prior to viewing.
+.. [1] For some browser installations, it may be required to download the video file ``mjp_simulation.mp4`` prior to viewing.
 
 
 MJP algorithm, Python version:
