@@ -22,7 +22,7 @@ Table of Contents
 
 .. __: https://github.com/ekapadi/dragonfly/tree/master/mjp
 
-The *dragonfly/mjp* directory contains Python and C++ source code implementing an event-driven dynamics simulation of maximally-jammed particle packing (MJP).  Although the statistical physics of such closely-packed structures is interesting in its own right, these structures serve as important *input* material for other numerical modeling efforts ranging from the simulation of advanced solid rocket-fuel compositions to the simulation of nanoparticle aggregate structures. 
+The *dragonfly/mjp* directory contains Python and C++ source code implementing an event-driven dynamics simulation of maximally-jammed particle packing (MJP).  Although the statistical physics of such closely-packed structures is interesting in its own right, these structures serve as important *input* material for other numerical modeling efforts ranging from the simulation of advanced solid rocket-fuel compositions to the simulation of nanoparticle aggregate structures as used by the present code-base. 
 
 `ekapadi/dragonfly/ufi`__ :
 -----------------------------
