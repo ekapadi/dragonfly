@@ -7,7 +7,7 @@ The *dragonfly*  repository is Ekapadi's public target repository for:
   #. Small stand-alone open source projects and experiments.
   #. Other open-source projects sponsored by Ekapadi LLC.
   
-.. __: http://repositories.tdl.org/tdl-ir/handle/2152/ETD-UT-2010-12-2247
+.. __: https://repositories.lib.utexas.edu/handle/2152/ETD-UT-2010-12-2247
 
 .. [#] As soon as is practical, the complete code-base associated with the dissertation
   will be released into the public domain.  Release specifics depend on the publication scheduling of forthcoming articles.
