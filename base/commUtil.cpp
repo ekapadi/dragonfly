@@ -62,29 +62,29 @@ using std::endl;
 namespace commUtil{
 
 
-comm_error& comm_error::operator=(const comm_error& other) throw()
+comm_error& comm_error::operator=(const comm_error& other)
 { 
   base_class::operator=(static_cast<const base_class&>(other));     
   return *this;
 }
 
-comm_error::~comm_error(void) throw()
+comm_error::~comm_error(void)
 { }
 
-comm_error::comm_error(void) throw()
+comm_error::comm_error(void)
   : base_class("unspecified comm_error")
 { }
 
-comm_error::comm_error(const comm_error& other) throw()
+comm_error::comm_error(const comm_error& other)
   : base_class(static_cast<const std::runtime_error&>(other))
 { }
 
-comm_error::comm_error(const std::string& msg) throw()
+comm_error::comm_error(const std::string& msg)
   : base_class(msg)
 { }
 
 
-size_t abstractCommHandle::bufferedRead(void *ptr, size_t size, size_t nitems) throw()
+size_t abstractCommHandle::bufferedRead(void *ptr, size_t size, size_t nitems)
 {
   assert(buffered()); // this is an internal method  
 
@@ -115,7 +115,7 @@ size_t abstractCommHandle::bufferedRead(void *ptr, size_t size, size_t nitems) t
 }
 
     
-size_t abstractCommHandle::bufferedWrite(const void *ptr, size_t size, size_t nitems) throw()
+size_t abstractCommHandle::bufferedWrite(const void *ptr, size_t size, size_t nitems)
 {
   assert(buffered()); // this is an internal method
   
@@ -145,10 +145,10 @@ size_t abstractCommHandle::bufferedWrite(const void *ptr, size_t size, size_t ni
 }
 
    
-void abstractCommHandle::sync(void) throw()
+void abstractCommHandle::sync(void)
 {
  if (!valid() || !reading())
-   throw std::string("abstractCommHandle::sync: invalid comm handle or handle not open for read");
+   throw std::runtime_error("abstractCommHandle::sync: invalid comm handle or handle not open for read");
  if (readBuffered()){
    readBufIO_ = true; // internal transfer flag. 
    
@@ -167,7 +167,7 @@ void abstractCommHandle::sync(void) throw()
    readBufIO_ = false;
    if (transferBufferHeader()){
      if (transfer_size == 0) // transfer_size == 0 is not necessarily an error, read errors throw exception,
-       throw std::string("abstractCommHandle::sync: zero sized read transfer -- unable to encode data size");
+       throw std::runtime_error("abstractCommHandle::sync: zero sized read transfer -- unable to encode data size");
      readBuf_.init(); // this obtains the size of the transfer from the buffer's own header (compatible with both MPI::Recv, _and MPI::Bcast).
    }
    else
@@ -181,10 +181,10 @@ void abstractCommHandle::sync(void) throw()
  }   
 }
       
-void abstractCommHandle::flush(void) throw()
+void abstractCommHandle::flush(void)
 {
  if (!valid() || !writing())
-   throw std::string("abstractCommHandle::flush: invalid comm handle or handle not open for write");
+   throw std::runtime_error("abstractCommHandle::flush: invalid comm handle or handle not open for write");
  if (writeBuffered() && writeBuf_.used()){
  
    const size_t 
@@ -195,7 +195,7 @@ void abstractCommHandle::flush(void) throw()
    unsigned char *transfer_buf(transferBufferHeader()? writeBuf_.begin_: writeBuf_.data_begin_);
    writeBufIO_ = true; // internal transfer flag
    if (transfer_size != write(transfer_buf,1,transfer_size))
-     throw std::string("abstractCommHandle::flush: I/O error");
+     throw std::runtime_error("abstractCommHandle::flush: I/O error");
    writeBufIO_ = false;
    
    // reset the data size as marked in the buffer:
@@ -209,10 +209,10 @@ void abstractCommHandle::flush(void) throw()
  }   
 }    
     
-bool abstractCommHandle::buffered(bool flag, size_t bytes) throw()
+bool abstractCommHandle::buffered(bool flag, size_t bytes)
 {
  if (!valid())
-   throw std::string("abstractCommHandle::buffered: invalid comm handle");
+   throw std::runtime_error("abstractCommHandle::buffered: invalid comm handle");
    
  bool val(buffered()); // return previous state
 
@@ -234,12 +234,12 @@ bool abstractCommHandle::buffered(bool flag, size_t bytes) throw()
 }   
 
 // attach to external buffer, don't transfer ownership:
-bool abstractCommHandle::buffered(unsigned char *begin, unsigned char *end) throw()
+bool abstractCommHandle::buffered(unsigned char *begin, unsigned char *end)
 {
  if (!valid())
-   throw std::string("abstractCommHandle::buffered: invalid comm handle");
+   throw std::runtime_error("abstractCommHandle::buffered: invalid comm handle");
  if (reading() && writing())
-   throw std::string("abstractCommHandle::buffered: read/write mode requires two buffers");
+   throw std::runtime_error("abstractCommHandle::buffered: read/write mode requires two buffers");
 
  bool val(buffered()); // return previous state
 
@@ -256,15 +256,15 @@ bool abstractCommHandle::buffered(unsigned char *begin, unsigned char *end) thro
 
 // attach to external buffers, don't transfer ownership:
 bool abstractCommHandle::buffered(unsigned char *beginRead, unsigned char *endRead,
-              unsigned char *beginWrite, unsigned char *endWrite) throw()
+              unsigned char *beginWrite, unsigned char *endWrite)
 {
  if (!valid())
-   throw std::string("abstractCommHandle::buffered: invalid comm handle");
+   throw std::runtime_error("abstractCommHandle::buffered: invalid comm handle");
  if (!(reading() && writing()))
-   throw std::string("abstractCommHandle::buffered: read-only or write-only mode requires one buffer");
+   throw std::runtime_error("abstractCommHandle::buffered: read-only or write-only mode requires one buffer");
  if (!( ((beginRead < endRead) && (endRead <= beginWrite) && (beginWrite < endWrite))
        ||((beginWrite < endWrite) && (endWrite <= beginRead) && (beginRead < endRead))))
-   throw std::string("abstractCommHandle::buffered: read and write buffers must be disjoint");
+   throw std::runtime_error("abstractCommHandle::buffered: read and write buffers must be disjoint");
     
  bool val(buffered()); // return previous state
              
@@ -288,7 +288,7 @@ bool abstractCommHandle::partialBufferTransfer(void) const
  return true;
 }
     
-void abstractCommHandle::close(void) throw()
+void abstractCommHandle::close(void)
 {
   // in general case: nothing to do; 
   //   however, do not _require_ implementation of this method.
@@ -324,7 +324,7 @@ fileHandle::fileHandle(void)
 {}
 
 // allocate on heap:
-fileHandle* fileHandle::open(const char *filename, const char *mode) throw()
+fileHandle* fileHandle::open(const char *filename, const char *mode)
 {
  int flags_(O_SYNC); 
 
@@ -337,7 +337,7 @@ fileHandle* fileHandle::open(const char *filename, const char *mode) throw()
  if (NULL != std::strchr(mode,'w'))
    flags_ = flags_ | O_WRONLY | O_CREAT;
  else
-   throw std::string("fileHandle::open: one of \"+\", \"r\", or \"w\" must be specified in the mode string");  
+   throw std::runtime_error("fileHandle::open: one of \"+\", \"r\", or \"w\" must be specified in the mode string");  
 	
  if (NULL != std::strchr(mode,'a'))
    flags_ = flags_ | O_APPEND;
@@ -351,7 +351,7 @@ fileHandle* fileHandle::open(const char *filename, const char *mode) throw()
 }
 
 // allocate on heap:
-fileHandle* fileHandle::open(const char* pathname, int flags, mode_t mode) throw()
+fileHandle* fileHandle::open(const char* pathname, int flags, mode_t mode)
 {
  fileHandle *h(new fileHandle);
 
@@ -414,7 +414,7 @@ fileHandle* fileHandle::open(const char* pathname, int flags, mode_t mode) throw
 		   h = NULL; // could return NULL if fp invalid, but for now, we will throw, to be consistent with processCommHandle::open
 		 }
      #if 0
-		 throw std::string("fileHandle::open: unable to open file ") + pathname;
+		 throw std::runtime_error("fileHandle::open: unable to open file ") + pathname;
      #else
      // *** DEBUG ***
      std::ostringstream oss;
@@ -423,7 +423,7 @@ fileHandle* fileHandle::open(const char* pathname, int flags, mode_t mode) throw
        <<"  state: "<<state<<"\n"
        <<"  flags: "<<std::oct<<flags<<"\n"
        <<"  mode:  "<<std::oct<<mode;
-     throw oss.str();
+     throw std::runtime_error(oss.str());
      #endif
  } 	 
 
@@ -431,7 +431,7 @@ fileHandle* fileHandle::open(const char* pathname, int flags, mode_t mode) throw
 }
 
 // file exists:
-bool fileHandle::exists(const char *fileName) throw()
+bool fileHandle::exists(const char *fileName)
 {
   struct stat sTestBuf;
   bool val=true;
@@ -443,7 +443,7 @@ bool fileHandle::exists(const char *fileName) throw()
 }
 
 // is directory:
-bool fileHandle::isDirectory(const char *fileName) throw()
+bool fileHandle::isDirectory(const char *fileName)
 {
   struct stat sTestBuf;
   bool val=true;
@@ -457,18 +457,18 @@ bool fileHandle::isDirectory(const char *fileName) throw()
 }
 
 // file size:
-size_t fileHandle::sizeOnMedia(const char *fileName) throw()
+size_t fileHandle::sizeOnMedia(const char *fileName)
 {
   struct stat sTestBuf;
   
   if ( -1==stat( fileName, &sTestBuf ) && (ENOENT==errno) ) // file not found in any form
-    throw std::string("fileHandle::sizeOnMedia: file not found");  
+    throw std::runtime_error("fileHandle::sizeOnMedia: file not found");  
      
   return static_cast<size_t>(sTestBuf.st_size);
 }
 
 // from an existing (open) file-descriptor:
-fileHandle* fileHandle::clone(int fd) throw()
+fileHandle* fileHandle::clone(int fd)
 {
  fileHandle *h(new fileHandle);
  
@@ -479,7 +479,7 @@ fileHandle* fileHandle::clone(int fd) throw()
      const int OPEN_MODE(O_RDONLY|O_WRONLY|O_RDWR); // mask: these are not flag-bits
      int flags = /* std:: */ fcntl(fd, F_GETFL );
 		 if (-1 == flags)
-		   throw std::string("fileHandle::clone: fcntl error");
+		   throw std::runtime_error("fileHandle::clone: fcntl error");
 			 
   	 if ((flags & OPEN_MODE) == O_RDONLY)
 	  	 h->flags(READING);
@@ -490,7 +490,7 @@ fileHandle* fileHandle::clone(int fd) throw()
 		 if ((flags & OPEN_MODE) == O_RDWR)
 		   h->flags(READING|WRITING); 
 		 else
-		   throw std::string("fileHandle::clone: unsupported file open state ( not read-only, write-only, or read/write )"); 
+		   throw std::runtime_error("fileHandle::clone: unsupported file open state ( not read-only, write-only, or read/write )"); 
 			 
   	 h->valid(true);
 	 }
@@ -500,10 +500,10 @@ fileHandle* fileHandle::clone(int fd) throw()
  return h;
 }
 
-size_t fileHandle::read(void *ptr, size_t size, size_t nitems) throw()
+size_t fileHandle::read(void *ptr, size_t size, size_t nitems)
 { 
  if (!valid() || !reading() ) 
-   throw std::string("fileHandle::read: invalid handle or not open for read");
+   throw std::runtime_error("fileHandle::read: invalid handle or not open for read");
  size_t val(0);
  if (readBuffered())
    val = bufferedRead(ptr, size, nitems);
@@ -519,7 +519,7 @@ size_t fileHandle::read(void *ptr, size_t size, size_t nitems) throw()
      struct stat finfo;
      off_t current_offset(static_cast<off_t>(-1));
      if ((-1 == ::fstat(fd_, &finfo)) || (static_cast<off_t>(-1) == (current_offset = ::lseek(fd_, 0, SEEK_CUR))))
-       throw std::string("fileHandle::read: I/O error: fstat or lseek error return");
+       throw std::runtime_error("fileHandle::read: I/O error: fstat or lseek error return");
      if (count > static_cast<size_t>(finfo.st_size - current_offset))
        count = static_cast<size_t>(finfo.st_size - current_offset);        
    }
@@ -535,7 +535,7 @@ size_t fileHandle::read(void *ptr, size_t size, size_t nitems) throw()
        buf += bytes_read;
      } 
      else
-       throw std::string("fileHandle::read: I/O error (or zero-length file)");  
+       throw std::runtime_error("fileHandle::read: I/O error (or zero-length file)");  
    }
    while (count > 0);
    val = nitems;
@@ -543,10 +543,10 @@ size_t fileHandle::read(void *ptr, size_t size, size_t nitems) throw()
  return val;
 }
 
-size_t fileHandle::write(const void *ptr, size_t size, size_t nitems) throw()
+size_t fileHandle::write(const void *ptr, size_t size, size_t nitems)
 { 
  if (!valid() || !writing() ) 
-   throw std::string("fileHandle::write( const void*, size_t, size_t ): invalid handle or not open for write");
+   throw std::runtime_error("fileHandle::write( const void*, size_t, size_t ): invalid handle or not open for write");
  size_t val(0);
  if (writeBuffered())
    val = bufferedWrite(ptr, size, nitems);
@@ -562,7 +562,7 @@ size_t fileHandle::write(const void *ptr, size_t size, size_t nitems) throw()
        buf += bytes_written;
      } 
      else
-       throw std::string("fileHandle::write: I/O error");  
+       throw std::runtime_error("fileHandle::write: I/O error");  
    }
    while (count > 0);
    val = nitems; 
@@ -570,11 +570,11 @@ size_t fileHandle::write(const void *ptr, size_t size, size_t nitems) throw()
  return val;
 }
 
-void fileHandle::close(void) throw()
+void fileHandle::close(void)
 {
  if (fd_ != -1){
    if (-1 == ::close(fd_))
-     throw std::string("fileHandle::~fileHandle: error closing file-descriptor");
+     throw std::runtime_error("fileHandle::~fileHandle: error closing file-descriptor");
 	 fd_ = -1;
  } 
 }
@@ -591,26 +591,26 @@ fileHandle::~fileHandle(void)
 }
 
 
-void fileHandle::seek(long offset, int whence) throw()
+void fileHandle::seek(long offset, int whence)
 {
  if (!valid())
-   throw std::string("fileHandle::seek( long, int ): invalid handle");
+   throw std::runtime_error("fileHandle::seek( long, int ): invalid handle");
  if (off_t(-1) == ::lseek(fd_, static_cast<off_t>(offset), whence))
-   throw std::string("fileHandle::seek: I/O error"); 
+   throw std::runtime_error("fileHandle::seek: I/O error"); 
 }
     
-long fileHandle::tell(void) throw()
+long fileHandle::tell(void)
 {
  if (!valid())
-   throw std::string("fileHandle::tell(void): invalid handle");
+   throw std::runtime_error("fileHandle::tell(void): invalid handle");
  off_t offset = ::lseek(fd_, 0, SEEK_CUR);
  if (offset == off_t(-1))
-   throw std::string("fileHandle::tell: I/O error");
+   throw std::runtime_error("fileHandle::tell: I/O error");
      
  long pos = static_cast<long>(offset);
  if (buffered()){
    if (reading() && writing())
-     throw std::string("fileHandle::tell: not implemented for simultaneous buffered read/write mode");
+     throw std::runtime_error("fileHandle::tell: not implemented for simultaneous buffered read/write mode");
    if (reading())
      pos -= readBufAvail();
    else
@@ -635,16 +635,16 @@ bool memoryCommHandle::transferBufferHeader(void) const
 bool memoryCommHandle::partialBufferTransfer(void) const
 { return true; }
 		
-size_t memoryCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
+size_t memoryCommHandle::read(void *ptr, size_t size, size_t nitems)
 { 
  if (!valid() || !reading() ) 
-   throw std::string("memoryCommHandle::read( void*, size_t, size_t ): invalid handle or not open for read");
+   throw std::runtime_error("memoryCommHandle::read( void*, size_t, size_t ): invalid handle or not open for read");
  size_t val(0);
  if (readBuffered())
    val = bufferedRead(ptr, size, nitems);
  else{
    if (size*nitems > buf_remaining())
-     throw std::string("memoryCommHandle::read: buffer underflow");   
+     throw std::runtime_error("memoryCommHandle::read: buffer underflow");   
    uchar_alias *ptr_(reinterpret_cast<uchar_alias*>(ptr));
    copy_(cp_, cp_ + size*nitems, ptr_);
    cp_ += size*nitems;
@@ -653,16 +653,16 @@ size_t memoryCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
  return val;
 }
 
-size_t memoryCommHandle::write(const void *ptr, size_t size, size_t nitems) throw()
+size_t memoryCommHandle::write(const void *ptr, size_t size, size_t nitems)
 {
  if (!valid() || !writing() ) 
-   throw std::string("memoryCommHandle::write( const void*, size_t, size_t ): invalid handle or not open for write");
+   throw std::runtime_error("memoryCommHandle::write( const void*, size_t, size_t ): invalid handle or not open for write");
  size_t val(0);
  if (writeBuffered())
    val = bufferedWrite(ptr, size, nitems);
  else{
    if (size*nitems > buf_remaining())
-     throw std::string("memoryCommHandle::write: buffer overflow");
+     throw std::runtime_error("memoryCommHandle::write: buffer overflow");
    const uchar_alias *ptr_(reinterpret_cast<const uchar_alias*>(ptr));
    copy_(ptr_, ptr_ + size*nitems, cp_);
    cp_ += size*nitems;
@@ -672,7 +672,7 @@ size_t memoryCommHandle::write(const void *ptr, size_t size, size_t nitems) thro
 }
 
 // allocate on heap (local structures, _excepting_ buffer itself):
-memoryCommHandle* memoryCommHandle::open(void *buffer, size_t buf_size, const char *mode) throw()
+memoryCommHandle* memoryCommHandle::open(void *buffer, size_t buf_size, const char *mode)
 {
  memoryCommHandle *h(new memoryCommHandle);
 
@@ -705,7 +705,7 @@ memoryCommHandle* memoryCommHandle::open(void *buffer, size_t buf_size, const ch
 		   delete h;
 		   h = NULL; // could return NULL if fp invalid, but for now, we will throw, to be consistent with processCommHandle::open
 		 }
-		 throw std::string("memoryCommHandle::open: invalid buffer or mode specified");
+		 throw std::runtime_error("memoryCommHandle::open: invalid buffer or mode specified");
  } 	 
 
  return h;
@@ -748,10 +748,10 @@ processCommHandle::processCommHandle(int rank, const MPI::Comm& comm, int tag, T
  #endif
 }
 
-size_t processCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
+size_t processCommHandle::read(void *ptr, size_t size, size_t nitems)
 { 
  if (!valid() || !reading()) 
-   throw std::string("processCommHandle::read( void*, size_t, size_t ): invalid handle or not open for read");
+   throw std::runtime_error("processCommHandle::read( void*, size_t, size_t ): invalid handle or not open for read");
 
  size_t val(0);
  // MPI_TYPE_CONTIGUOUS(size, MPI_CHARACTER, datatype) 
@@ -764,7 +764,7 @@ size_t processCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
 			 while (!threadDataReady_){
 		  	 if ( pthread_cond_wait(&threadSignalCond_, &threadSignalMutex_) ){
 			  	 pthread_mutex_unlock(&threadSignalMutex_);
-			  	 throw std::string("processCommHandle::read: pthread_cond_wait error return");
+			  	 throw std::runtime_error("processCommHandle::read: pthread_cond_wait error return");
 				 }
 				 pthread_mutex_unlock(&threadSignalMutex_); // do not keep the mutex locked...
 			 }
@@ -804,12 +804,12 @@ size_t processCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
        // if current rank is same as rank_, we are the root, and for "read" this is an error. 
        // possibly also so for an intraComm: root's group: *** DEBUG *** to be implemented...
        if (pComm_->Get_rank() == rank_)
-         throw std::string("processCommHandle::read: can't BROADCAST mode to self"); 
+         throw std::runtime_error("processCommHandle::read: can't BROADCAST mode to self"); 
        
        // only an "MPI::Intracomm" can Bcast:
        const MPI::Intracomm* pIntracomm(dynamic_cast<const MPI::Intracomm*>(pComm_));
        if (NULL == pIntracomm)
-         throw std::string("processCommHandle::read: cast of communicator to derived type \"Intracomm\" fails");
+         throw std::runtime_error("processCommHandle::read: cast of communicator to derived type \"Intracomm\" fails");
        
        #if defined(__CHUNK_TRANSFER__) // break into small chunks:
        for(unsigned char *buf = reinterpret_cast<unsigned char *>(ptr), 
@@ -831,7 +831,7 @@ size_t processCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
      break;
 
      default:
-       throw std::string("processCommHandle::read: unknown transfer_type");
+       throw std::runtime_error("processCommHandle::read: unknown transfer_type");
      // break;
    }
  }
@@ -843,7 +843,7 @@ size_t processCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
    threadDataReady_ = false;
    if (pthread_cond_signal(&threadSignalCond_)){
 	   pthread_mutex_unlock(&threadSignalMutex_);
-		 throw std::string("processCommHandle::write: pthread_cond_signal error");
+		 throw std::runtime_error("processCommHandle::write: pthread_cond_signal error");
 	 }
 	 pthread_mutex_unlock(&threadSignalMutex_);
  }
@@ -852,10 +852,10 @@ size_t processCommHandle::read(void *ptr, size_t size, size_t nitems) throw()
  return val; // note: non-error return behavior for std::fread; however, errors throw exceptions
 }
 
-size_t processCommHandle::write(const void *ptr, size_t size, size_t nitems) throw()
+size_t processCommHandle::write(const void *ptr, size_t size, size_t nitems)
 { 
  if (!valid() || !writing()) 
-   throw std::string("processCommHandle::write( const void*, size_t, size_t ): invalid handle or not open for write");
+   throw std::runtime_error("processCommHandle::write( const void*, size_t, size_t ): invalid handle or not open for write");
 
  size_t val(0);
  
@@ -864,7 +864,7 @@ size_t processCommHandle::write(const void *ptr, size_t size, size_t nitems) thr
 			 while (threadDataReady_){
 		  	 if ( pthread_cond_wait(&threadSignalCond_, &threadSignalMutex_) ){
 			  	 pthread_mutex_unlock(&threadSignalMutex_);
-			  	 throw std::string("processCommHandle::read: pthread_cond_wait error return");
+			  	 throw std::runtime_error("processCommHandle::read: pthread_cond_wait error return");
 				 }
 				 pthread_mutex_unlock(&threadSignalMutex_); // do not keep the mutex locked...
 			 }
@@ -899,7 +899,7 @@ size_t processCommHandle::write(const void *ptr, size_t size, size_t nitems) thr
        // only an "MPI::Intracomm" can Bcast:
        const MPI::Intracomm* pIntracomm(dynamic_cast<const MPI::Intracomm*>(pComm_));
        if (NULL == pIntracomm)
-         throw std::string("processCommHandle::write: cast of communicator to derived type \"Intracomm\" fails");
+         throw std::runtime_error("processCommHandle::write: cast of communicator to derived type \"Intracomm\" fails");
    
        #if defined(__CHUNK_TRANSFER__) // break into small chunks:
        for(const unsigned char *buf = reinterpret_cast<const unsigned char *>(ptr), 
@@ -921,7 +921,7 @@ size_t processCommHandle::write(const void *ptr, size_t size, size_t nitems) thr
      break;
 
      default:
-       throw std::string("processCommHandle::write: unknown transfer_type");
+       throw std::runtime_error("processCommHandle::write: unknown transfer_type");
      // break;
    }
  }
@@ -933,7 +933,7 @@ size_t processCommHandle::write(const void *ptr, size_t size, size_t nitems) thr
    threadDataReady_ = true;
    if (pthread_cond_signal(&threadSignalCond_)){
 	   pthread_mutex_unlock(&threadSignalMutex_);
-		 throw std::string("processCommHandle::write: pthread_cond_signal error");
+		 throw std::runtime_error("processCommHandle::write: pthread_cond_signal error");
 	 }
 	 pthread_mutex_unlock(&threadSignalMutex_);
  }
@@ -942,19 +942,19 @@ size_t processCommHandle::write(const void *ptr, size_t size, size_t nitems) thr
  return val;  // note: non-error return behavior for std::fwrite; however, errors throw exceptions 
 }
 
-bool processCommHandle::readTag(abstractCommHandle *h_, int& tag) throw()
+bool processCommHandle::readTag(abstractCommHandle *h_, int& tag)
 { 
  processCommHandle *h( dynamic_cast<processCommHandle*>(h_) );
  
  if ((NULL == h) || !h->valid() || !h->reading()) 
-   throw std::string("processCommHandle::readTag(abstractCommHandle*, int&): invalid handle or not open for read");
+   throw std::runtime_error("processCommHandle::readTag(abstractCommHandle*, int&): invalid handle or not open for read");
 
  #if defined(__USE_PTHREAD) && 0
  if ( (h->rank() == 0) && (h->comm().Get_rank() == 0) && signalThreads() ){
 			 while (!threadDataReady_){
 		  	 if ( pthread_cond_wait(&threadSignalCond_, &threadSignalMutex_) ){
 			  	 pthread_mutex_unlock(&threadSignalMutex_);
-			  	 throw std::string("processCommHandle::readTag: pthread_cond_wait error return");
+			  	 throw std::runtime_error("processCommHandle::readTag: pthread_cond_wait error return");
 				 }
 				 pthread_mutex_unlock(&threadSignalMutex_); // do not keep the mutex locked...
 			 }
@@ -972,7 +972,7 @@ bool processCommHandle::readTag(abstractCommHandle *h_, int& tag) throw()
      if (tag == MPI::ANY_TAG){
 	     h->pComm_->Probe(h->rank_, MPI::ANY_TAG, status);
 	     if (status.Get_error() != MPI::SUCCESS)
-	  	    throw std::string("processCommHandle::readTag: MPI::Comm::Probe error return");
+	  	    throw std::runtime_error("processCommHandle::readTag: MPI::Comm::Probe error return");
 	     tag = status.Get_tag();
      }
 
@@ -981,11 +981,11 @@ bool processCommHandle::readTag(abstractCommHandle *h_, int& tag) throw()
    
    case BROADCAST:
      // Apparently, "BCast" uses the tag field.  I don't see any way to "Probe" this, so dissallow it:
-     throw std::string("processCommHandle::readTag: can't readTag with BROADCAST mode handle");
+     throw std::runtime_error("processCommHandle::readTag: can't readTag with BROADCAST mode handle");
    // break;
    
    default:
-     throw std::string("processCommHandle::readTag: unknown transfer_type");
+     throw std::runtime_error("processCommHandle::readTag: unknown transfer_type");
    // break;
  }
 
@@ -998,7 +998,7 @@ bool processCommHandle::readTag(abstractCommHandle *h_, int& tag) throw()
    threadDataReady_ = false;
    if (pthread_cond_signal(&threadSignalCond_)){
 	   pthread_mutex_unlock(&threadSignalMutex_);
-		 throw std::string("processCommHandle::readTag: pthread_cond_signal error");
+		 throw std::runtime_error("processCommHandle::readTag: pthread_cond_signal error");
 	 }
 	 pthread_mutex_unlock(&threadSignalMutex_);
  }
@@ -1008,19 +1008,19 @@ bool processCommHandle::readTag(abstractCommHandle *h_, int& tag) throw()
 }
 
 
-bool processCommHandle::writeTag(abstractCommHandle *h_, int tag) throw()
+bool processCommHandle::writeTag(abstractCommHandle *h_, int tag)
 { 
  processCommHandle *h( dynamic_cast<processCommHandle*>(h_) );
 
  if ((NULL == h) || !h->valid() || !h->writing()) 
-   throw std::string("processCommHandle::writeTag(abstractCommHandle*, int): invalid handle or not open for write");
+   throw std::runtime_error("processCommHandle::writeTag(abstractCommHandle*, int): invalid handle or not open for write");
 
  #if defined(__USE_PTHREAD) && 0
  if ( (h->rank() == 0) && (h->comm().Get_rank() == 0) && signalThreads() ){
 			 while (threadDataReady_){
 		  	 if ( pthread_cond_wait(&threadSignalCond_, &threadSignalMutex_) ){
 			  	 pthread_mutex_unlock(&threadSignalMutex_);
-			  	 throw std::string("processCommHandle::readTag: pthread_cond_wait error return");
+			  	 throw std::runtime_error("processCommHandle::readTag: pthread_cond_wait error return");
 				 }
 				 pthread_mutex_unlock(&threadSignalMutex_); // do not keep the mutex locked...
 			 }
@@ -1038,11 +1038,11 @@ bool processCommHandle::writeTag(abstractCommHandle *h_, int tag) throw()
    
    case BROADCAST:
      // Apparently, "BCast" uses the tag field.  I don't see any way to "Probe" this, so dissallow it:
-     throw std::string("processCommHandle::writeTag: can't writeTag with BROADCAST mode handle");
+     throw std::runtime_error("processCommHandle::writeTag: can't writeTag with BROADCAST mode handle");
    // break;
    
    default:
-     throw std::string("processCommHandle::writeTag: unknown transfer_type");
+     throw std::runtime_error("processCommHandle::writeTag: unknown transfer_type");
    // break;
  }
 
@@ -1053,7 +1053,7 @@ bool processCommHandle::writeTag(abstractCommHandle *h_, int tag) throw()
    threadDataReady_ = true;
    if (pthread_cond_signal(&threadSignalCond_)){
 	   pthread_mutex_unlock(&threadSignalMutex_);
-		 throw std::string("processCommHandle::write: pthread_cond_signal error");
+		 throw std::runtime_error("processCommHandle::write: pthread_cond_signal error");
 	 }
 	 pthread_mutex_unlock(&threadSignalMutex_);
  }
@@ -1063,7 +1063,7 @@ bool processCommHandle::writeTag(abstractCommHandle *h_, int tag) throw()
 }
 
 // allocate on heap, allow only modes that make sense for processes:
-processCommHandle* processCommHandle::open(const int rank, const MPI::Comm& comm, const char *mode, int tag, TRANSFER_KIND transfer_type) throw()
+processCommHandle* processCommHandle::open(const int rank, const MPI::Comm& comm, const char *mode, int tag, TRANSFER_KIND transfer_type)
 { 
  processCommHandle *h(new processCommHandle(rank, comm, tag, transfer_type));
 
@@ -1081,7 +1081,7 @@ processCommHandle* processCommHandle::open(const int rank, const MPI::Comm& comm
 		   // rank is _destination_ rank:
 		   h->flags(WRITING);
      else
-       throw std::string("processCommHandle::open: one of \"+\", \"r\", or \"w\" must be specified in the mode string");  
+       throw std::runtime_error("processCommHandle::open: one of \"+\", \"r\", or \"w\" must be specified in the mode string");  
 
     h->valid(true);
  }
@@ -1112,17 +1112,17 @@ pthread_cond_t processCommHandle::threadSignalCond_ = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t processCommHandle::threadSignalMutex_ = PTHREAD_MUTEX_INITIALIZER;
 #endif	
 
-void processCommHandle::attachMPISendBuffer(size_t bufSize) throw()
+void processCommHandle::attachMPISendBuffer(size_t bufSize)
 {
  if (NULL != MPIsendBuffer_)
    detachMPISendBuffer();
  MPIsendBuffer_ = std::malloc(bufSize);
  if (NULL == MPIsendBuffer_)
-   throw std::string("processCommHandle::attachMPISendBuffer: can't allocate buffer");
+   throw std::runtime_error("processCommHandle::attachMPISendBuffer: can't allocate buffer");
  MPI::Attach_buffer(MPIsendBuffer_, bufSize); 
 }
 
-void processCommHandle::detachMPISendBuffer(void) throw()
+void processCommHandle::detachMPISendBuffer(void)
 {
  if (NULL != MPIsendBuffer_){
    MPI::Detach_buffer(MPIsendBuffer_);
@@ -1137,7 +1137,7 @@ bool processCommHandle::MPIbuffered(void)
 #endif // -------------------------- end, MPI ONLY SECTION -------------------------------------
 
 // cannot use _other_ read/write methods which may not have been declared yet:
-bool readBinary(abstractCommHandle* h, std::string& s) throw()
+bool readBinary(abstractCommHandle* h, std::string& s)
 {
  bool status(true);
  size_t N(0);
@@ -1150,7 +1150,7 @@ bool readBinary(abstractCommHandle* h, std::string& s) throw()
  return status;	  
 }
 
-bool writeBinary(abstractCommHandle* h, const std::string& s) throw()
+bool writeBinary(abstractCommHandle* h, const std::string& s)
 {
  bool status(true);
  const size_t N(s.size());
@@ -1162,7 +1162,7 @@ bool writeBinary(abstractCommHandle* h, const std::string& s) throw()
  return status;	  
 }
 
-size_t binarySize(const std::string& s) throw()
+size_t binarySize(const std::string& s)
 {
   size_t val(0);
 

@@ -96,7 +96,7 @@ class python_deallocator{
      *     other source modules (and in-fact in the header), must ensure:
      *       extern template class python_deallocator<T>;
      */
-    static PyObject* registered_type_object(void) throw(python_error);
+    static PyObject* registered_type_object(void);
 
     /**
      * @brief Implicitely create a python_deallocator and attach to the owner python-object (which must be an array):
@@ -104,7 +104,7 @@ class python_deallocator{
      *     when this object is destroyed the dealloc_ method will be called
      *   @param[in] ptr  pointer to allocated data controlled by this deallocator
      */
-    static void attach_deallocator(PyObject *owner, T* ptr) throw(python_error);
+    static void attach_deallocator(PyObject *owner, T* ptr);
 
 }; // class python_deallocator
 
@@ -175,7 +175,7 @@ struct python_array_flags<const T>{
  *   @return  new reference to the python object
  */
 template <class T>
-PyObject* insert(const T& t) throw(python_error);
+PyObject* insert(const T& t);
 
 /**
  * @brief: Convert a pointer to type T to python/numpy array object.
@@ -190,13 +190,13 @@ PyObject* insert(const T& t) throw(python_error);
  *   Usage note: shape specification of multidimensional arrays should be completed outside of this method.
  */
 template <class T>
-PyObject* insert(T* ptr, size_t len, bool transfer_ownership=false) throw(python_error, std::runtime_error);
+PyObject* insert(T* ptr, size_t len, bool transfer_ownership=false);
 
 /**
  * @brief Convert an ntuple<T,DIM> to a python object as a python array.
  */
 template <class T,size_t DIM>
-PyObject* insert(const linalg::ntuple<T,DIM>& src) throw(python_error, std::runtime_error);
+PyObject* insert(const linalg::ntuple<T,DIM>& src);
 
 /**
  * @brief: Convert simple_object_base* to python object, using the specified number types (const version).
@@ -210,7 +210,7 @@ PyObject* insert(const linalg::ntuple<T,DIM>& src) throw(python_error, std::runt
  *   @return  new reference to the python object
  */
 template <class C, class R, class Z>
-PyObject* insert(const simple_object_base* src) throw(python_error);
+PyObject* insert(const simple_object_base* src);
 
 #if 0 
 // -------------- not finished yet: ------------------------------------
@@ -221,7 +221,7 @@ PyObject* insert(const simple_object_base* src) throw(python_error);
  *   converts to python/numpy array type
  */
 template <class U>
-PyObject* insert(const U& u) throw(python_error);
+PyObject* insert(const U& u);
 #endif
 
 /**
@@ -230,7 +230,7 @@ PyObject* insert(const U& u) throw(python_error);
  *   @return converted value
  */
 template <class T>
-T extract(const PyObject* object) throw(python_error);
+T extract(const PyObject* object);
 
 /**
  * @brief: Convert a python/numpy array object to a pointer to type T.
@@ -245,21 +245,21 @@ T extract(const PyObject* object) throw(python_error);
  *   Usage note: shape specification for multidimensional arrays must be obtained outside of this method.
  */
 template <class T>
-void extract(T*& ptr, size_t& len, const PyObject* src, bool own_data) throw(python_error, std::runtime_error);
+void extract(T*& ptr, size_t& len, const PyObject* src, bool own_data);
 
 
 /**
  * @brief: Convert a python/numpy array object to a pointer to type T: const version.
  */
 template <class T>
-inline void extract(const T*& ptr, size_t& len, const PyObject* src, bool own_data) throw(python_error, std::runtime_error)
+inline void extract(const T*& ptr, size_t& len, const PyObject* src, bool own_data)
 { extract<T>(const_cast<T*&>(ptr), len, src, own_data); }
 
 /**
  * @brief Convert a python array object to an ntuple<T,DIM>.
  */
 template <class T,size_t DIM>
-void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src) throw(python_error, std::runtime_error);
+void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src);
 
 /**
  * @brief Convert a python object to  a simple_object, using the specified number classes.
@@ -268,7 +268,7 @@ void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src) throw(python_erro
  *      this is enforced at the non-const simple_object_base::ptr<T>() method. 
  */
 template <class C, class R, class Z>
-simple_object_base* extract(const PyObject* object) throw(python_error);
+simple_object_base* extract(const PyObject* object);
 
 #if 0 
 // -------------- not finished yet: ------------------------------------
@@ -280,7 +280,7 @@ simple_object_base* extract(const PyObject* object) throw(python_error);
  *   It is an error if all sub-objects in the sequences are not of type convertible to linalg_traits<U>::value_type.
  */
 template <class U>
-void extract(const PyObject* object, U& u) throw(python_error);
+void extract(const PyObject* object, U& u);
 #endif
 
 template <class C, class R, class Z>
@@ -298,7 +298,7 @@ template <class C, class R, class Z>
 void write_pickle(const std::string& filename, const simple_object_base *src);
 
 
-std::string python_error_string(void) throw();
+std::string python_error_string(void);
 
 void unload_interpreter(void);
 
@@ -321,13 +321,13 @@ bool type_check<size_t>(const PyObject* src);
  *    See: "simple_object_base::set_default_extractor" method.
  */
 template < >
-simple_object_base* extract<simple_object_base*>(const PyObject* src) throw(python_error);
+simple_object_base* extract<simple_object_base*>(const PyObject* src);
 
 template < >
-bool extract<bool>(const PyObject* src) throw(python_error);
+bool extract<bool>(const PyObject* src);
 
 template < >
-std::string extract<std::string>(const PyObject* src) throw(python_error);
+std::string extract<std::string>(const PyObject* src);
 
 #if 0 
 // -------------- not finished yet: ------------------------------------
@@ -339,7 +339,7 @@ std::string extract<std::string>(const PyObject* src) throw(python_error);
  *   It is an error if all sub-objects in the sequences are not of type convertible to type T.
  */
 template <class T,size_t DIM>
-void extract(const PyObject* object, std::vector<ntuple<T,DIM> >& v) throw(python_error);
+void extract(const PyObject* object, std::vector<ntuple<T,DIM> >& v);
 
 /**
  * @brief: Convert python object to dense_vector_ref.
@@ -354,9 +354,9 @@ void extract(const PyObject* object, std::vector<ntuple<T,DIM> >& v) throw(pytho
  *    .
  */
 template <class PT>
-void extract(const PyObject* object, gmm::dense_vector_ref<PT>& v) throw(python_error);
+void extract(const PyObject* object, gmm::dense_vector_ref<PT>& v);
 template <class T,size_t DIM>
-void extract(const PyObject* object, gmm::dense_vector_ref<linalg::ntuple<T,DIM>*>& v) throw(python_error);
+void extract(const PyObject* object, gmm::dense_vector_ref<linalg::ntuple<T,DIM>*>& v);
 
 /**
  * @brief: Convert python object to dense_vector_ref with associated shape information.
@@ -372,9 +372,9 @@ void extract(const PyObject* object, gmm::dense_vector_ref<linalg::ntuple<T,DIM>
  *    .
  */
 template <class PT,size_t DIM>
-void extract(const PyObject* object, gmm::dense_vector_ref<PT>& v, ntuple<size_t,DIM>& shape) throw(python_error);
+void extract(const PyObject* object, gmm::dense_vector_ref<PT>& v, ntuple<size_t,DIM>& shape);
 template <class T,size_t DIM1,size_t DIM2>
-void extract(const PyObject* object, gmm::dense_vector_ref<ntuple<T,DIM2>*>& v, ntuple<size_t,DIM1>& shape) throw(python_error);
+void extract(const PyObject* object, gmm::dense_vector_ref<ntuple<T,DIM2>*>& v, ntuple<size_t,DIM1>& shape);
 
 /**
  * @brief: Convert python object to dense_matrix_ref.
@@ -390,9 +390,9 @@ void extract(const PyObject* object, gmm::dense_vector_ref<ntuple<T,DIM2>*>& v, 
  *    .
  */
 template <class PT>
-void extract(const PyObject* object, gmm::dense_matrix_ref<PT>& m) throw(python_error);
+void extract(const PyObject* object, gmm::dense_matrix_ref<PT>& m);
 template <class T,size_t DIM>
-void extract(const PyObject* object, gmm::dense_matrix_ref<ntuple<T,DIM>*>& m) throw(python_error);
+void extract(const PyObject* object, gmm::dense_matrix_ref<ntuple<T,DIM>*>& m);
  
 // ------------- end: not finished yet: ------------------------------------
 #endif
@@ -405,13 +405,13 @@ void extract(const PyObject* object, gmm::dense_matrix_ref<ntuple<T,DIM>*>& m) t
  *      data-ownership will be transferred to the python object if possible.
  */
 template < >
-PyObject* insert<simple_object_base* const>(simple_object_base* const& src) throw(python_error);
+PyObject* insert<simple_object_base* const>(simple_object_base* const& src);
 
 template < >
-PyObject* insert<bool>(const bool& flag) throw(python_error);
+PyObject* insert<bool>(const bool& flag);
 
 template < >
-PyObject* insert<std::string>(const std::string& s) throw(python_error);
+PyObject* insert<std::string>(const std::string& s);
 
 
 #if 0 
@@ -424,7 +424,7 @@ PyObject* insert<std::string>(const std::string& s) throw(python_error);
  *     - converts to python/numpy array type.
  */
 template <class T,size_t DIM>
-PyObject* insert(const std::vector<ntuple<T,DIM> >& v) throw(python_error);
+PyObject* insert(const std::vector<ntuple<T,DIM> >& v);
 
 /**
  * @brief: Convert dense_vector_ref to python object.
@@ -439,9 +439,9 @@ PyObject* insert(const std::vector<ntuple<T,DIM> >& v) throw(python_error);
  *    .
  */
 template <class PT>
-PyObject* insert(const gmm::dense_vector_ref<PT>& v) throw(python_error);
+PyObject* insert(const gmm::dense_vector_ref<PT>& v);
 template <class T,size_t DIM>
-PyObject* insert(const gmm::dense_vector_ref<ntuple<T,DIM>*>& v) throw(python_error);
+PyObject* insert(const gmm::dense_vector_ref<ntuple<T,DIM>*>& v);
 
 /**
  * @brief: Convert dense_vector_ref to python N-dimensional array of requested shape.
@@ -457,9 +457,9 @@ PyObject* insert(const gmm::dense_vector_ref<ntuple<T,DIM>*>& v) throw(python_er
  *    .
  */
 template <class PT,size_t DIM>
-PyObject* insert(const gmm::dense_vector_ref<PT>& v, ntuple<size_t,DIM>& shape) throw(python_error);
+PyObject* insert(const gmm::dense_vector_ref<PT>& v, ntuple<size_t,DIM>& shape);
 template <class T,size_t DIM1,size_t DIM2>
-PyObject* insert(const gmm::dense_vector_ref<ntuple<T,DIM2>*>& v, ntuple<size_t,DIM1>& shape) throw(python_error);
+PyObject* insert(const gmm::dense_vector_ref<ntuple<T,DIM2>*>& v, ntuple<size_t,DIM1>& shape);
 
 /**
  * @brief: Convert dense_matrix_ref to python object.
@@ -474,9 +474,9 @@ PyObject* insert(const gmm::dense_vector_ref<ntuple<T,DIM2>*>& v, ntuple<size_t,
  *    .
  */
 template <class PT>
-PyObject* insert(const gmm::dense_matrix_ref<PT>& m) throw(python_error);
+PyObject* insert(const gmm::dense_matrix_ref<PT>& m);
 template <class T,size_t DIM>
-PyObject* insert(const gmm::dense_matrix_ref<ntuple<T,DIM>*>& m) throw(python_error);
+PyObject* insert(const gmm::dense_matrix_ref<ntuple<T,DIM>*>& m);
 
 // -------------- end: not finished yet: ------------------------------------
 #endif
@@ -535,28 +535,28 @@ int datatype_enum<size_t>(void);
 
 
 template < >
-PyObject* insert<std::complex<double>, double, long>(const simple_object_base* src) throw(python_error);
+PyObject* insert<std::complex<double>, double, long>(const simple_object_base* src);
 
 template < >
-PyObject* insert<std::complex<double> >(const std::complex<double>& c) throw(python_error);
+PyObject* insert<std::complex<double> >(const std::complex<double>& c);
 template < >
-PyObject* insert<double>(const double& r) throw(python_error);
+PyObject* insert<double>(const double& r);
 template < >
-PyObject* insert<long>(const long& z) throw(python_error);
-
-
-template < >
-simple_object_base* extract<std::complex<double>, double, long>(const PyObject* object) throw(python_error);
+PyObject* insert<long>(const long& z);
 
 
 template < >
-std::complex<double> extract<std::complex<double> >(const PyObject* object) throw(python_error);
+simple_object_base* extract<std::complex<double>, double, long>(const PyObject* object);
+
 
 template < >
-double extract<double>(const PyObject* object) throw(python_error);
+std::complex<double> extract<std::complex<double> >(const PyObject* object);
 
 template < >
-long extract<long>(const PyObject* object) throw(python_error);
+double extract<double>(const PyObject* object);
+
+template < >
+long extract<long>(const PyObject* object);
 
 
 template <>
@@ -602,30 +602,30 @@ bool type_check<mere::Z*>(const PyObject* src);
 
 
 template < >
-PyObject* insert<mere::C, mere::R, mere::Z>(const simple_object_base* src) throw(python_error);
+PyObject* insert<mere::C, mere::R, mere::Z>(const simple_object_base* src);
 
 template < >
-PyObject* insert<mere::C>(const mere::C& c) throw(python_error);
+PyObject* insert<mere::C>(const mere::C& c);
 
 template < >
-PyObject* insert<mere::R>(const mere::R& r) throw(python_error);
+PyObject* insert<mere::R>(const mere::R& r);
 
 template < >
-PyObject* insert<mere::Z>(const mere::Z& z) throw(python_error);
+PyObject* insert<mere::Z>(const mere::Z& z);
 
 
 template < >
-simple_object_base* extract<mere::C, mere::R, mere::Z>(const PyObject* object) throw(python_error);
+simple_object_base* extract<mere::C, mere::R, mere::Z>(const PyObject* object);
 
 
 template <>
-mere::C extract<mere::C>(const PyObject* object) throw(python_error);
+mere::C extract<mere::C>(const PyObject* object);
 
 template <>
-mere::R extract<mere::R>(const PyObject* object) throw(python_error);
+mere::R extract<mere::R>(const PyObject* object);
 
 template <>
-mere::Z extract<mere::Z>(const PyObject* object) throw(python_error);
+mere::Z extract<mere::Z>(const PyObject* object);
 
 template <>
 void extract_simple_object<mere::C, mere::R, mere::Z>

@@ -27,13 +27,13 @@
 
 namespace commUtil{
       
-inline void abstractCommHandle::buffer::alloc(size_t size) throw()
+inline void abstractCommHandle::buffer::alloc(size_t size)
 {
  if (allocated())
    free();
  begin_ = new unsigned char[size + sizeof(header)];
  if (NULL == begin_)
-   throw std::string("abstractCommHandle::buffer::alloc: allocation error");
+   throw std::runtime_error("abstractCommHandle::buffer::alloc: allocation error");
  end_ = begin_ + (size + sizeof(header));
  set_data_size(end_ - begin_ - header_size()); // actually write the data_size into the buffer.
  ownsData_ = true;
@@ -41,12 +41,12 @@ inline void abstractCommHandle::buffer::alloc(size_t size) throw()
 }
 
 inline void abstractCommHandle::buffer::attach(unsigned char *begin,
-                                               unsigned char *end) throw()
+                                               unsigned char *end)
 {
  if (allocated())
    free();
  if ((NULL == begin) || (NULL == end) || (end < begin) || (static_cast<size_t>(end - begin) < header_size()))
-   throw std::string("abstractCommHandle::buffer::attach: invalid pointers");
+   throw std::runtime_error("abstractCommHandle::buffer::attach: invalid pointers");
  begin_ = begin;
  end_ = end;
  set_data_size(end_ - begin_ - header_size()); // actually write the data_size into the buffer.
@@ -68,16 +68,16 @@ inline void abstractCommHandle::buffer::free(void)
  }
 }
 
-inline void abstractCommHandle::buffer::init(size_t data_size_) throw()
+inline void abstractCommHandle::buffer::init(size_t data_size_)
 {
   set_data_size(data_size_);
   init();
 }
 
-inline void abstractCommHandle::buffer::init(void) throw()
+inline void abstractCommHandle::buffer::init(void)
 {
  if (data_size() > (end_ - begin_ - sizeof(header)))
-   throw std::string("abstractCommHandle::buffer::init: invalid data size");
+   throw std::runtime_error("abstractCommHandle::buffer::init: invalid data size");
  data_begin_ = begin_ + sizeof(header);
  data_end_ = data_begin_ + data_size();
  current_ = data_begin_;
@@ -91,10 +91,10 @@ inline size_t abstractCommHandle::buffer::data_size(void)const  // doesn't inclu
  return val;  
 }
 
-inline void abstractCommHandle::buffer::set_data_size(const size_t size) throw()
+inline void abstractCommHandle::buffer::set_data_size(const size_t size)
 {
  if (!allocated())
-   throw std::string("abstractCommHandle::buffer::set_data_size: can't set data_size of unallocated buffer");         
+   throw std::runtime_error("abstractCommHandle::buffer::set_data_size: can't set data_size of unallocated buffer");         
  header &data_size_(*reinterpret_cast<header*>(begin_));
  data_size_.size_ = size;
 } 
@@ -191,7 +191,7 @@ inline bool abstractCommHandle::reading(void) const { return flags_&READING; }
 inline bool abstractCommHandle::writing(void) const { return flags_&WRITING; }
 	
 // assume "h" on heap:
-inline void abstractCommHandle::close(abstractCommHandle*& h) throw()
+inline void abstractCommHandle::close(abstractCommHandle*& h)
 {
  if (h != NULL){
    h->close();
@@ -200,38 +200,38 @@ inline void abstractCommHandle::close(abstractCommHandle*& h) throw()
  h = NULL;	 
 }
 		
-inline size_t read(void *ptr, size_t size, size_t nitems, abstractCommHandle* h) throw() { return h->read(ptr, size, nitems); }
+inline size_t read(void *ptr, size_t size, size_t nitems, abstractCommHandle* h) { return h->read(ptr, size, nitems); }
 
-inline size_t write(const void *ptr, size_t size, size_t nitems, abstractCommHandle* h) throw() { return h->write(ptr, size, nitems); }
+inline size_t write(const void *ptr, size_t size, size_t nitems, abstractCommHandle* h) { return h->write(ptr, size, nitems); }
 
-inline void close(abstractCommHandle*& h) throw() { abstractCommHandle::close(h); }
+inline void close(abstractCommHandle*& h) { abstractCommHandle::close(h); }
 
 
 		
 // from an existing (open) stream:
-inline fileHandle* fileHandle::clone(FILE *fp) throw()
+inline fileHandle* fileHandle::clone(FILE *fp)
 {
  return fileHandle::clone(fileno(fp));
 }
 
 
-inline abstractCommHandle* open(const char *filename, const char *mode) throw() { return fileHandle::open(filename, mode); }
+inline abstractCommHandle* open(const char *filename, const char *mode) { return fileHandle::open(filename, mode); }
 
-inline abstractCommHandle* open(const char *pathname, int flags, mode_t mode) throw() { return fileHandle::open(pathname, flags, mode); }
+inline abstractCommHandle* open(const char *pathname, int flags, mode_t mode) { return fileHandle::open(pathname, flags, mode); }
 
-inline void seek(abstractCommHandle* fp, long offset, int whence) throw()
+inline void seek(abstractCommHandle* fp, long offset, int whence)
 {
  fileHandle *fp_(dynamic_cast<fileHandle*>(fp));
  if (NULL == fp_)
-   throw std::string("commUtil::seek: cast to derived fileHandle* fails");
+   throw std::runtime_error("commUtil::seek: cast to derived fileHandle* fails");
  fp_->seek(offset,whence); 
 }
 
-inline long tell(abstractCommHandle* fp) throw()
+inline long tell(abstractCommHandle* fp)
 {
  fileHandle *fp_(dynamic_cast<fileHandle*>(fp));
  if (NULL == fp_)
-   throw std::string("commUtil::tell: cast to derived fileHandle* fails");
+   throw std::runtime_error("commUtil::tell: cast to derived fileHandle* fails");
  return fp_->tell(); 
 }
 

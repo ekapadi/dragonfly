@@ -80,12 +80,12 @@ inline bool generic_object<C,R,Z>::is(void)const
 
 template <class C, class R, class Z>
 template <class T>
-inline const T& generic_object<C,R,Z>::as(void)const throw(std::string)
+inline const T& generic_object<C,R,Z>::as(void)const
 { return ptr_->as<T>(); }
 
 template <class C, class R, class Z>
 template <class T>
-inline T& generic_object<C,R,Z>::as(void) throw(std::string)
+inline T& generic_object<C,R,Z>::as(void)
 { return ptr_->as<T>(); }
 #endif
  
@@ -107,7 +107,7 @@ inline simple_object_base* generic_object<C,R,Z>::ptr(void)
 
 
 template <class C, class R, class Z>
-inline bool generic_object<C,R,Z>::readBinary(commUtil::abstractCommHandle *fp) throw(std::string)
+inline bool generic_object<C,R,Z>::readBinary(commUtil::abstractCommHandle *fp)
 { 
   if (NULL != ptr_){
     // all re-allocation handled outside of "readBinaryVirtual": 
@@ -118,11 +118,11 @@ inline bool generic_object<C,R,Z>::readBinary(commUtil::abstractCommHandle *fp) 
 }
 
 template <class C, class R, class Z>
-inline bool generic_object<C,R,Z>::writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string)      
+inline bool generic_object<C,R,Z>::writeBinary(commUtil::abstractCommHandle *fp)const      
 { return simple_object_base::writeBinaryVirtual(fp, ptr_); }
 
 template <class C, class R, class Z>
-inline size_t generic_object<C,R,Z>::binarySize(void)const throw(std::string)
+inline size_t generic_object<C,R,Z>::binarySize(void)const
 { return simple_object_base::binarySizeVirtual(ptr_); }
 
 
@@ -132,7 +132,7 @@ inline size_t generic_object<C,R,Z>::binarySize(void)const throw(std::string)
  * @brief Convert a generic_object to a python object: returns a new reference.
  */
 template <class C, class R, class Z>
-inline PyObject* generic_object<C,R,Z>::insert(void)const throw(python_error)
+inline PyObject* generic_object<C,R,Z>::insert(void)const
 {
   return implementation_module::insert<C,R,Z>(ptr_);
 }
@@ -143,7 +143,7 @@ inline PyObject* generic_object<C,R,Z>::insert(void)const throw(python_error)
  * @brief Convert python object to a generic_object.
  */
 template <class C, class R, class Z>
-inline void generic_object<C,R,Z>::extract(const PyObject* src) throw(python_error)
+inline void generic_object<C,R,Z>::extract(const PyObject* src)
 {
   if (NULL != ptr_){
     delete ptr_;

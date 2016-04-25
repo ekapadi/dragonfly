@@ -162,9 +162,9 @@ class row_major_index: public ntuple<N, NDIM>{
     static bool wrap(const row_major_index& x1, const row_major_index& x2, const shape_type& shape,
                      row_major_index& wrap_dim);
 
-    bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-    bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-    size_t binarySize(void)const throw(std::string);
+    bool writeBinary(commUtil::abstractCommHandle* fp)const;
+    bool readBinary(commUtil::abstractCommHandle* fp);
+    size_t binarySize(void)const;
 
 #if !defined(__INTEL_COMPILER) && !defined(__PGI)
     /*
@@ -173,7 +173,7 @@ class row_major_index: public ntuple<N, NDIM>{
      */
     template <class R>
     static row_major_index<N,NDIM> ND_bin(const ntuple<R,NDIM>& p, const ntuple_interval<R,NDIM>& domain_cube,
-                                  const shape_type& shape, value_type shift=0) throw(std::string);
+                                  const shape_type& shape, value_type shift=0);
 #else
     // INTEL and PGI require body-definition at point-of-declaration:
 
@@ -184,13 +184,13 @@ class row_major_index: public ntuple<N, NDIM>{
     template <class R>
     row_major_index<N,NDIM> ND_bin(
       const ntuple<R,NDIM>& p, const ntuple_interval<R,NDIM>& domain_cube,
-      const shape_type& shape, value_type shift) throw(std::string)
+      const shape_type& shape, value_type shift)
     {
       row_major_index result(0,false);
 
       // "left_closure" \leftarrow  x \in [start, end)
       if (!(domain_cube.left_closure(p)))
-        throw std::string("row_major_index<N,NDIM>::ND_bin: ntuple not in domain hypercube");
+         std::string("row_major_index<N,NDIM>::ND_bin: ntuple not in domain hypercube");
 
       for(size_t n = 0; n < NDIM; ++n){
         R L((domain_cube.end()[n] - domain_cube.start()[n])/integer<R>(shape[n])), 
@@ -237,7 +237,7 @@ class row_major_index: public ntuple<N, NDIM>{
  */    
 template <class U, size_t NDIM>
 typename gmm::linalg_traits<U>::reference
-  ND_deref(U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n) throw(std::runtime_error);
+  ND_deref(U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n);
 
 
 /**
@@ -251,7 +251,7 @@ typename gmm::linalg_traits<U>::reference
  */    
 template <class U, size_t NDIM>
 const typename gmm::linalg_traits<U>::reference
-  ND_deref(const U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n) throw(std::runtime_error);
+  ND_deref(const U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n);
 
     
 /** 
@@ -262,7 +262,7 @@ const typename gmm::linalg_traits<U>::reference
  *   Np >= deriv_order+1, and must be odd
  */
 template <class T>
-std::vector<T> central_diff_weights(size_t Np=3, size_t deriv_order=1) throw(std::runtime_error); 
+std::vector<T> central_diff_weights(size_t Np=3, size_t deriv_order=1); 
 
 /** 
  * @brief Central-difference numerical derivative calculation.
@@ -280,7 +280,7 @@ std::vector<T> central_diff_weights(size_t Np=3, size_t deriv_order=1) throw(std
  */
 template <class U1, class U2, size_t NDIM>
 void central_diff(U1& dest, const ntuple<size_t, NDIM>& shape, 
-       const U2& src, size_t dim, size_t Np=3, size_t deriv_order=1, int BC_enum=0) throw(std::runtime_error);
+       const U2& src, size_t dim, size_t Np=3, size_t deriv_order=1, int BC_enum=0);
 
 /**
  * @brief N-dimensional linear interpolation of values of arbitrary rank. 
@@ -347,9 +347,9 @@ class linear_interpolator{
 
   public:
   
-  inline value_type operator()(const ntuple<R,NDIM>& x_i)const throw(std::runtime_error);
+  inline value_type operator()(const ntuple<R,NDIM>& x_i)const;
   
-  void apply(const ntuple<R,NDIM>& x_i, value_type& y_i)const throw(std::runtime_error);  
+  void apply(const ntuple<R,NDIM>& x_i, value_type& y_i)const;  
   
 #if !defined(__INTEL_COMPILER) && !defined(__PGI)
   /**
@@ -361,7 +361,7 @@ class linear_interpolator{
    *   @param[out] y_i  interpolated data values
    */
   template <class U1, class U2>
-  void apply(const U1& x_i, U2& y_i)const throw(std::runtime_error);
+  void apply(const U1& x_i, U2& y_i)const;
 #else
     // INTEL and PGI require body-definition at point-of-declaration:
 
@@ -374,7 +374,7 @@ class linear_interpolator{
      *   @param[out] y_i  interpolated data values
      */
     template <class U1, class U2>
-    void apply(const U1& x_i, U2& y_i)const throw(std::runtime_error)
+    void apply(const U1& x_i, U2& y_i)const
     {
       // resize dest only if destination is _not_ a reference type:
       // see note at "simple_object_base::is" regarding type_info comparison by-name, to enable cross-module use with current GNU C++ ABI:
@@ -398,10 +398,10 @@ class linear_interpolator{
 #endif
   
   linear_interpolator
-    (const ntuple_interval<R,NDIM>& domain, const U& y, const ntuple<size_t,NDIM>& shape, interp_kind e) throw(std::runtime_error);
+    (const ntuple_interval<R,NDIM>& domain, const U& y, const ntuple<size_t,NDIM>& shape, interp_kind e);
     
   linear_interpolator
-    (const ntuple_interval<R,NDIM>& domain, U& y, const ntuple<size_t,NDIM>& shape, interp_kind e, bool transfer_ownership) throw(std::runtime_error);
+    (const ntuple_interval<R,NDIM>& domain, U& y, const ntuple<size_t,NDIM>& shape, interp_kind e, bool transfer_ownership);
 }; 
 
 

@@ -62,9 +62,9 @@ class ntuple{
 		
 		inline const T* end()const;
 		
-    inline size_t size(void)const throw();
+    inline size_t size(void)const;
     
-    inline void resize(size_t) throw();
+    inline void resize(size_t);
     
 						
 	  R dist(const ntuple& other)const;
@@ -148,14 +148,14 @@ class ntuple{
     
 
 		// sort elements into ascending order:
-		static void sort(ntuple<T,DIM>& p) throw();
+		static void sort(ntuple<T,DIM>& p);
 
     #if 0 // --------------------------- obsolete: use linalgUtil.h: "argsort" ------------------------------------
 		// indices vn into ntuple p with values in ascending order:
-		static void index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn) throw();
+		static void index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn);
     #endif // -----------------------------------------------------------------------------------------------------
 
-    static void apply( T (*func)(const T&), const ntuple<T,DIM>& src, ntuple<T,DIM>& dest) throw();
+    static void apply( T (*func)(const T&), const ntuple<T,DIM>& src, ntuple<T,DIM>& dest);
 		
     bool writeBinary(abstractCommHandle *fp)const;
 		
@@ -225,14 +225,14 @@ inline size_t max_element(const ntuple<T,DIM>& p);
 
 // sort elements into ascending order:
 template <class T, size_t DIM>
-inline void sort(ntuple<T,DIM>& p) throw();
+inline void sort(ntuple<T,DIM>& p);
 
 // indices vn into ntuple p with values in ascending order:
 template <class T, size_t DIM>
-inline void index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn) throw();
+inline void index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn);
 
 template <class T1, class T2, size_t DIM>
-inline void conv(ntuple<T1,DIM>& dest, const ntuple<T2,DIM>& src) throw();
+inline void conv(ntuple<T1,DIM>& dest, const ntuple<T2,DIM>& src);
 
 template <class T, size_t DIM>
 inline bool writeBinary(abstractCommHandle *fp, const ntuple<T,DIM>& p);
@@ -385,7 +385,7 @@ struct hash<  linalg::ntuple<T,DIM> >{
 	 using number::pow_n;
 	 using number::conv;
 	 
-	 throw std::string("hash< ntuple<T,DIM> >::operator(): this generic method should not be used!");
+	 throw std::runtime_error("hash< ntuple<T,DIM> >::operator(): this generic method should not be used!");
 	 const size_t UBITS(sizeof(size_t)*8);
    size_t rval(0);
 	 T rval_(zero<T>());
@@ -454,7 +454,7 @@ namespace gmm{
     static reference access(origin_type *, const iterator &it,
 			    const iterator &, size_type i)
     { return it[i]; }
-    static void resize(this_type &v, size_type n) throw() { v.resize(n); }
+    static void resize(this_type &v, size_type n) { v.resize(n); }
   };
 
 } // namespace gmm

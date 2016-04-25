@@ -252,12 +252,12 @@ class system{
      * blocks until pair can be acquired simultaneously (keyed to addresses of p1 and p2);
      *   returns pair of keys to pass to matching "unlock_pair" method
      */
-    std::pair<size_t, size_t> lock_pair_(void *p0, void *p1) throw(std::string);
+    std::pair<size_t, size_t> lock_pair_(void *p0, void *p1);
 
     /*
      * uses pair of keys from matching "lock_pair" method to release aquired pair.
      */
-    void unlock_pair_(const std::pair<size_t, size_t>& keys) throw(std::string);  
+    void unlock_pair_(const std::pair<size_t, size_t>& keys);  
     #endif
       
   public:
@@ -309,11 +309,11 @@ class system{
         
         // ------------------------------------------------------------------------------
         
-        virtual void update_cache(bool derived=false, bool to_cache=true) throw(std::string);
+        virtual void update_cache(bool derived=false, bool to_cache=true);
         
-        virtual void valid_check(void)const throw(std::string);
+        virtual void valid_check(void)const;
         
-        virtual python_util::options_map<C>* clone(void)const throw(std::string);
+        virtual python_util::options_map<C>* clone(void)const;
         
         // --------- just wrap base_class::copy ------------
         void copy(const parameters& other);
@@ -333,7 +333,7 @@ class system{
         /** 
          * @brief Initialize from a simple_object_base*.
          */
-        inline void extract(const python_util::simple_object_base* src) throw(std::string);
+        inline void extract(const python_util::simple_object_base* src);
         
         virtual ~parameters(void);
         
@@ -355,7 +355,7 @@ class system{
      *   - @b N_seed[opt]: number of seed (i.e. sticky) particles for diffusion-limited-aggregation process
      *   .
      */
-    void set_parameters(const parameters& param) throw(std::string);
+    void set_parameters(const parameters& param);
         
 #if !defined(__ND_matrix__h)         
 // ---------------------- moved to namespace linalg: (ND_matrix.h): -----------------------------
@@ -397,16 +397,16 @@ class system{
         static bool wrap(const row_major_index& x1, const row_major_index& x2, const shape_type& shape,
                          row_major_index& wrap_dim);
        
-        bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        size_t binarySize(void)const throw(std::string);
+        bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        bool readBinary(commUtil::abstractCommHandle* fp);
+        size_t binarySize(void)const;
         
         /*
          * return the row_major_index corresponding to the position "p" within the hyper-cube "domain_cube"
          *   given the array "shape" and index-base "shift"
          */
         static row_major_index ND_bin(const ntuple<R,NDIM>& p, const ntuple_interval<R,NDIM>& domain_cube,
-                                      const shape_type& shape, value_type shift=0) throw(std::string);
+                                      const shape_type& shape, value_type shift=0);
 
         #if 0 // inclusion of "ND_edges" method completely screws-up the compiler for some reason (in unrelated code sections):
         /*
@@ -414,7 +414,7 @@ class system{
          *   given the array "shape" and index-base "shift"
          */
         static ntuple_interval<R,NDIM> ND_edges(const row_major_index& indices, const ntuple_interval<R,NDIM>& domain_cube,
-                                                const shape_type& shape, value_type shift=0, const R& epsilon_=zero<R>()) throw(std::string);
+                                                const shape_type& shape, value_type shift=0, const R& epsilon_=zero<R>());
         #endif
       
         bool in_domain(const shape_type& shape, value_type shift=0)const;
@@ -480,9 +480,9 @@ class system{
 
         void write(std::ostream& os)const;
         
-        bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        size_t binarySize(void)const throw(std::string);
+        bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        bool readBinary(commUtil::abstractCommHandle* fp);
+        size_t binarySize(void)const;
                 
         state(void);
         state(const state& other);
@@ -574,20 +574,20 @@ class system{
          *   - for abstract particles, mass is taken as unity.
          *   .
          */
-        virtual R kinetic_velocity(const R& T)const throw(std::runtime_error);  
+        virtual R kinetic_velocity(const R& T)const;  
         
         particle& operator=(const particle& other);
         
         virtual particle* clone(void)const;
 
         // methods to allow binary read and write from pointer to base-class:            
-        static bool writeBinaryVirtual(commUtil::abstractCommHandle* fp, const particle* p) throw(std::string);
-        static bool readBinaryVirtual(commUtil::abstractCommHandle* fp, particle*& p) throw(std::string);
-        static size_t binarySizeVirtual(const particle* p) throw(std::string);
+        static bool writeBinaryVirtual(commUtil::abstractCommHandle* fp, const particle* p);
+        static bool readBinaryVirtual(commUtil::abstractCommHandle* fp, particle*& p);
+        static size_t binarySizeVirtual(const particle* p);
         
-        virtual bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        virtual bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        virtual size_t binarySize(void)const throw(std::string);
+        virtual bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        virtual bool readBinary(commUtil::abstractCommHandle* fp);
+        virtual size_t binarySize(void)const;
 
                 
         virtual ~particle(void);
@@ -664,7 +664,7 @@ class system{
         static const shape_type& offset_shape(void);
         
         // transfer a particle to another cell:
-        void transfer_particle(particle* p, cell* pother) throw(std::string);
+        void transfer_particle(particle* p, cell* pother);
         
         // assignment or clone does _not_ transfer neighbor-lists (and associated boundary wrapping info).
         // (these can only be constructed by parent "cell_array")
@@ -673,9 +673,9 @@ class system{
         cell& operator=(const cell& other);
 
         
-        bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        size_t binarySize(void)const throw(std::string);
+        bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        bool readBinary(commUtil::abstractCommHandle* fp);
+        size_t binarySize(void)const;
 
         
         ~cell(void);  
@@ -684,7 +684,7 @@ class system{
 
         // copy does _not_ initialize neighbor-lists (and associated boundary wrapping info).
         // (these can only be initialized  by parent "cell_array")
-        cell(const cell& other) throw(std::string);
+        cell(const cell& other);
         
         cell(const size_t linear_index, const row_major_index& indices);                 
     }; // class cell
@@ -734,15 +734,15 @@ class system{
         iterator end(void);
         const_iterator end(void)const;
         
-        cell* operator[](size_t linear_index) throw(std::string);
-        const cell* operator[](size_t linear_index)const throw(std::string);
-        cell* operator[](const row_major_index& indices) throw(std::string);
-        const cell* operator[](const row_major_index& indices)const throw(std::string);
+        cell* operator[](size_t linear_index);
+        const cell* operator[](size_t linear_index)const;
+        cell* operator[](const row_major_index& indices);
+        const cell* operator[](const row_major_index& indices)const;
         
 
-        bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        size_t binarySize(void)const throw(std::string);
+        bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        bool readBinary(commUtil::abstractCommHandle* fp);
+        size_t binarySize(void)const;
 
         cell_array& operator=(const cell_array& other);
 
@@ -795,7 +795,7 @@ class system{
                 
       public:
 
-        static void write(std::ostream& os, event_kind kind_) throw(std::string);
+        static void write(std::ostream& os, event_kind kind_);
         
         event_kind kind(void)const;
 
@@ -835,9 +835,9 @@ class system{
 #if 0 // ------------ event is fundamentally a pointer-based structure               ----------------
       // ------------   => implementing these methods doesn't really make any sense: ---------------- 
 
-        bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        size_t binarySize(void)const throw(std::string);
+        bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        bool readBinary(commUtil::abstractCommHandle* fp);
+        size_t binarySize(void)const;
         
 #endif // -------------------------------------------------------------------------------------------
         void write(std::ostream& os);
@@ -910,9 +910,9 @@ class system{
 #if 0 // ------------ event is fundamentally a pointer-based structure               ----------------
       // ------------   => implementing these methods doesn't really make any sense: ---------------- 
         
-        bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        size_t binarySize(void)const throw(std::string);
+        bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        bool readBinary(commUtil::abstractCommHandle* fp);
+        size_t binarySize(void)const;
 
 #endif // -------------------------------------------------------------------------------------------
         void write(std::ostream& os)const;
@@ -969,17 +969,17 @@ class system{
     void init_(void);
       
     // next_event *always* is defined:
-    virtual event_list next_event(const cell* c)const throw(std::string)=0;
+    virtual event_list next_event(const cell* c)const=0;
 
     // either  all of "jam_particles", "move_particles", and "process_event"
     //   and/or "step_" *must* be defined (in the latter case, the former may remain stubs)
-    virtual bool jam_particles(event* e) throw(std::string);
+    virtual bool jam_particles(event* e);
 
-    virtual bool move_particles(cell* c, event* e) throw(std::string);
+    virtual bool move_particles(cell* c, event* e);
     
-    virtual bool process_event(event* e) throw(std::string);
+    virtual bool process_event(event* e);
   
-    virtual bool step_(event_list& events) throw(std::string);
+    virtual bool step_(event_list& events);
 
     #if 0
     /*
@@ -1031,13 +1031,13 @@ class system{
      *   - at successful return from this method, system state will be ready for extraction to return value.
      *   .
      */
-    virtual void apply_directed_(void)const throw(python_util::python_error, std::runtime_error);
+    virtual void apply_directed_(void)const;
 
     /**
      * @brief Fitness evaluator based on particle spatial distribution with respect to a target distribution, 
      *    specified as an N-dimensional interpolator.
      */
-    R evaluate_fitness_(const interpolator& target_interp)const throw(std::runtime_error); 
+    R evaluate_fitness_(const interpolator& target_interp)const; 
     
     /**
      * @brief Re-initialize particle velocities based on the gradient of a target distribution.
@@ -1045,7 +1045,7 @@ class system{
      *   @param[in] T  kinetic temperature of directed velocity component (randomized in the half-space);
      *   @param[in] T_B  Brownian temperature: kinetic temperature of non-directed component (completely randomized).
      */
-    void direct_velocities_(const std::vector<interpolator>& target_gradient_interp, const R& T, const R& T_B) throw(std::runtime_error); 
+    void direct_velocities_(const std::vector<interpolator>& target_gradient_interp, const R& T, const R& T_B); 
 
   public:    
     
@@ -1059,13 +1059,13 @@ class system{
     R cell_edge_length(void)const;
 
     // center position of cell-cube:
-    ntuple<R,NDIM> cell_center(const cell* cell_)const throw(std::string);
+    ntuple<R,NDIM> cell_center(const cell* cell_)const;
 
     // ntuple-interval representing cell-cube (intervals subject to left-closure \rightarrow  x \in [<start>, <end>)  ):
-    ntuple_interval<R,NDIM> cell_cube(const cell* cell_)const throw(std::string);
+    ntuple_interval<R,NDIM> cell_cube(const cell* cell_)const;
 
     // ntuple-interval representing entire system domain (intervals subject to left-closure \rightarrow  x \in [<start>, <end>)  ):
-    ntuple_interval<R,NDIM> system_cube(void)const throw(std::string);
+    ntuple_interval<R,NDIM> system_cube(void)const;
     
     /*
      * test for particle cell-exit event:
@@ -1073,25 +1073,25 @@ class system{
      *   dimension, face: face-pair corresponding to cube face of exit
      *   time: entry-time into the other cell (i.e. exit-time + epsilon)
      */
-    bool cell_exit(const particle* particle_, const cell* cell_, R& time, size_t& dimension, size_t& face)const throw(std::string);    
+    bool cell_exit(const particle* particle_, const cell* cell_, R& time, size_t& dimension, size_t& face)const;    
 
     /*
      * move particle (deals with both extrinsic (i.e. state-related) and intrinsic changes):
      *   (calls particle.move() to update intrinsic change)
      */
-    void move(particle* p, const R& t) throw(std::string);
+    void move(particle* p, const R& t);
     
     /*
      * implement a cell-exit event, including any required position wrap-around:
      * (note: presently transfer only occurs through one face at a time (corner transfers are zero cross-section events...))
      */
-    void exit_cell(particle* p, size_t dimension, size_t face) throw(std::string);
+    void exit_cell(particle* p, size_t dimension, size_t face);
              
     /**
      * @brief Evolve system through next event.
      * Return false if completion criteria are satisfied.
      */
-    bool step(void) throw(std::string);
+    bool step(void);
      
     virtual bool complete(void)const;
 
@@ -1101,7 +1101,7 @@ class system{
      * @brief Check for consistency between a given argument and the present value of the functor parameters.
      * This method does not check for state consistency itself (e.g. lack of particle overlap); this is assumed.
      */
-    virtual void arg_valid_check(const object_map& arg)const throw(std::string);
+    virtual void arg_valid_check(const object_map& arg)const;
         
     /**
      * @brief generic apply method
@@ -1116,7 +1116,7 @@ class system{
      *    - @b velocity: evolved particle vector velocities
      *    .    
      */
-    virtual bool apply(const python_util::simple_object_base *arg, python_util::simple_object_base *val)const throw(std::string)=0;
+    virtual bool apply(const python_util::simple_object_base *arg, python_util::simple_object_base *val)const=0;
     
     /// bool return version compatible with "classic" functor implementation:
     bool setParameters(const parameters& param);
@@ -1129,19 +1129,19 @@ class system{
     
     system& operator=(const system& other);
 
-    bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);    
-    bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    size_t binarySize(void)const throw(std::string);
+    bool writeBinary(commUtil::abstractCommHandle *fp)const;    
+    bool readBinary(commUtil::abstractCommHandle *fp);
+    size_t binarySize(void)const;
 
     /**
      * @brief Initialize system state from parameters or optional incoming state.
      */
-    virtual void init_state(const python_util::simple_object_base* incoming_state=NULL) throw(std::string)=0;
+    virtual void init_state(const python_util::simple_object_base* incoming_state=NULL)=0;
     
     /**
      * @brief Extract system state to external representation.
      */
-    virtual void extract_state(python_util::simple_object_base *dest)const throw(std::string)=0;
+    virtual void extract_state(python_util::simple_object_base *dest)const=0;
     
     virtual ~system(void);
     
@@ -1188,11 +1188,11 @@ class mjp_system: public system<R,NDIM>{
         #endif
         // ------------------------------------------------------------------------------
 
-        virtual void update_cache(bool derived=false, bool to_cache=true) throw(std::string);
+        virtual void update_cache(bool derived=false, bool to_cache=true);
            
-        virtual void valid_check(void)const throw(std::string);
+        virtual void valid_check(void)const;
         
-        virtual python_util::options_map<C>* clone(void)const throw(std::string);
+        virtual python_util::options_map<C>* clone(void)const;
         
         // --------- just wrap base_class::copy ------------
         void copy(const parameters& other);
@@ -1212,7 +1212,7 @@ class mjp_system: public system<R,NDIM>{
         /** 
          * @brief Initialize from a simple_object_base*.
          */
-        inline void extract(const python_util::simple_object_base* src) throw(std::string);  
+        inline void extract(const python_util::simple_object_base* src);  
               
         parameters(bool derived=false);
         parameters(const parameters& other);
@@ -1235,7 +1235,7 @@ class mjp_system: public system<R,NDIM>{
      *        either a single-value or a list of densities may be provided
      *   .
      */
-    void set_parameters(const parameters& param) throw(std::string);
+    void set_parameters(const parameters& param);
 
 
     // ------------- special intermediate-state methods (i.e. not a full re-initialization): ------------------ 
@@ -1300,7 +1300,7 @@ class mjp_system: public system<R,NDIM>{
 
         // update any _intrinsic_ attributes associated with system time change.
         // (does _not_ modify particle "state" (here considered extrinsic))
-        virtual void move(const R& t) throw(std::string);
+        virtual void move(const R& t);
         
         // overlap condition test:
         virtual bool overlap(const particle* pother)const;
@@ -1312,16 +1312,16 @@ class mjp_system: public system<R,NDIM>{
          *   - for abstract particles, mass is taken as unity.
          *   .
          */
-        virtual R kinetic_velocity(const R& T)const throw(std::runtime_error);  
+        virtual R kinetic_velocity(const R& T)const;  
  
         sphere& operator=(const sphere& other);
         
         virtual particle* clone(void)const;
 
         
-        virtual bool writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string);
-        virtual bool readBinary(commUtil::abstractCommHandle* fp) throw(std::string);
-        virtual size_t binarySize(void)const throw(std::string);
+        virtual bool writeBinary(commUtil::abstractCommHandle* fp)const;
+        virtual bool readBinary(commUtil::abstractCommHandle* fp);
+        virtual size_t binarySize(void)const;
 
                 
         virtual ~sphere(void);
@@ -1376,14 +1376,14 @@ class mjp_system: public system<R,NDIM>{
   protected:
         
     // next_event *always* is defined:
-    virtual event_list next_event(const cell* c)const throw(std::string);
+    virtual event_list next_event(const cell* c)const;
 
     // either  all of "jam_particles", "move_particles", and "process_event"
     //   and/or "step_" *must* be defined (in the latter case, the former may remain stubs)
-    virtual bool jam_particles(event* e) throw(std::string);
+    virtual bool jam_particles(event* e);
 
     #if 0 // ------------- not special: moved up to base class: ------------------
-    virtual bool move_particles(cell* c, event* e) throw(std::string);
+    virtual bool move_particles(cell* c, event* e);
     #endif // --------------------------------------------------------------------
 
     /**
@@ -1400,7 +1400,7 @@ class mjp_system: public system<R,NDIM>{
      *   time: absolute time of collision
      *   jam: spheres are touching with no possible relative motion
      */
-    bool collision(const sphere* particle0_, const sphere* particle1_, R& time, bool& jam)const throw(std::string);
+    bool collision(const sphere* particle0_, const sphere* particle1_, R& time, bool& jam)const;
 
     /**
      * @brief Test sphere-sphere pair collision.
@@ -1419,7 +1419,7 @@ class mjp_system: public system<R,NDIM>{
     static bool collision(
                   const ntuple<R,NDIM>& p0, const R& r0, const R& dr0,  const ntuple<R,NDIM>& v0,
                   const ntuple<R,NDIM>& p1, const R& r1, const R& dr1,  const ntuple<R,NDIM>& v1,
-                  R& dt) throw(std::string);
+                  R& dt);
   
     /*
      * implement sphere-sphere pair collision (modifies state of _both_ spheres, as appropriate):
@@ -1428,9 +1428,9 @@ class mjp_system: public system<R,NDIM>{
      *   (where applicable (i.e. _not_ in jam case), particles have been moved to kinematic coordinates of event,
      *      prior to this method)
      */
-    void collide(event* E) throw(std::string);
+    void collide(event* E);
     
-    virtual bool process_event(event* e) throw(std::string);
+    virtual bool process_event(event* e);
 
 
       
@@ -1461,10 +1461,10 @@ class mjp_system: public system<R,NDIM>{
      * @brief Check for consistency between a given argument and the present value of the functor parameters.
      * This method does not check for state consistency itself (e.g. lack of particle overlap); this is assumed.
      */
-    virtual void arg_valid_check(const object_map& arg)const throw(std::string);
+    virtual void arg_valid_check(const object_map& arg)const;
     
     /// wrapper "apply" method:
-    inline bool apply(const python_util::generic_object<C,R,Z>& arg, python_util::generic_object<C,R,Z>& val)const throw(std::string);
+    inline bool apply(const python_util::generic_object<C,R,Z>& arg, python_util::generic_object<C,R,Z>& val)const;
     
     /**
      * @brief generic apply method
@@ -1481,16 +1481,16 @@ class mjp_system: public system<R,NDIM>{
      *    - @b radius:   evolved particle radii
      *    .    
      */
-    virtual bool apply(const python_util::simple_object_base *arg, python_util::simple_object_base *val)const throw(std::string);
+    virtual bool apply(const python_util::simple_object_base *arg, python_util::simple_object_base *val)const;
          
     // =======================================================
         
     void write(std::ostream& os)const;
     void debug_print(void)const;
 
-    bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);    
-    bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    size_t binarySize(void)const throw(std::string);
+    bool writeBinary(commUtil::abstractCommHandle *fp)const;    
+    bool readBinary(commUtil::abstractCommHandle *fp);
+    size_t binarySize(void)const;
 
     mjp_system& operator=(const mjp_system& other);
 
@@ -1503,7 +1503,7 @@ class mjp_system: public system<R,NDIM>{
      *      - @b radius[opt]:   list of particle radii.
      *      .
      */    
-    virtual void init_state(const python_util::simple_object_base *incoming_state=NULL) throw(std::string);
+    virtual void init_state(const python_util::simple_object_base *incoming_state=NULL);
 
     /**
      * @brief Extract system state to external representation.
@@ -1516,14 +1516,14 @@ class mjp_system: public system<R,NDIM>{
      *      - @b density:   list of particle densities.
      *      .
      */
-    virtual void extract_state(python_util::simple_object_base *dest)const throw(std::string);
+    virtual void extract_state(python_util::simple_object_base *dest)const;
 
     
     virtual ~mjp_system(void);
         
     mjp_system(bool initialize=true);
-    mjp_system(const mjp_system& other) throw(std::string);
-    mjp_system(size_t N_particle, const R& L, const R& v, const R& dr) throw(std::string);  
+    mjp_system(const mjp_system& other);
+    mjp_system(size_t N_particle, const R& L, const R& v, const R& dr);  
 }; // class mjp_system
 
 

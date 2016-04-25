@@ -88,7 +88,7 @@ void quadraticFormula(const V1& vP, V2& vRoot, typename V1::value_type& D)
   typedef typename V2::value_type T2;
   
   if ( vP.size() != 3 )
-    throw std::string("quadraticFormula<V1,V2>: vP is not a 2nd degree polynomial");
+    throw std::runtime_error("quadraticFormula<V1,V2>: vP is not a 2nd degree polynomial");
 
   // Implementation note: could also assume that output parameter has already been allocated (in case of _reference_ output type);
   //   however, at the moment, I do not want to bring (or duplicate) the "gmm" linalg_traits mechanisms here, 
@@ -130,14 +130,14 @@ void quadraticFormula(const V1& vP, V2& vRoot, typename V1::value_type& D)
  *   returns pair of keys to pass to matching "unlock_pair" method
  */
 template <class R, size_t NDIM> 
-std::pair<size_t, size_t> system<R,NDIM>::lock_pair_(void *p0, void *p1) throw(std::string)
+std::pair<size_t, size_t> system<R,NDIM>::lock_pair_(void *p0, void *p1)
 {
   bool pair_locked(true);
   std::pair<size_t, size_t> keys;
   do {
     pair_locked = true;
     if (pthread_mutex_lock(&pair_mutex_))
-      throw std::string("system<R,NDIM>::lock_pair: pthread_mutex_lock error return");
+      throw std::runtime_error("system<R,NDIM>::lock_pair: pthread_mutex_lock error return");
       
     pair_locked = (pair_locked && particle0_mutex_.trylock(p0, keys.first));
     pair_locked = (pair_locked && particle1_mutex_.trylock(p1, keys.second));
@@ -145,11 +145,11 @@ std::pair<size_t, size_t> system<R,NDIM>::lock_pair_(void *p0, void *p1) throw(s
     if (!pair_locked){
       // wait for another thread to release a pair:
       if (pthread_cond_wait(&pair_cond_, &pair_mutex_))
-        throw std::string("system<R,NDIM>::lock_pair: pthread_cond_signal error return");        
+        throw std::runtime_error("system<R,NDIM>::lock_pair: pthread_cond_signal error return");        
     }
       
     if (pthread_mutex_unlock(&pair_mutex_))
-      throw std::string("system<R,NDIM>::lock_pair: pthread_mutex_unlock error return");      
+      throw std::runtime_error("system<R,NDIM>::lock_pair: pthread_mutex_unlock error return");      
   } while(!pair_locked);
   
   return keys;
@@ -159,26 +159,26 @@ std::pair<size_t, size_t> system<R,NDIM>::lock_pair_(void *p0, void *p1) throw(s
  * uses pair of keys from matching "lock_pair" method to release aquired pair.
  */
 template <class R, size_t NDIM> 
-void system<R,NDIM>::unlock_pair_(const std::pair<size_t, size_t>& keys) throw(std::string)
+void system<R,NDIM>::unlock_pair_(const std::pair<size_t, size_t>& keys)
 {
   if (pthread_mutex_lock(&pair_mutex_))
-    throw std::string("system<R,NDIM>::unlock_pair: pthread_mutex_lock error return");
+    throw std::runtime_error("system<R,NDIM>::unlock_pair: pthread_mutex_lock error return");
     
   particle0_mutex_.unlock(keys.first);
   particle1_mutex_.unlock(keys.second);
   
   if (pthread_mutex_unlock(&pair_mutex_))
-    throw std::string("system<R,NDIM>::unlock_pair: pthread_mutex_unlock error return"); 
+    throw std::runtime_error("system<R,NDIM>::unlock_pair: pthread_mutex_unlock error return"); 
          
   if (pthread_cond_broadcast(&pair_cond_))
-    throw std::string("system<R,NDIM>::unlock_pair: pthread_cond_broadcast error return");        
+    throw std::runtime_error("system<R,NDIM>::unlock_pair: pthread_cond_broadcast error return");        
 }  
 
 #endif
 // ------------------------------------------------------------
 
 template <class R, size_t NDIM>   
-void system<R,NDIM>::parameters::update_cache(bool derived, bool to_cache) throw(std::string)
+void system<R,NDIM>::parameters::update_cache(bool derived, bool to_cache)
 {
   // usage note: _local_ copies of parameters are the "cache"
 
@@ -233,11 +233,11 @@ void system<R,NDIM>::parameters::update_cache(bool derived, bool to_cache) throw
         
 
 template <class R, size_t NDIM>   
-void system<R,NDIM>::parameters::valid_check(void)const throw(std::string)
+void system<R,NDIM>::parameters::valid_check(void)const
 {
   // cache update should have happened prior to this method
   if (!base_class::cache_current())
-    throw std::string("system<R,NDIM>::parameters::valid_check: cached parameters not current");
+    throw std::runtime_error("system<R,NDIM>::parameters::valid_check: cached parameters not current");
   if ((N_particle < 1)
      #if 0 
       || (particle_per_cell < 1)
@@ -246,11 +246,11 @@ void system<R,NDIM>::parameters::valid_check(void)const throw(std::string)
       || (base_class::has_named_parm("t_max") && (base_class::template get_named_parm<R>("t_max") < zero<R>()))
       || (sticking_probability < zero<R>())
       || (sticking_probability > integer<R>(1)))
-    throw std::string("system<R,NDIM>::parameters::valid_check: invalid parameters");
+    throw std::runtime_error("system<R,NDIM>::parameters::valid_check: invalid parameters");
 }
 
 template <class R, size_t NDIM>   
-typename python_util::options_map<typename system<R,NDIM>::C>* system<R,NDIM>::parameters::clone(void)const throw(std::string)
+typename python_util::options_map<typename system<R,NDIM>::C>* system<R,NDIM>::parameters::clone(void)const
 { return new parameters(*this); }
 
 // ------- just wrap base_class::copy -----------------------------
@@ -288,7 +288,7 @@ void system<R,NDIM>::parameters::write(std::ostream& os)const
  * @brief Initialize from a simple_object_base*.
  */
 template <class R, size_t NDIM>   
-inline void system<R,NDIM>::parameters::extract(const python_util::simple_object_base* src) throw(std::string)
+inline void system<R,NDIM>::parameters::extract(const python_util::simple_object_base* src)
 { 
   python_util::extract(*reinterpret_cast<base_class*>(this), src);
   update_cache();
@@ -474,15 +474,15 @@ bool system<R,NDIM>::row_major_index::wrap(const row_major_index& x1, const row_
 }                                           
 
 template <class R, size_t NDIM>        
-inline bool system<R,NDIM>::row_major_index::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+inline bool system<R,NDIM>::row_major_index::writeBinary(commUtil::abstractCommHandle* fp)const
 { return base_class::writeBinary(fp); }
 
 template <class R, size_t NDIM>        
-inline bool system<R,NDIM>::row_major_index::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+inline bool system<R,NDIM>::row_major_index::readBinary(commUtil::abstractCommHandle* fp)
 { return base_class::readBinary(fp); }
 
 template <class R, size_t NDIM>        
-inline size_t system<R,NDIM>::row_major_index::binarySize(void)const throw(std::string)
+inline size_t system<R,NDIM>::row_major_index::binarySize(void)const
 { return base_class::binarySize(); }
 
 /*
@@ -492,13 +492,13 @@ inline size_t system<R,NDIM>::row_major_index::binarySize(void)const throw(std::
 template <class R, size_t NDIM>        
 typename system<R,NDIM>::row_major_index system<R,NDIM>::row_major_index::ND_bin(
   const ntuple<R,NDIM>& p, const ntuple_interval<R,NDIM>& domain_cube,
-  const shape_type& shape, value_type shift) throw(std::string)
+  const shape_type& shape, value_type shift)
 {
   row_major_index result(0,false);
   
   // "left_closure" \leftarrow  x \in [start, end)
   if (!(domain_cube.left_closure(p)))
-    throw std::string("row_major_index::ND_bin: ntuple not in domain hypercube");
+    throw std::runtime_error("row_major_index::ND_bin: ntuple not in domain hypercube");
     
   for(size_t n = 0; n < NDIM; ++n){
     R L((domain_cube.end()[n] - domain_cube.start()[n])/integer<R>(shape[n])), 
@@ -518,12 +518,12 @@ typename system<R,NDIM>::row_major_index system<R,NDIM>::row_major_index::ND_bin
 template <class R, size_t NDIM>        
 ntuple_interval<R,NDIM> system<R,NDIM>::row_major_index::ND_edges(
   const row_major_index& indices, const ntuple_interval<R,NDIM>& domain_cube,
-  const shape_type& shape, value_type shift, const R& epsilon_) throw(std::string)
+  const shape_type& shape, value_type shift, const R& epsilon_)
 {
   ntuple<R,NDIM> start_, end_;
 
   if (!indices.in_domain(shape, shift))
-    throw std::string("row_major_index::ND_edges: indices out-of-range for specified shape and base shift");
+    throw std::runtime_error("row_major_index::ND_edges: indices out-of-range for specified shape and base shift");
 
   for(size_t n = 0; n < NDIM; ++n){
     R L_bin((domain_cube.end()[n] - domain_cube.start()[n])/integer<R>(shape[n])); 
@@ -730,7 +730,7 @@ inline void system<R,NDIM>::state::write_partners(std::ostream& os)const
 #endif
 
 template <class R, size_t NDIM>        
-inline  bool system<R,NDIM>::state::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+inline  bool system<R,NDIM>::state::writeBinary(commUtil::abstractCommHandle* fp)const
 {
   bool status(true);
   status = (status && position_.writeBinary(fp));
@@ -743,7 +743,7 @@ inline  bool system<R,NDIM>::state::writeBinary(commUtil::abstractCommHandle* fp
 }
 
 template <class R, size_t NDIM>        
-inline  bool system<R,NDIM>::state::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+inline  bool system<R,NDIM>::state::readBinary(commUtil::abstractCommHandle* fp)
 {
   bool status(true);
   status = (status && position_.readBinary(fp));
@@ -758,7 +758,7 @@ inline  bool system<R,NDIM>::state::readBinary(commUtil::abstractCommHandle* fp)
 }
 
 template <class R, size_t NDIM>        
-inline size_t system<R,NDIM>::state::binarySize(void)const throw(std::string)
+inline size_t system<R,NDIM>::state::binarySize(void)const
 {
   size_t val(0);
   val += system<R,NDIM>::binarySize_(position_);
@@ -999,7 +999,7 @@ bool system<R,NDIM>::particle::overlap(const particle* pother)const
  *   .
  */
 template <class R, size_t NDIM>        
-R system<R,NDIM>::particle::kinetic_velocity(const R& T)const throw(std::runtime_error)
+R system<R,NDIM>::particle::kinetic_velocity(const R& T)const
 { return sqrt(integer<R>(2) * T); }  
 
 template <class R, size_t NDIM>        
@@ -1024,7 +1024,7 @@ typename system<R,NDIM>::particle* system<R,NDIM>::particle::clone(void)const
 
 // methods to allow binary read and write from pointer to base-class:            
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::particle::writeBinaryVirtual(commUtil::abstractCommHandle* fp, const particle* p) throw(std::string)
+bool system<R,NDIM>::particle::writeBinaryVirtual(commUtil::abstractCommHandle* fp, const particle* p)
 {
   bool status(true);
   status = (status && system<R,NDIM>::writeBinary_(fp, static_cast<long>(p->kind())));
@@ -1033,7 +1033,7 @@ bool system<R,NDIM>::particle::writeBinaryVirtual(commUtil::abstractCommHandle* 
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::particle::readBinaryVirtual(commUtil::abstractCommHandle* fp, particle*& p) throw(std::string)
+bool system<R,NDIM>::particle::readBinaryVirtual(commUtil::abstractCommHandle* fp, particle*& p)
 {
   bool status(true);
   long nKind(0);
@@ -1055,7 +1055,7 @@ bool system<R,NDIM>::particle::readBinaryVirtual(commUtil::abstractCommHandle* f
 }
 
 template <class R, size_t NDIM>        
-size_t system<R,NDIM>::particle::binarySizeVirtual(const particle* p) throw(std::string)
+size_t system<R,NDIM>::particle::binarySizeVirtual(const particle* p)
 {
   size_t val(0);
   val += system<R,NDIM>::binarySize_(static_cast<long>(p->kind()));
@@ -1064,7 +1064,7 @@ size_t system<R,NDIM>::particle::binarySizeVirtual(const particle* p) throw(std:
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::particle::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+bool system<R,NDIM>::particle::writeBinary(commUtil::abstractCommHandle* fp)const
 {
   bool status(true);
   #if 0
@@ -1088,7 +1088,7 @@ bool system<R,NDIM>::particle::writeBinary(commUtil::abstractCommHandle* fp)cons
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::particle::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+bool system<R,NDIM>::particle::readBinary(commUtil::abstractCommHandle* fp)
 {
   bool status(true);
   #if 0
@@ -1116,7 +1116,7 @@ bool system<R,NDIM>::particle::readBinary(commUtil::abstractCommHandle* fp) thro
 }
 
 template <class R, size_t NDIM>        
-size_t system<R,NDIM>::particle::binarySize(void)const throw(std::string)
+size_t system<R,NDIM>::particle::binarySize(void)const
 {
   bool val(0);
   #if 0
@@ -1274,11 +1274,11 @@ const typename system<R,NDIM>::shape_type& system<R,NDIM>::cell::offset_shape(vo
 
 // transfer a particle to another cell:
 template <class R, size_t NDIM>        
-void system<R,NDIM>::cell::transfer_particle(particle* p, cell* pother) throw(std::string)
+void system<R,NDIM>::cell::transfer_particle(particle* p, cell* pother)
 {
   typename particle_list_type::iterator itP = std::find(particles_.begin(), particles_.end(), p);
   if (itP == particles_.end())
-    throw std::string("cell::transfer_particle: particle not owned by cell");
+    throw std::runtime_error("cell::transfer_particle: particle not owned by cell");
   pother->particles_.push_back(*itP);
   (*itP)->owner() = pother;
   particles_.erase(itP);  
@@ -1306,7 +1306,7 @@ typename system<R,NDIM>::cell& system<R,NDIM>::cell::operator=(const cell& other
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::cell::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+bool system<R,NDIM>::cell::writeBinary(commUtil::abstractCommHandle* fp)const
 {
  // Implementation note: neighbors_, positive_neighbors_, wrap_, wrap_dim_ are _not_ written.
  //   These will be reconstructed by the parent "cell_array" (if applicable).
@@ -1322,7 +1322,7 @@ bool system<R,NDIM>::cell::writeBinary(commUtil::abstractCommHandle* fp)const th
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::cell::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+bool system<R,NDIM>::cell::readBinary(commUtil::abstractCommHandle* fp)
 {
  // (see comment at "cell::writeBinary".)
  bool status(true);
@@ -1345,7 +1345,7 @@ bool system<R,NDIM>::cell::readBinary(commUtil::abstractCommHandle* fp) throw(st
 }
 
 template <class R, size_t NDIM>        
-size_t system<R,NDIM>::cell::binarySize(void)const throw(std::string)
+size_t system<R,NDIM>::cell::binarySize(void)const
 {
   size_t val(0);
   val += sizeof(size_t);
@@ -1384,7 +1384,7 @@ inline system<R,NDIM>::cell::cell(void)
 // copy does _not_ initialize neighbor-lists (and associated boundary wrapping info).
 // (these can only be initialized by parent "cell_array")
 template <class R, size_t NDIM>        
-system<R,NDIM>::cell::cell(const cell& other) throw(std::string)
+system<R,NDIM>::cell::cell(const cell& other)
 { 
   operator=(other);
 }
@@ -1438,34 +1438,34 @@ inline typename system<R,NDIM>::cell_array::const_iterator system<R,NDIM>::cell_
 { return data_.end(); }
 
 template <class R, size_t NDIM>        
-inline typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](size_t linear_index) throw(std::string)
+inline typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](size_t linear_index)
 { 
   if (linear_index >= data_.size())
-    throw std::string("cell_array::operator[]: linear index out-of-range");
+    throw std::runtime_error("cell_array::operator[]: linear index out-of-range");
   return data_[linear_index]; 
 }
 
 template <class R, size_t NDIM>        
-inline const typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](size_t linear_index)const throw(std::string)
+inline const typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](size_t linear_index)const
 { 
   if (linear_index >= data_.size())
-    throw std::string("cell_array::operator[]: linear index out-of-range");
+    throw std::runtime_error("cell_array::operator[]: linear index out-of-range");
   return data_[linear_index]; 
 }
 
 template <class R, size_t NDIM>        
-inline typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](const row_major_index& indices) throw(std::string)
+inline typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](const row_major_index& indices)
 { return operator[](indices.inverse(shape())); }
 
 template <class R, size_t NDIM>        
-inline const typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](const row_major_index& indices)const throw(std::string)
+inline const typename system<R,NDIM>::cell* system<R,NDIM>::cell_array::operator[](const row_major_index& indices)const
 { return operator[](indices.inverse(shape())); }
 
 
 
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::cell_array::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+bool system<R,NDIM>::cell_array::writeBinary(commUtil::abstractCommHandle* fp)const
 {
   bool status(true);
   status = (status && system<R,NDIM>::writeBinary_(fp, N1_));
@@ -1480,7 +1480,7 @@ bool system<R,NDIM>::cell_array::writeBinary(commUtil::abstractCommHandle* fp)co
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::cell_array::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+bool system<R,NDIM>::cell_array::readBinary(commUtil::abstractCommHandle* fp)
 {
   bool status(true);
   status = (status && system<R,NDIM>::readBinary_(fp, N1_));
@@ -1503,7 +1503,7 @@ bool system<R,NDIM>::cell_array::readBinary(commUtil::abstractCommHandle* fp) th
 }
 
 template <class R, size_t NDIM>        
-size_t system<R,NDIM>::cell_array::binarySize(void)const throw(std::string)
+size_t system<R,NDIM>::cell_array::binarySize(void)const
 {
   size_t val(0);
   val += system<R,NDIM>::binarySize_(N1_);
@@ -1666,7 +1666,7 @@ system<R,NDIM>::cell_array::cell_array(size_t N_cell)
 
 
 template <class R, size_t NDIM>        
-void system<R,NDIM>::event::write(std::ostream& os, event_kind kind_) throw(std::string)
+void system<R,NDIM>::event::write(std::ostream& os, event_kind kind_)
 {
   switch(kind_){
     case NULL_EVENT:
@@ -1698,7 +1698,7 @@ void system<R,NDIM>::event::write(std::ostream& os, event_kind kind_) throw(std:
     break;
     
     default:
-    throw std::string("event::write: unknown event kind");
+    throw std::runtime_error("event::write: unknown event kind");
     break;
   }
 }
@@ -2023,13 +2023,13 @@ typename system<R,NDIM>::event_list& system<R,NDIM>::event_list::operator=(const
 // ------------   => implementing these methods doesn't really make any sense: ---------------- 
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::event_list::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+bool system<R,NDIM>::event_list::writeBinary(commUtil::abstractCommHandle* fp)const
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::event_list::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+bool system<R,NDIM>::event_list::readBinary(commUtil::abstractCommHandle* fp)
 
 template <class R, size_t NDIM>        
-size_t system<R,NDIM>::event_list::binarySize(void)const throw(std::string)
+size_t system<R,NDIM>::event_list::binarySize(void)const
 #endif // -------------------------------------------------------------------------------------------
 
 template <class R, size_t NDIM>        
@@ -2083,7 +2083,7 @@ inline const typename system<R,NDIM>::parameters& system<R,NDIM>::get_parameters
 }
 
 template <class R, size_t NDIM>        
-void system<R,NDIM>::set_parameters(const parameters& param) throw(std::string)
+void system<R,NDIM>::set_parameters(const parameters& param)
 {
   if (pparam_ != NULL)
     delete pparam_;
@@ -2213,7 +2213,7 @@ inline const R& system<R,NDIM>::t_max(void)const { return t_max_; }
 // either  all of "jam_particles", "move_particles", and "process_event"
 //   and/or "step_" *must* be defined (in the latter case, the former may remain stubs)
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::jam_particles(event* e) throw(std::string)
+bool system<R,NDIM>::jam_particles(event* e)
 { return true; }
 
 /*
@@ -2224,7 +2224,7 @@ bool system<R,NDIM>::jam_particles(event* e) throw(std::string)
  *    particle (read _or_ write) at the same time. 
  */
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::move_particles(cell* c, event* E) throw(std::string)
+bool system<R,NDIM>::move_particles(cell* c, event* E)
 {
   bool status(true);
   const parameters &param __attribute_unused__ (get_parameters());  
@@ -2241,11 +2241,11 @@ bool system<R,NDIM>::move_particles(cell* c, event* E) throw(std::string)
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::process_event(event* e) throw(std::string)
+bool system<R,NDIM>::process_event(event* e)
 { return true; }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::step_(event_list& events) throw(std::string)
+bool system<R,NDIM>::step_(event_list& events)
 {
   bool status(true);
 
@@ -2307,7 +2307,7 @@ bool system<R,NDIM>::step_(event_list& events) throw(std::string)
  *   (at successful return from this method, "val" should be ready for "apply" to use as its own return-value)
  */
 template <class R, size_t NDIM>        
-void system<R,NDIM>::apply_directed_(void)const throw(python_util::python_error, std::runtime_error)
+void system<R,NDIM>::apply_directed_(void)const
 {
   using python_util::simple_object_base;
   using python_util::extract;
@@ -2449,7 +2449,7 @@ void system<R,NDIM>::apply_directed_(void)const throw(python_util::python_error,
  *    specified as an N-dimensional interpolator.
  */
 template <class R, size_t NDIM>        
-R system<R,NDIM>::evaluate_fitness_(const interpolator& target_interp)const throw(std::runtime_error)
+R system<R,NDIM>::evaluate_fitness_(const interpolator& target_interp)const
 {
   R rval(zero<R>());
   size_t N_particle(0);
@@ -2476,7 +2476,7 @@ R system<R,NDIM>::evaluate_fitness_(const interpolator& target_interp)const thro
  *   @param[in] T_B  Brownian temperature: kinetic temperature of non-directed component (completely randomized).
  */
 template <class R, size_t NDIM>        
-void system<R,NDIM>::direct_velocities_(const std::vector<interpolator>& target_gradient_interp, const R& T, const R& T_B) throw(std::runtime_error) 
+void system<R,NDIM>::direct_velocities_(const std::vector<interpolator>& target_gradient_interp, const R& T, const R& T_B) 
 {
   const parameters &param __attribute_unused__ (get_parameters());
   const R 
@@ -2549,7 +2549,7 @@ R system<R,NDIM>::cell_edge_length(void)const
 
 // center position of cell-cube:
 template <class R, size_t NDIM>        
-ntuple<R,NDIM> system<R,NDIM>::cell_center(const cell* cell_)const throw(std::string)
+ntuple<R,NDIM> system<R,NDIM>::cell_center(const cell* cell_)const
 {
   const row_major_index &nx(cell_->indices());
   const R& cell_L1(cell_edge_length());
@@ -2562,7 +2562,7 @@ ntuple<R,NDIM> system<R,NDIM>::cell_center(const cell* cell_)const throw(std::st
 
 // ntuple-interval representing cell-cube:
 template <class R, size_t NDIM>        
-ntuple_interval<R,NDIM> system<R,NDIM>::cell_cube(const cell* cell_)const throw(std::string)
+ntuple_interval<R,NDIM> system<R,NDIM>::cell_cube(const cell* cell_)const
 {
   const parameters &param(get_parameters());
   const row_major_index &nx(cell_->indices());
@@ -2580,7 +2580,7 @@ ntuple_interval<R,NDIM> system<R,NDIM>::cell_cube(const cell* cell_)const throw(
 
 // ntuple-interval representing entire system domain:
 template <class R, size_t NDIM>        
-ntuple_interval<R,NDIM> system<R,NDIM>::system_cube(void)const throw(std::string)
+ntuple_interval<R,NDIM> system<R,NDIM>::system_cube(void)const
 {
   const parameters &param(get_parameters());
   ntuple<R,NDIM> start_, end_(ntuple<R,NDIM>::filled(param.L));
@@ -2596,7 +2596,7 @@ ntuple_interval<R,NDIM> system<R,NDIM>::system_cube(void)const throw(std::string
  *   time: entry-time into the other cell (i.e. exit-time + epsilon)
  */
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::cell_exit(const particle* particle_, const cell* cell_, R& time, size_t& dimension, size_t& face)const throw(std::string)    
+bool system<R,NDIM>::cell_exit(const particle* particle_, const cell* cell_, R& time, size_t& dimension, size_t& face)const    
 {
   bool test(false);
 
@@ -2626,7 +2626,7 @@ bool system<R,NDIM>::cell_exit(const particle* particle_, const cell* cell_, R& 
       }
       #endif
       cerr<<endl;
-      throw std::string("-- ABORTING --");
+      throw std::runtime_error("-- ABORTING --");
     }
     #endif
     #if 0 // *** DEBUG *** : off
@@ -2652,7 +2652,7 @@ bool system<R,NDIM>::cell_exit(const particle* particle_, const cell* cell_, R& 
       }
       #endif
       cerr<<endl;
-      throw std::string("-- ABORTING --");
+      throw std::runtime_error("-- ABORTING --");
     }    
     const R delta(zero<R>());       
     
@@ -2713,7 +2713,7 @@ bool system<R,NDIM>::cell_exit(const particle* particle_, const cell* cell_, R& 
       //   a system re-initialization; in this case, it is not an error if the previous system ended 
       //   directly after a cell-exit event, and the velocity vectors have been changed to return to the just-exited cell.
       if (!(dt > zero<R>()) && (t1 > epsilon<R>()))
-        throw std::string("system<R,NDIM>::cell_exit: zero-time exit event detected");  
+        throw std::runtime_error("system<R,NDIM>::cell_exit: zero-time exit event detected");  
     }
   } 
       
@@ -2726,7 +2726,7 @@ bool system<R,NDIM>::cell_exit(const particle* particle_, const cell* cell_, R& 
  *   (calls particle.move(t) to update intrinsic change)
  */
 template <class R, size_t NDIM>        
-void system<R,NDIM>::move(particle* p, const R& t) throw(std::string)
+void system<R,NDIM>::move(particle* p, const R& t)
 {
   const parameters &param(get_parameters());
   
@@ -2768,7 +2768,7 @@ void system<R,NDIM>::move(particle* p, const R& t) throw(std::string)
  * (note: presently transfer only occurs through one face at a time (corner transfers are zero cross-section events...))
  */
 template <class R, size_t NDIM>        
-void system<R,NDIM>::exit_cell(particle* p, size_t dimension, size_t face) throw(std::string)
+void system<R,NDIM>::exit_cell(particle* p, size_t dimension, size_t face)
 {
   const parameters &param __attribute_unused__(get_parameters());
   assert((face==0 || face==1) && (0 <= dimension <= NDIM));
@@ -2800,7 +2800,7 @@ void system<R,NDIM>::exit_cell(particle* p, size_t dimension, size_t face) throw
  * Return false if completion criteria are satisfied.
  */
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::step(void) throw(std::string)
+bool system<R,NDIM>::step(void)
 {
   #if 0 
   // *** DEBUG ***
@@ -2943,7 +2943,7 @@ bool system<R,NDIM>::step(void) throw(std::string)
           }          
         }
         #endif
-        throw std::string("ABORT: JAM_ONLY_COUNT exceeds 10");
+        throw std::runtime_error("ABORT: JAM_ONLY_COUNT exceeds 10");
       }  
     }
     else
@@ -2968,7 +2968,7 @@ bool system<R,NDIM>::complete(void)const
  * This method does not check for state consistency itself (e.g. lack of particle overlap); this is assumed.
  */
 template <class R, size_t NDIM>        
-void system<R,NDIM>::arg_valid_check(const object_map& arg)const throw(std::string)
+void system<R,NDIM>::arg_valid_check(const object_map& arg)const
 {
   using python_util::simple_object_base;
   const parameters& param(get_parameters());
@@ -2979,17 +2979,17 @@ void system<R,NDIM>::arg_valid_check(const object_map& arg)const throw(std::stri
     // allow zero-size as parameter "place-holder" (i.e. to name the possible parameter for end-user usage info):
     // (for position/velocity vectors: corresponding simple_objects are RANK=1 number-type ("size()" returns number of scalar entries)).
     if (!pobj->is_empty() && (pobj->size() != param.N_particle * NDIM))
-      throw std::string("system<R,NDIM>::arg_valid_check: number of entries in position list doesn't match number of particles");
+      throw std::runtime_error("system<R,NDIM>::arg_valid_check: number of entries in position list doesn't match number of particles");
       
     if (simple_object_base::has_named_parm(arg, "velocity")){
       pobj = simple_object_base::get_named_object(arg, "velocity");
       if (!pobj->is_empty() && (pobj->size() != param.N_particle * NDIM))
-        throw std::string("system<R,NDIM>::arg_valid_check: number of entries in velocity list doesn't match number of particles");
+        throw std::runtime_error("system<R,NDIM>::arg_valid_check: number of entries in velocity list doesn't match number of particles");
     }
   }
   else{
     if (simple_object_base::has_named_parm(arg, "velocity"))
-      throw std::string("system<R,NDIM>::arg_valid_check: velocity list provided without corresponding position list");
+      throw std::runtime_error("system<R,NDIM>::arg_valid_check: velocity list provided without corresponding position list");
   }
 }
 
@@ -3010,7 +3010,7 @@ void system<R,NDIM>::arg_valid_check(const object_map& arg)const throw(std::stri
  *    .    
  */
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::apply(const python_util::generic_object arg, python_util::generic_object val)const throw(std::string)=0;
+bool system<R,NDIM>::apply(const python_util::generic_object arg, python_util::generic_object val)const=0;
 #endif
 
 /// bool return version compatible with "classic" functor implementation:
@@ -3048,7 +3048,7 @@ system<R,NDIM>& system<R,NDIM>::operator=(const system& other)
 }
 
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string)
+bool system<R,NDIM>::writeBinary(commUtil::abstractCommHandle *fp)const
 {
   bool status(true);
   // allow other usage of output file, which requires knowledge of NDIM:
@@ -3060,7 +3060,7 @@ bool system<R,NDIM>::writeBinary(commUtil::abstractCommHandle *fp)const throw(st
 }
     
 template <class R, size_t NDIM>        
-bool system<R,NDIM>::readBinary(commUtil::abstractCommHandle *fp) throw(std::string)
+bool system<R,NDIM>::readBinary(commUtil::abstractCommHandle *fp)
 {
   bool status(true);
   size_t NDIM_(0); // ignored input value (present for other output file usage)
@@ -3079,7 +3079,7 @@ bool system<R,NDIM>::readBinary(commUtil::abstractCommHandle *fp) throw(std::str
 }
 
 template <class R, size_t NDIM>        
-size_t system<R,NDIM>::binarySize(void)const throw(std::string)
+size_t system<R,NDIM>::binarySize(void)const
 {
   size_t val(0);
   val += sizeof(size_t); // include NDIM in size calc.
@@ -3131,7 +3131,7 @@ system<R,NDIM>::system(const system& other)
 
 
 template <class R, size_t NDIM>   
-void mjp_system<R,NDIM>::parameters::update_cache(bool derived, bool to_cache) throw(std::string)
+void mjp_system<R,NDIM>::parameters::update_cache(bool derived, bool to_cache)
 {
   // usage note: _local_ copies of parameters are the "cache"
 
@@ -3152,7 +3152,7 @@ void mjp_system<R,NDIM>::parameters::update_cache(bool derived, bool to_cache) t
 }
 
 template <class R, size_t NDIM>
-void mjp_system<R,NDIM>::parameters::valid_check(void)const throw(std::string)
+void mjp_system<R,NDIM>::parameters::valid_check(void)const
 {
   using python_util::simple_object_base;
   
@@ -3165,21 +3165,21 @@ void mjp_system<R,NDIM>::parameters::valid_check(void)const throw(std::string)
       #endif
       (r_max < zero<R>())
       || (T_max < zero<R>()))
-    throw std::string("mjp_system<R,NDIM>::parameters::valid_check: invalid parameters");
+    throw std::runtime_error("mjp_system<R,NDIM>::parameters::valid_check: invalid parameters");
   if (root_class::has_named_parm("density")){
     const simple_object_base* parm(root_class::get_named_object("density"));
     if (parm->template is<object_list>() && parm->template as<object_list>().size() != base_class::N_particle)
-      throw std::string("mjp_system<R,NDIM>::parameters::valid_check: number of entries in density list doesn't match number of particles"); 
+      throw std::runtime_error("mjp_system<R,NDIM>::parameters::valid_check: number of entries in density list doesn't match number of particles"); 
   }
   if (root_class::has_named_parm("dr")){
     const simple_object_base* parm(root_class::get_named_object("dr"));
     if (parm->template is<object_list>() && parm->template as<object_list>().size() != base_class::N_particle)
-      throw std::string("mjp_system<R,NDIM>::parameters::valid_check: number of entries in dr list doesn't match number of particles"); 
+      throw std::runtime_error("mjp_system<R,NDIM>::parameters::valid_check: number of entries in dr list doesn't match number of particles"); 
   }    
 }
 
 template <class R, size_t NDIM>
-typename python_util::options_map<typename mjp_system<R,NDIM>::C>* mjp_system<R,NDIM>::parameters::clone(void)const throw(std::string)
+typename python_util::options_map<typename mjp_system<R,NDIM>::C>* mjp_system<R,NDIM>::parameters::clone(void)const
 { return new parameters(*this); }
 
 template <class R, size_t NDIM>
@@ -3214,7 +3214,7 @@ void mjp_system<R,NDIM>::parameters::write(std::ostream& os)const
  * @brief Initialize from a simple_object_base*.
  */
 template <class R, size_t NDIM>   
-inline void mjp_system<R,NDIM>::parameters::extract(const python_util::simple_object_base* src) throw(std::string)
+inline void mjp_system<R,NDIM>::parameters::extract(const python_util::simple_object_base* src)
 { 
   python_util::extract(*reinterpret_cast<root_class*>(this), src);
   update_cache();
@@ -3258,7 +3258,7 @@ inline const typename mjp_system<R,NDIM>::parameters& mjp_system<R,NDIM>::get_pa
 
 
 template <class R, size_t NDIM>
-inline void mjp_system<R,NDIM>::set_parameters(const parameters& param) throw(std::string)
+inline void mjp_system<R,NDIM>::set_parameters(const parameters& param)
 {  base_class::set_parameters(static_cast<const typename base_class::parameters&>(param)); }
 
 
@@ -3324,7 +3324,7 @@ void mjp_system<R,NDIM>::init_DLA(void)
 
   typename std::vector<R>::const_iterator it_dr_max(std::max_element(dr.begin(), dr.end()));  
   if (it_dr_max == dr.end())
-    throw std::string("mjp_system<R,NDIM>::init_DLA: max_element error return");  
+    throw std::runtime_error("mjp_system<R,NDIM>::init_DLA: max_element error return");  
   assert((*it_dr_max) == zero<R>());
   
   assert(N_seed > 0);
@@ -3373,7 +3373,7 @@ void mjp_system<R,NDIM>::init_DLA(void)
   }
   
   if (N_planted < N_seed)
-    throw std::string("mjp_system<R,NDIM>::init_DLA: seed particle initialization fails");
+    throw std::runtime_error("mjp_system<R,NDIM>::init_DLA: seed particle initialization fails");
 }
 
 template <class R, size_t NDIM>
@@ -3478,7 +3478,7 @@ bool mjp_system<R,NDIM>::radius_limit(const sphere* p0, R& time)const
  *        (or have motion that will not be resolved using pair-only dynamics)
  */
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::collision(const sphere* particle0_, const sphere* particle1_, R& time, bool& jam)const throw(std::string)
+bool mjp_system<R,NDIM>::collision(const sphere* particle0_, const sphere* particle1_, R& time, bool& jam)const
 {
   const parameters &param(get_parameters());
 
@@ -3632,7 +3632,7 @@ bool mjp_system<R,NDIM>::collision(const sphere* particle0_, const sphere* parti
       // mark particles so that they can be identified in system display (zero v special):
       const_cast<state&>(s0).velocity() *= integer<R>(0);
       const_cast<state&>(s1).velocity() *= integer<R>(0);
-      throw std::string("ABORT");
+      throw std::runtime_error("ABORT");
       #endif
     }
 
@@ -3699,7 +3699,7 @@ bool mjp_system<R,NDIM>::collision(const sphere* particle0_, const sphere* parti
       // mark particles so that they can be identified in system display (zero v special):
       const_cast<state&>(s0).velocity() *= integer<R>(0);
       const_cast<state&>(s1).velocity() *= integer<R>(0);
-      throw std::string("ABORT");
+      throw std::runtime_error("ABORT");
       #endif    
     }
     #else
@@ -3817,7 +3817,7 @@ template <class R, size_t NDIM>
 bool mjp_system<R,NDIM>::collision(
                            const ntuple<R,NDIM>& p0, const R& r0, const R& dr0, const ntuple<R,NDIM>& v0,
                            const ntuple<R,NDIM>& p1, const R& r1, const R& dr1,const ntuple<R,NDIM>& v1,
-                           R& dt) throw(std::string)
+                           R& dt)
 {
   bool test(false); // dt modified only in case of collision
   R t1(zero<R>()), t2(zero<R>()); // temporaries
@@ -3893,7 +3893,7 @@ bool mjp_system<R,NDIM>::collision(
  *      prior to this method)
  */
 template <class R, size_t NDIM>
-void mjp_system<R,NDIM>::collide(event* E) throw(std::string)
+void mjp_system<R,NDIM>::collide(event* E)
 {
   const parameters &param(get_parameters());
 
@@ -4121,7 +4121,7 @@ void mjp_system<R,NDIM>::collide(event* E) throw(std::string)
     }
   }
   else
-    throw std::string("mjp_system<R,NDIM>::collide: both particles frozen");  
+    throw std::runtime_error("mjp_system<R,NDIM>::collide: both particles frozen");  
 }
         
         
@@ -4133,7 +4133,7 @@ typename system<R,NDIM>::particle::particle_kind mjp_system<R,NDIM>::sphere::kin
 // update any _intrinsic_ attributes associated with system time change.
 // (does _not_ modify particle "state" (here considered extrinsic))
 template <class R, size_t NDIM>        
-void mjp_system<R,NDIM>::sphere::move(const R& t) throw(std::string)
+void mjp_system<R,NDIM>::sphere::move(const R& t)
 {
   // grow:
   radius_ +=  dr_ * (t - base_class::current_state().time());
@@ -4166,7 +4166,7 @@ bool mjp_system<R,NDIM>::sphere::overlap(const particle* pother)const
  *   .
  */
 template <class R, size_t NDIM>        
-R mjp_system<R,NDIM>::sphere::kinetic_velocity(const R& T)const throw(std::runtime_error)  
+R mjp_system<R,NDIM>::sphere::kinetic_velocity(const R& T)const  
 {
   R mass_(mass()); // use "mass" for kinetic calculations, not "hypermass"
   if (mass_ < epsilon<R>()){
@@ -4193,7 +4193,7 @@ typename system<R,NDIM>::particle* mjp_system<R,NDIM>::sphere::clone(void)const
 { return new sphere(*this); }
 
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::sphere::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+bool mjp_system<R,NDIM>::sphere::writeBinary(commUtil::abstractCommHandle* fp)const
 {
   bool status(true);
   status = (status && (base_class::writeBinary(fp)));
@@ -4204,7 +4204,7 @@ bool mjp_system<R,NDIM>::sphere::writeBinary(commUtil::abstractCommHandle* fp)co
 }
 
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::sphere::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+bool mjp_system<R,NDIM>::sphere::readBinary(commUtil::abstractCommHandle* fp)
 {
   bool status(true);
   status = (status && (base_class::readBinary(fp)));
@@ -4215,7 +4215,7 @@ bool mjp_system<R,NDIM>::sphere::readBinary(commUtil::abstractCommHandle* fp) th
 }
 
 template <class R, size_t NDIM>
-size_t mjp_system<R,NDIM>::sphere::binarySize(void)const throw(std::string)
+size_t mjp_system<R,NDIM>::sphere::binarySize(void)const
 { 
   size_t val(0);
   val += base_class::binarySize();
@@ -4422,7 +4422,7 @@ mjp_system<R,NDIM>::statistics::statistics(void)
  *      .
  */   
 template <class R, size_t NDIM>
-void mjp_system<R,NDIM>::init_state(const python_util::simple_object_base* incoming_state) throw(std::string)
+void mjp_system<R,NDIM>::init_state(const python_util::simple_object_base* incoming_state)
 {
   using TMatrix::seedRandom;
   using python_util::simple_object_base;
@@ -4463,7 +4463,7 @@ void mjp_system<R,NDIM>::init_state(const python_util::simple_object_base* incom
   #if 0 // --- omit, for the moment... ---
   typename std::vector<R>::const_iterator it_dr_max(std::max_element(dr.begin(), dr.end()));  
   if (it_dr_max == dr.end())
-    throw std::string("mjp_system<R,NDIM>::init_state: max_element error return");
+    throw std::runtime_error("mjp_system<R,NDIM>::init_state: max_element error return");
   const R dr_max(*it_dr_max);
   if ((*it_dr_max) >= v)
     clog(logger::LOG_NORMAL)<<"WARNING radial growth velocity >= kinematic velocity"<<endl;
@@ -4613,7 +4613,7 @@ void mjp_system<R,NDIM>::init_state(const python_util::simple_object_base* incom
  *      .
  */
 template <class R, size_t NDIM>
-void mjp_system<R,NDIM>::extract_state(python_util::simple_object_base *dest)const throw(std::string)
+void mjp_system<R,NDIM>::extract_state(python_util::simple_object_base *dest)const
 {
   using python_util::simple_object_base;
   using python_util::simple_object;
@@ -4676,7 +4676,7 @@ void mjp_system<R,NDIM>::extract_state(python_util::simple_object_base *dest)con
  *    where there may be many jam events, but only one soonest finite-time event)
  */
 template <class R, size_t NDIM>
-typename system<R,NDIM>::event_list mjp_system<R,NDIM>::next_event(const cell* c)const throw(std::string)
+typename system<R,NDIM>::event_list mjp_system<R,NDIM>::next_event(const cell* c)const
 {
   const parameters &param(get_parameters());
 
@@ -4719,7 +4719,7 @@ typename system<R,NDIM>::event_list mjp_system<R,NDIM>::next_event(const cell* c
 
       #if defined(__USE_PTHREAD)
       if (pthread_mutex_lock(&(this->base_class::mutex_)))
-        throw std::string("mjp_system<R,NDIM>::next_event: pthread_mutex_lock error return");
+        throw std::runtime_error("mjp_system<R,NDIM>::next_event: pthread_mutex_lock error return");
       #endif
 
       // update system per-particle statistics:
@@ -4727,7 +4727,7 @@ typename system<R,NDIM>::event_list mjp_system<R,NDIM>::next_event(const cell* c
 
       #if defined(__USE_PTHREAD)
       if (pthread_mutex_unlock(&(this->base_class::mutex_)))
-        throw std::string("mjp_system<R,NDIM>::next_event: pthread_mutex_unlock error return");
+        throw std::runtime_error("mjp_system<R,NDIM>::next_event: pthread_mutex_unlock error return");
       #endif
       
       // don't evolve beyond maximum allowed particle radius:
@@ -4889,7 +4889,7 @@ typename system<R,NDIM>::event_list mjp_system<R,NDIM>::next_event(const cell* c
 // EITHER  ALL of "jam_particles", "move_particles", and "process_event"
 //   OR "step_" *must* be defined (in the latter case, the former may remain stubs, or not, as required)
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::jam_particles(event* E) throw(std::string)
+bool mjp_system<R,NDIM>::jam_particles(event* E)
 {
   bool status(true);
   const parameters &param __attribute_unused__ (get_parameters());
@@ -4912,14 +4912,14 @@ bool mjp_system<R,NDIM>::jam_particles(event* E) throw(std::string)
   // *** DEBUG *** ----------------------------------------------------------------------------
   #if defined(__USE_PTHREAD)
   if (pthread_mutex_lock(&(this->base_class::mutex_)))
-    throw std::string("mjp_system<R,NDIM>::jam_particles: pthread_mutex_lock error return");
+    throw std::runtime_error("mjp_system<R,NDIM>::jam_particles: pthread_mutex_lock error return");
   #endif
   
   base_class::event_history_.push_back(E->clone());
   
   #if defined(__USE_PTHREAD)
   if (pthread_mutex_unlock(&(this->base_class::mutex_)))
-    throw std::string("mjp_system<R,NDIM>::jam_particles: pthread_mutex_unlock error return");
+    throw std::runtime_error("mjp_system<R,NDIM>::jam_particles: pthread_mutex_unlock error return");
   #endif
   #endif // ------------------------------------------------------------------------------------
   
@@ -4935,7 +4935,7 @@ bool mjp_system<R,NDIM>::jam_particles(event* E) throw(std::string)
  *    particle (read _or_ write) at the same time. 
  */
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::move_particles(cell* c, event* E) throw(std::string)
+bool mjp_system<R,NDIM>::move_particles(cell* c, event* E)
 {
   bool status(true);
   const parameters &param __attribute_unused__ (get_parameters());  
@@ -4953,7 +4953,7 @@ bool mjp_system<R,NDIM>::move_particles(cell* c, event* E) throw(std::string)
 #endif
 
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::process_event(event* E) throw(std::string)
+bool mjp_system<R,NDIM>::process_event(event* E)
 {
   bool status(true);
   const parameters &param __attribute_unused__ (get_parameters());
@@ -4985,7 +4985,7 @@ bool mjp_system<R,NDIM>::process_event(event* E) throw(std::string)
     
     case event::JAM_EVENT:  
     default:
-    throw std::string("mjp_system<R,NDIM>::process_event: unrecognized or non-finite-time event");
+    throw std::runtime_error("mjp_system<R,NDIM>::process_event: unrecognized or non-finite-time event");
     break;
   }
   
@@ -4993,14 +4993,14 @@ bool mjp_system<R,NDIM>::process_event(event* E) throw(std::string)
   // *** DEBUG *** ----------------------------------------------------------------------------
   #if defined(__USE_PTHREAD)
   if (pthread_mutex_lock(&(this->base_class::mutex_)))
-    throw std::string("mjp_system<R,NDIM>::process_event: pthread_mutex_lock error return");
+    throw std::runtime_error("mjp_system<R,NDIM>::process_event: pthread_mutex_lock error return");
   #endif
   
   base_class::event_history_.push_back(E->clone());
   
   #if defined(__USE_PTHREAD)
   if (pthread_mutex_unlock(&(this->base_class::mutex_)))
-    throw std::string("mjp_system<R,NDIM>::process_event: pthread_mutex_unlock error return");
+    throw std::runtime_error("mjp_system<R,NDIM>::process_event: pthread_mutex_unlock error return");
   #endif
   #endif // ------------------------------------------------------------------------------------
   
@@ -5100,7 +5100,7 @@ bool mjp_system<R,NDIM>::complete(void)const
  * This method does not check for state consistency itself (e.g. lack of particle overlap); this is assumed.
  */
 template <class R, size_t NDIM>
-void mjp_system<R,NDIM>::arg_valid_check(const object_map& arg)const throw(std::string)
+void mjp_system<R,NDIM>::arg_valid_check(const object_map& arg)const
 {
   using python_util::simple_object_base;
   const parameters& param(get_parameters());
@@ -5111,13 +5111,13 @@ void mjp_system<R,NDIM>::arg_valid_check(const object_map& arg)const throw(std::
     const simple_object_base *pobj = simple_object_base::get_named_object(arg, "radius");
     if (!pobj->is_empty() &&
         (pobj->size() != param.N_particle))
-      throw std::string("mjp_system<R,NDIM>::arg_valid_check: number of entries in radius list doesn't match number of particles");
+      throw std::runtime_error("mjp_system<R,NDIM>::arg_valid_check: number of entries in radius list doesn't match number of particles");
   }
 }
 
 /// wrapper "apply" method:
 template <class R, size_t NDIM>
-inline bool mjp_system<R,NDIM>::apply(const python_util::generic_object<C,R,Z>& arg, python_util::generic_object<C,R,Z>& val)const throw(std::string)
+inline bool mjp_system<R,NDIM>::apply(const python_util::generic_object<C,R,Z>& arg, python_util::generic_object<C,R,Z>& val)const
 { 
   /*
    * Implementation note:
@@ -5147,7 +5147,7 @@ inline bool mjp_system<R,NDIM>::apply(const python_util::generic_object<C,R,Z>& 
  *    .    
  */
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::apply(const python_util::simple_object_base *arg, python_util::simple_object_base *val)const throw(std::string)
+bool mjp_system<R,NDIM>::apply(const python_util::simple_object_base *arg, python_util::simple_object_base *val)const
 {
   bool status(true);
   int log_level_save(statusUtil::clog.output_level());
@@ -5230,7 +5230,7 @@ void mjp_system<R,NDIM>::debug_print(void)const
 }
 
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string)
+bool mjp_system<R,NDIM>::writeBinary(commUtil::abstractCommHandle *fp)const
 {
   bool status(true);
   // note: parameters written during base_class::writeBinary:
@@ -5239,7 +5239,7 @@ bool mjp_system<R,NDIM>::writeBinary(commUtil::abstractCommHandle *fp)const thro
 }
     
 template <class R, size_t NDIM>
-bool mjp_system<R,NDIM>::readBinary(commUtil::abstractCommHandle *fp) throw(std::string)
+bool mjp_system<R,NDIM>::readBinary(commUtil::abstractCommHandle *fp)
 {
   bool status(true);
   status = (status && base_class::readBinary(fp));
@@ -5248,7 +5248,7 @@ bool mjp_system<R,NDIM>::readBinary(commUtil::abstractCommHandle *fp) throw(std:
     
 
 template <class R, size_t NDIM>
-size_t mjp_system<R,NDIM>::binarySize(void)const throw(std::string)
+size_t mjp_system<R,NDIM>::binarySize(void)const
 {
   size_t val(0);
   val += base_class::binarySize();
@@ -5278,14 +5278,14 @@ mjp_system<R,NDIM>::mjp_system(bool initialize)
 }
 
 template <class R, size_t NDIM>
-mjp_system<R,NDIM>::mjp_system(const mjp_system& other) throw(std::string)
+mjp_system<R,NDIM>::mjp_system(const mjp_system& other)
   : system<R,NDIM>(false)
 {
   operator=(other);
 }
 
 template <class R, size_t NDIM>
-mjp_system<R,NDIM>::mjp_system(size_t N_particle, const R& L, const R& v, const R& dr) throw(std::string)
+mjp_system<R,NDIM>::mjp_system(size_t N_particle, const R& L, const R& v, const R& dr)
   : system<R,NDIM>(false)
 {
   // full re-initialization sequence:

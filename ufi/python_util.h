@@ -66,15 +66,15 @@ class python_error: public std::exception{
   private:
     std::string what_;
   public:
-    virtual const char* what(void)const throw();
+    virtual const char* what(void)const;
     
-    python_error& operator=(const python_error& other) throw();    
+    python_error& operator=(const python_error& other);    
     
-    virtual ~python_error(void) throw();
+    virtual ~python_error(void);
     
-    python_error(void) throw();
-    python_error(const python_error& other) throw();
-    python_error(const std::string& msg) throw();
+    python_error(void);
+    python_error(const python_error& other);
+    python_error(const std::string& msg);
 }; // class python_error 
 
 
@@ -222,17 +222,17 @@ class simple_object_base{
     static void free_pointers_(object_map& m);
 
 
-    static simple_object_base* NULL_extract_func(const PyObject* src) throw(std::runtime_error);
+    static simple_object_base* NULL_extract_func(const PyObject* src);
     
-    static PyObject* NULL_insert_func(const simple_object_base* src) throw(std::runtime_error);
+    static PyObject* NULL_insert_func(const simple_object_base* src);
     
     static bool readBinary_(commUtil::abstractCommHandle *fp, object_list& l);
     static bool writeBinary_(commUtil::abstractCommHandle *fp, const object_list& l);      
-    static size_t binarySize_(const object_list& l) throw(std::string);
+    static size_t binarySize_(const object_list& l);
 
     static bool readBinary_(commUtil::abstractCommHandle *fp, object_map& m);
     static bool writeBinary_(commUtil::abstractCommHandle *fp, const object_map& m);      
-    static size_t binarySize_(const object_map& m) throw(std::string);
+    static size_t binarySize_(const object_map& m);
               
   public:
 
@@ -251,10 +251,10 @@ class simple_object_base{
 
     
     template <class T>
-    inline const T& as(void)const throw(std::string);
+    inline const T& as(void)const;
 
     template <class T>
-    inline T& as(void) throw(std::string);
+    inline T& as(void);
 
     /**
      * @brief Access object pointer as pointer to T.
@@ -262,7 +262,7 @@ class simple_object_base{
      *   .
      */
     template <class T>
-    inline const T* ptr(void)const throw(std::string);
+    inline const T* ptr(void)const;
 
     /**
      * @brief Access object pointer as pointer to T.
@@ -272,32 +272,32 @@ class simple_object_base{
      *   .
      */
     template <class T>
-    inline T* ptr(void) throw(std::string);
+    inline T* ptr(void);
     
     // ----------------------- object_map utility methods: ----------------------------------------
 
     // test if a parm exists in the map:
     static bool has_named_parm(const object_map& map, const std::string& key);
 
-    static const std::type_info& named_parm_type(const object_map& map, const std::string& key) throw(std::string); 
+    static const std::type_info& named_parm_type(const object_map& map, const std::string& key); 
 
     // single_entity types U (see simple_object_traits<T>):
     // (note: use of this form with list_entity or object_entity types throws exception)
     template <class U>
-    static const U& get_named_parm(const object_map& map, const std::string& key) throw(std::string);
+    static const U& get_named_parm(const object_map& map, const std::string& key);
 
     template <class U>
-    static void set_named_parm(object_map& map, const std::string& key, const U& val) throw(std::string);
+    static void set_named_parm(object_map& map, const std::string& key, const U& val);
 
     // container types U (see simple_object_traits<T>):
     template <class U>
-    static void get_named_parm(const object_map& map, const std::string& key, U& val) throw(std::string);
+    static void get_named_parm(const object_map& map, const std::string& key, U& val);
 
     // object pointers themselves:
-    static const simple_object_base* get_named_object(const object_map& map, const std::string& key) throw(std::string);
+    static const simple_object_base* get_named_object(const object_map& map, const std::string& key);
 
     static void set_named_object(object_map& map, const std::string& key, 
-                                 const simple_object_base* pobject, bool transfer_ownership=false) throw(std::string);
+                                 const simple_object_base* pobject, bool transfer_ownership=false);
 
     // ----------------------- conversion to and from python C/API PyObject*: ---------------------    
     
@@ -364,13 +364,13 @@ class simple_object_base{
     void write(std::ostream &dest)const;        
 
     // methods to allow binary read and write from pointer to base-class:
-    static bool readBinaryVirtual(commUtil::abstractCommHandle *fp, simple_object_base*& pobject) throw(std::string);
-    static bool writeBinaryVirtual(commUtil::abstractCommHandle *fp, const simple_object_base* pobject) throw(std::string);
-    static size_t binarySizeVirtual(const simple_object_base* pobject) throw(std::string);
+    static bool readBinaryVirtual(commUtil::abstractCommHandle *fp, simple_object_base*& pobject);
+    static bool writeBinaryVirtual(commUtil::abstractCommHandle *fp, const simple_object_base* pobject);
+    static size_t binarySizeVirtual(const simple_object_base* pobject);
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);      
-    virtual size_t binarySize(void)const throw(std::string);
+    virtual bool readBinary(commUtil::abstractCommHandle *fp);
+    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    virtual size_t binarySize(void)const;
 
     // --------------------------------------------------------------------------------------------
     
@@ -402,7 +402,7 @@ class simple_object_base{
      *     ownership flag is not set is an error.
      *   .
      */
-    virtual void release_data(void)const throw(std::runtime_error);
+    virtual void release_data(void)const;
    
     virtual simple_object_base* clone(void)const;
 
@@ -436,10 +436,10 @@ class generic_object{
   inline bool is(void)const;
 
   template <class T>
-  inline const T& as(void)const throw(std::string);
+  inline const T& as(void)const;
 
   template <class T>
-  inline T& as(void) throw(std::string);
+  inline T& as(void);
 #else
   // INTEL C++ compiler and PGI C++ compiler
   // template functions of template classes must have definitions at point of primary declaration:
@@ -448,11 +448,11 @@ class generic_object{
   { return ptr_->is<T>(); }
 
   template <class T>
-  inline const T& as(void)const throw(std::string)
+  inline const T& as(void)const
   { return ptr_->as<T>(); }
 
   template <class T>
-  inline T& as(void) throw(std::string)
+  inline T& as(void)
   { return ptr_->as<T>(); }
 #endif
  
@@ -465,11 +465,11 @@ class generic_object{
   inline simple_object_base* ptr(void);
   
   
-  inline bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
+  inline bool readBinary(commUtil::abstractCommHandle *fp);
   
-  inline bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);      
+  inline bool writeBinary(commUtil::abstractCommHandle *fp)const;      
   
-  inline size_t binarySize(void)const throw(std::string);
+  inline size_t binarySize(void)const;
 
 
   // ------------------- conversion to and from PyObject*: ----------------------------
@@ -477,12 +477,12 @@ class generic_object{
   /**
    * @brief Convert a generic_object to a python object: returns a new reference.
    */
-  inline PyObject* insert(void)const throw(python_error);  
+  inline PyObject* insert(void)const;  
   
   /**
    * @brief Convert a python_object to a generic_object.
    */
-  inline void extract(const PyObject* src) throw(python_error);
+  inline void extract(const PyObject* src);
   
   // ----------------------------------------------------------------------------------
   
@@ -525,9 +525,9 @@ class simple_object: public simple_object_base{
     typedef base_class::object_list object_list;
     typedef base_class::object_map object_map;
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);      
-    virtual size_t binarySize(void)const throw(std::string);
+    virtual bool readBinary(commUtil::abstractCommHandle *fp);
+    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    virtual size_t binarySize(void)const;
 
     virtual const std::type_info& type(void)const;
 
@@ -556,7 +556,7 @@ class simple_object: public simple_object_base{
      *     ownership flag is not set is an error.
      *   .
      */
-    virtual void release_data(void)const throw(std::runtime_error);
+    virtual void release_data(void)const;
  
     #if 0
     /**
@@ -569,9 +569,9 @@ class simple_object: public simple_object_base{
     
     virtual simple_object_base* clone(void)const;
     
-    simple_object& operator=(const simple_object& other) throw(std::runtime_error);
+    simple_object& operator=(const simple_object& other);
     
-    simple_object& operator=(const T& t) throw(std::runtime_error);
+    simple_object& operator=(const T& t);
     
     virtual ~simple_object(void);
 
@@ -609,9 +609,9 @@ class simple_object<simple_object_base::object_list>: public simple_object_base{
     typedef base_class::object_list object_list;
     typedef base_class::object_map object_map;
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);      
-    virtual size_t binarySize(void)const throw(std::string);
+    virtual bool readBinary(commUtil::abstractCommHandle *fp);
+    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    virtual size_t binarySize(void)const;
 
     virtual const std::type_info& type(void)const;
 
@@ -640,7 +640,7 @@ class simple_object<simple_object_base::object_list>: public simple_object_base{
      *     ownership flag is not set is an error.
      *   .
      */
-    virtual void release_data(void)const throw(std::runtime_error);
+    virtual void release_data(void)const;
  
     #if 0
     /**
@@ -688,9 +688,9 @@ class simple_object<simple_object_base::object_map>: public simple_object_base{
     typedef base_class::object_list object_list;
     typedef base_class::object_map object_map;
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);      
-    virtual size_t binarySize(void)const throw(std::string);
+    virtual bool readBinary(commUtil::abstractCommHandle *fp);
+    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    virtual size_t binarySize(void)const;
 
     virtual const std::type_info& type(void)const;
 
@@ -719,7 +719,7 @@ class simple_object<simple_object_base::object_map>: public simple_object_base{
      *     ownership flag is not set is an error.
      *   .
      */
-    virtual void release_data(void)const throw(std::runtime_error);
+    virtual void release_data(void)const;
     
     #if 0
     /**
@@ -808,21 +808,21 @@ class extensible_parameters_base{
     // "clone_from" method clones object pointer from simple_object_base*, using its "clone" method,
     //    while enforcing structure of this base class (see usage comment above):
     // (transfer_ownership => assign object pointer: use with care)
-    virtual void clone_from(const simple_object_base* pobject, bool transfer_ownership=false) throw(std::string);
+    virtual void clone_from(const simple_object_base* pobject, bool transfer_ownership=false);
     
-    virtual extensible_parameters_base* clone(void)const throw(std::string);
+    virtual extensible_parameters_base* clone(void)const;
      
      
-    std::string& name(void) throw(std::string);
-    const std::string& name(void)const throw(std::string);
+    std::string& name(void);
+    const std::string& name(void)const;
     
     // U is any iterable container type of value_type convertable to T via direct assignment T = U::value_type:
     template <class U>
-    void set_coeff(const U& src) throw(std::string);
+    void set_coeff(const U& src);
 
     // U is any iterable container type of value_type convertable to T via direct assignment U::value_type = T:
     template <class U>
-    void get_coeff(U& dest)const throw(std::string);
+    void get_coeff(U& dest)const;
 
     
     // arbitrary named parameters:
@@ -830,24 +830,24 @@ class extensible_parameters_base{
     // test if a parm exists:
     bool has_named_parm(const std::string& key)const;
  
-    const std::type_info& named_parm_type(const std::string& key)const throw(std::string); 
+    const std::type_info& named_parm_type(const std::string& key)const; 
        
     // single_entity types U (see simple_object_traits<T>):
     // (note: use of this form with list_entity or object_entity types throws exception)
     template <class U>
-    const U& get_named_parm(const std::string& key)const throw(std::string);
+    const U& get_named_parm(const std::string& key)const;
    
     // container types U (see simple_object_traits<T>):
     template <class U>
-    void get_named_parm(const std::string& key, U& val)const throw(std::string);
+    void get_named_parm(const std::string& key, U& val)const;
 
     template <class U>
-    void set_named_parm(const std::string& key, const U& val) throw(std::string);
+    void set_named_parm(const std::string& key, const U& val);
 
     // object pointers themselves:
-    const simple_object_base* get_named_object(const std::string& key)const throw(std::string);
+    const simple_object_base* get_named_object(const std::string& key)const;
     
-    void set_named_object(const std::string& key, const simple_object_base* pobject, bool transfer_ownership=false) throw(std::string);
+    void set_named_object(const std::string& key, const simple_object_base* pobject, bool transfer_ownership=false);
     
 
     void swap(extensible_parameters_base& other);
@@ -856,24 +856,24 @@ class extensible_parameters_base{
     extensible_parameters_base& operator=(const extensible_parameters_base& other);
 
 
-    bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);      
-    size_t binarySize(void)const throw(std::string);
+    bool readBinary(commUtil::abstractCommHandle *fp);
+    bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    size_t binarySize(void)const;
 
     // for the following methods, break-out number types as explicit parameters
     // (this keeps module independent from namespace TMatrix, otherwise, I need
     //    TMatrix::numberTraits<T> to obtain the types)
     template <class C, class R, class Z>
-    void read(std::istream& is) throw(std::string);
+    void read(std::istream& is);
     template <class C, class R, class Z>   
-    void write(std::ostream& os)const throw(std::string);
+    void write(std::ostream& os)const;
 
     virtual ~extensible_parameters_base(void);
     
     extensible_parameters_base(bool initialize=false);
     extensible_parameters_base(const extensible_parameters_base& other);
     extensible_parameters_base(const std::string& name, const std::vector<T>* pcoeff = NULL);
-    extensible_parameters_base(const simple_object_base* object, bool transfer_ownership=false) throw(std::string);
+    extensible_parameters_base(const simple_object_base* object, bool transfer_ownership=false);
 }; 
 
 
@@ -896,12 +896,12 @@ class options_map{
     void init(bool initialize=false);
     
     template <class C, class R, class Z>
-    void init(const std::string& src, const std::string* ppreamble = NULL, const std::string* ppostscript = NULL) throw(std::string);
+    void init(const std::string& src, const std::string* ppreamble = NULL, const std::string* ppostscript = NULL);
     
     template <class C, class R, class Z>
     void init(std::istream& src, 
               std::istream* ppreamble=NULL, 
-              std::istream* ppostscript=NULL) throw(std::string);
+              std::istream* ppostscript=NULL);
 
     bool enforce_usage(void)const;
   
@@ -920,39 +920,39 @@ class options_map{
 
     bool cache_current(void)const;
 
-    virtual void update_cache(bool derived=false, bool to_cache=true) throw(std::string);
+    virtual void update_cache(bool derived=false, bool to_cache=true);
         
     const simple_object_base* object_pointer(void)const;
     
     // "clone_from" method clones object pointer from simple_object_base*, using its "clone" method,
     //    while enforcing structure of this base class (see usage comment above):
     // (transfer_ownership => assign object pointer: use with care)
-    virtual void clone_from(const simple_object_base* pobject, bool transfer_ownership=false) throw(std::string);
+    virtual void clone_from(const simple_object_base* pobject, bool transfer_ownership=false);
     
-    virtual options_map* clone(void)const throw(std::string);
+    virtual options_map* clone(void)const;
     
     // test if a parm exists:
     bool has_named_parm(const std::string& key)const;
  
-    const std::type_info& named_parm_type(const std::string& key)const throw(std::string); 
+    const std::type_info& named_parm_type(const std::string& key)const; 
        
     // single_entity types U (see simple_object_traits<T>):
     // (note: use of this form with list_entity or object_entity types throws exception)
     template <class U>
-    const U& get_named_parm(const std::string& key)const throw(std::string);
+    const U& get_named_parm(const std::string& key)const;
    
     // container types U (see simple_object_traits<T>):
     template <class U>
-    void get_named_parm(const std::string& key, U& val)const throw(std::string);
+    void get_named_parm(const std::string& key, U& val)const;
 
     template <class U>
-    void set_named_parm(const std::string& key, const U& val, bool from_cache=false) throw(std::string);
+    void set_named_parm(const std::string& key, const U& val, bool from_cache=false);
 
     // object pointers themselves:
-    const simple_object_base* get_named_object(const std::string& key)const throw(std::string);
+    const simple_object_base* get_named_object(const std::string& key)const;
     
     // note: assumes that object attributes are _not_ cached => no "from_cache" flag is provided for this method:
-    void set_named_object(const std::string& key, const simple_object_base* pobject, bool transfer_ownership=false) throw(std::string);
+    void set_named_object(const std::string& key, const simple_object_base* pobject, bool transfer_ownership=false);
     
 
     void swap(options_map& other);
@@ -968,22 +968,22 @@ class options_map{
      *         in its CTOR using the base-class copy constructor 
      *         (which would work, but would generate multiple calls to base_class "copy" and "update_cache").
      */
-    void copy(const options_map& other, bool derived=false) throw(std::string);
-    options_map& operator=(const options_map& other) throw(std::string);
+    void copy(const options_map& other, bool derived=false);
+    options_map& operator=(const options_map& other);
 
 
-    bool readBinary(commUtil::abstractCommHandle *fp) throw(std::string);
-    bool writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string);      
-    size_t binarySize(void)const throw(std::string);
+    bool readBinary(commUtil::abstractCommHandle *fp);
+    bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    size_t binarySize(void)const;
 
     // for the following methods, break-out number types as explicit parameters
     // (this keeps module independent from namespace TMatrix, otherwise, I need
     //    TMatrix::numberTraits<T> to obtain the types)
     template <class C, class R, class Z>
-    void read(std::istream& is) throw(std::string);
+    void read(std::istream& is);
     
     template <class C, class R, class Z>   
-    void write(std::ostream& os)const throw(std::string);
+    void write(std::ostream& os)const;
 
 
     virtual ~options_map(void);
@@ -991,40 +991,40 @@ class options_map{
     
     options_map(bool initialize=false);
     
-    options_map(const options_map& other) throw(std::string);
+    options_map(const options_map& other);
 
     #if 1
     // ---------- factory methods: -----------------
     template <class C, class R, class Z>
-    static options_map parse_options(const std::string& src, const std::string* ppreamble = NULL, const std::string* ppostscript = NULL) throw(std::string);
+    static options_map parse_options(const std::string& src, const std::string* ppreamble = NULL, const std::string* ppostscript = NULL);
     
     template <class C, class R, class Z>
     static options_map parse_options(std::istream& src, 
                 std::istream* ppreamble=NULL, 
-                std::istream* ppostscript=NULL) throw(std::string);
+                std::istream* ppostscript=NULL);
                 
     template <class C, class R, class Z>
     static options_map parse_options(int argc, const char *argv[], 
                 std::istream* ppreamble=NULL, 
-                std::istream* ppostscript=NULL) throw(std::string);
+                std::istream* ppostscript=NULL);
     // ---------------------------------------------
     #else
         
     template <class C, class R, class Z>
-    options_map(const std::string& src, const std::string* ppreamble = NULL, const std::string* ppostscript = NULL) throw(std::string);
+    options_map(const std::string& src, const std::string* ppreamble = NULL, const std::string* ppostscript = NULL);
     
     template <class C, class R, class Z>
     options_map(std::istream& src, 
                 std::istream* ppreamble=NULL, 
-                std::istream* ppostscript=NULL) throw(std::string);
+                std::istream* ppostscript=NULL);
                 
     template <class C, class R, class Z>
     options_map(int argc, const char *argv[], 
                 std::istream* ppreamble=NULL, 
-                std::istream* ppostscript=NULL) throw(std::string);
+                std::istream* ppostscript=NULL);
     #endif
                 
-    options_map(const simple_object_base* object, bool transfer_ownership=false) throw(std::string);
+    options_map(const simple_object_base* object, bool transfer_ownership=false);
 }; // class options_map
 
 
@@ -1228,98 +1228,98 @@ struct simple_object_traits<_STL_EXT_NAMESPACE_::hash_map<std::string, T> >{
 
 // type-specific extraction from simple_object_base* :
 template <class T>
-void extract(T& t, const simple_object_base* pobject) throw(std::string);
+void extract(T& t, const simple_object_base* pobject);
 
 // -------- specializations of extract: -----------------------------------------------------------------------
 template < >
-inline void extract<PyObject*>(PyObject*& dest, const simple_object_base* pobject) throw(std::string);
+inline void extract<PyObject*>(PyObject*& dest, const simple_object_base* pobject);
 
 template < >
-inline void extract<simple_object_base*>(simple_object_base*& dest, const simple_object_base* pobject) throw(std::string);
+inline void extract<simple_object_base*>(simple_object_base*& dest, const simple_object_base* pobject);
 
 template <class C, class R, class Z>
-inline void extract(generic_object<C,R,Z>& dest, const simple_object_base* pobject) throw(std::string);
+inline void extract(generic_object<C,R,Z>& dest, const simple_object_base* pobject);
 
 template <class T>
-inline void extract(extensible_parameters_base<T>& dest, const simple_object_base* pobject) throw(std::string);
+inline void extract(extensible_parameters_base<T>& dest, const simple_object_base* pobject);
 
 template <class T>
-inline void extract(options_map<T>& dest, const simple_object_base* pobject) throw(std::string);
+inline void extract(options_map<T>& dest, const simple_object_base* pobject);
 
 // ------------------------------------------------------------------------------------------------------------
 
 template <class T, class ET>
-void dispatch_extract(T& t, const simple_object_base *pobject, ET) throw(std::string);
+void dispatch_extract(T& t, const simple_object_base *pobject, ET);
 
 template <class T>
-void dispatch_extract(T& t, const simple_object_base *pobject, single_entity) throw(std::string);
+void dispatch_extract(T& t, const simple_object_base *pobject, single_entity);
 
 template <class U>
-void dispatch_extract(U& u, const simple_object_base *pobject, list_entity) throw(std::string);
+void dispatch_extract(U& u, const simple_object_base *pobject, list_entity);
 
 template <class M>
-void dispatch_extract(M& m, const simple_object_base *pobject, map_entity) throw(std::string);
+void dispatch_extract(M& m, const simple_object_base *pobject, map_entity);
 
 template <class T>
-void extract_single(T& t, const simple_object_base *pobject) throw(std::string);
+void extract_single(T& t, const simple_object_base *pobject);
 
 template <class T, class NT>
-inline void dispatch_extract_single(T& dest, const simple_object_base *pobject, NT) throw(std::string);
+inline void dispatch_extract_single(T& dest, const simple_object_base *pobject, NT);
 
 template <class T>
-inline void dispatch_extract_single(T& dest, const simple_object_base *pobject, abstract_null_entity) throw(std::string);
+inline void dispatch_extract_single(T& dest, const simple_object_base *pobject, abstract_null_entity);
 
 // default: extract container from RANK=1 number object
 //   or alternatively from object-list format: 
 //   NT is simple_object_traits<typename U::value_type>::number_type
 template <class U, class NT>
-void extract_list(U& u, const simple_object_base *pobject, NT) throw(std::string);
+void extract_list(U& u, const simple_object_base *pobject, NT);
 
 // special case: extract non-number container from object-list (or alternative format for number container):
 template <class U>
-void extract_list(U& u, const simple_object_base *pobject, abstract_null_entity) throw(std::string);
+void extract_list(U& u, const simple_object_base *pobject, abstract_null_entity);
 
 template <class M>
-void extract_map(M& m, const simple_object_base *pobject) throw(std::string);
+void extract_map(M& m, const simple_object_base *pobject);
 
 
 // generic allocation of simple_object_base*
 template <class T>
-simple_object_base* new_simple_object(const T& t) throw(std::string);
+simple_object_base* new_simple_object(const T& t);
 
 // ------------- specializations of "new_simple_object" _bypassing_ dispatcher : --------------------------------
 
 // simple_object_base* itself (using clone()):
-inline simple_object_base* new_simple_object(const simple_object_base* t) throw(std::string);
+inline simple_object_base* new_simple_object(const simple_object_base* t);
 
 // generic_object (using clone()):
 template <class C, class R, class Z>
-inline simple_object_base* new_simple_object(const generic_object<C,R,Z>& t) throw(std::string);
+inline simple_object_base* new_simple_object(const generic_object<C,R,Z>& t);
 
 // extensible_parameters_base (using clone()):
 template <class T>
-inline simple_object_base* new_simple_object(const extensible_parameters_base<T>& t) throw(std::string);
+inline simple_object_base* new_simple_object(const extensible_parameters_base<T>& t);
 
 // options_map<T> (using clone()):
 template <class T>
-inline simple_object_base* new_simple_object(const options_map<T>& t) throw(std::string);
+inline simple_object_base* new_simple_object(const options_map<T>& t);
 
 // --------------------------------------------------------------------------------------------------------------
 
 template <class T, class ET>
-simple_object_base* new_object_dispatch(const T& t, ET) throw(std::string);
+simple_object_base* new_object_dispatch(const T& t, ET);
 
 template <class T>
-simple_object_base* new_object_dispatch(const T& t, single_entity) throw(std::string);
+simple_object_base* new_object_dispatch(const T& t, single_entity);
 
 template <class U>
-simple_object_base* new_object_dispatch(const U& u, list_entity) throw(std::string);
+simple_object_base* new_object_dispatch(const U& u, list_entity);
 
 template <class M>
-simple_object_base* new_object_dispatch(const M& m, map_entity) throw(std::string);
+simple_object_base* new_object_dispatch(const M& m, map_entity);
 
 template <class T>
-simple_object_base* new_single(const T& t) throw(std::string);
+simple_object_base* new_single(const T& t);
 
 // default: create a RANK=1 number object: 
 //  "NT" is 
@@ -1327,44 +1327,44 @@ simple_object_base* new_single(const T& t) throw(std::string);
 //       typename linalg::tensor_traits<
 //         typename gmm::linalg_traits<U>::value_type>::scalar_type>::number_type
 template <class U, class NT>
-simple_object_base* new_list(const U& u, NT) throw(std::string);
+simple_object_base* new_list(const U& u, NT);
 
 // special case: not a number-type: create an object-list:
 template <class U>
-inline simple_object_base* new_list(const U& src, abstract_null_entity) throw(std::string);
+inline simple_object_base* new_list(const U& src, abstract_null_entity);
 
 
 template <class M>
-simple_object_base* new_map(const M& m) throw(std::string);
+simple_object_base* new_map(const M& m);
 
 
 // promotion to more-general number classes:
 template <class T>
-void extract_number(T& t, const simple_object_base* pobject) throw(std::string);
+void extract_number(T& t, const simple_object_base* pobject);
 
 template <class T, class NT>
-void dispatch_extract_number(T& t, const simple_object_base* pobject, NT) throw(std::string);
+void dispatch_extract_number(T& t, const simple_object_base* pobject, NT);
 
 template <class T>
-void dispatch_extract_number(T& t, const simple_object_base* pobject, complex_number_entity) throw(std::string);
+void dispatch_extract_number(T& t, const simple_object_base* pobject, complex_number_entity);
 
 template <class T>
-void dispatch_extract_number(T& t, const simple_object_base* pobject, real_number_entity) throw(std::string);
+void dispatch_extract_number(T& t, const simple_object_base* pobject, real_number_entity);
 
 template <class T>
-void dispatch_extract_number(T& t, const simple_object_base* pobject, integral_number_entity) throw(std::string);
+void dispatch_extract_number(T& t, const simple_object_base* pobject, integral_number_entity);
 
 template <class T>
-void extract_complex_number(T& t, const simple_object_base* pobject) throw(std::string);
+void extract_complex_number(T& t, const simple_object_base* pobject);
 
 template <class T>
-void extract_real_number(T& t, const simple_object_base* pobject) throw(std::string);
+void extract_real_number(T& t, const simple_object_base* pobject);
 
 template <class T>
-void extract_integral_number(T& t, const simple_object_base* pobject) throw(std::string);
+void extract_integral_number(T& t, const simple_object_base* pobject);
 
 template < >
-void extract_integral_number<size_t>(size_t& t, const simple_object_base* pobject) throw(std::string);
+void extract_integral_number<size_t>(size_t& t, const simple_object_base* pobject);
 
 // ---------------------------------------- end: dispatcher classes: ----------------------------------
 

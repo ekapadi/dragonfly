@@ -184,26 +184,26 @@ generic_object< ... above types ... >
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-const char* python_error::what(void)const throw()
+const char* python_error::what(void)const
 { return what_.c_str(); }
 
-python_error::~python_error(void) throw()
+python_error::~python_error(void)
 { }
 
-python_error::python_error(void) throw()
+python_error::python_error(void)
   : what_("unspecified python_error")
 { }
 
-python_error& python_error::operator=(const python_error& other) throw()
+python_error& python_error::operator=(const python_error& other)
 { 
   what_ = other.what_; 
   return *this;
 }
 
-python_error::python_error(const python_error& other) throw()
+python_error::python_error(const python_error& other)
 { operator=(other); }
 
-python_error::python_error(const std::string& msg) throw()
+python_error::python_error(const std::string& msg)
   : what_(msg)
 {
   // append any error information from the python C/API error methods:
@@ -259,7 +259,7 @@ simple_object_base::RECOGNIZED_TYPE simple_object_base::enum_from_type_info(cons
   if (0 == strcmp(type_.name(),  typeid(object_map).name()))
     val = OBJECT_MAP_TYPE;  
   else
-    throw std::string("simple_object_base::enum_from_type_info: unrecognized type_info: ") + type_.name();
+    throw std::runtime_error("simple_object_base::enum_from_type_info: unrecognized type_info: ") + type_.name();
     
   return val;
 }
@@ -305,7 +305,7 @@ const std::type_info& simple_object_base::type_info_from_enum(RECOGNIZED_TYPE et
       pval = &typeid(object_map);
     break;
     default:
-      throw std::string("simple_object_base::type_info_from_enum: unrecognized type enum");
+      throw std::runtime_error("simple_object_base::type_info_from_enum: unrecognized type enum");
     // break;    
   }
   
@@ -314,7 +314,7 @@ const std::type_info& simple_object_base::type_info_from_enum(RECOGNIZED_TYPE et
 
 
 simple_object_base::generic_ptr_base* simple_object_base::generic_ptr_base::clone(void)const
-{ throw std::string("simple_object_base::generic_ptr_base::clone: generic pointer has undefined type"); }
+{ throw std::runtime_error("simple_object_base::generic_ptr_base::clone: generic pointer has undefined type"); }
 
 simple_object_base::generic_ptr_base::~generic_ptr_base(void)
 { }
@@ -325,10 +325,10 @@ simple_object_base::extract_func simple_object_base::default_extract_func_ = sim
 simple_object_base::insert_func simple_object_base::default_insert_func_ = simple_object_base::NULL_insert_func;
 // ---------------------------------------------------------------------------------------------------------------------
 
-simple_object_base* simple_object_base::NULL_extract_func(const PyObject* src) throw(std::runtime_error)
+simple_object_base* simple_object_base::NULL_extract_func(const PyObject* src)
 { throw std::runtime_error("extract from python object to simple_object_base*: default extract method uninitialized"); }
     
-PyObject* simple_object_base::NULL_insert_func(const simple_object_base* src)  throw(std::runtime_error)
+PyObject* simple_object_base::NULL_insert_func(const simple_object_base* src)
 { throw std::runtime_error("insert from simple_object_base* to python object: default insert method uninitialized"); }
 
         
@@ -391,7 +391,7 @@ bool simple_object_base::writeBinary_(commUtil::abstractCommHandle *fp, const ob
 }
 
       
-size_t simple_object_base::binarySize_(const object_list& l) throw(std::string)
+size_t simple_object_base::binarySize_(const object_list& l)
 {
   size_t val(0);
   size_t size_(l.size()); 
@@ -452,9 +452,9 @@ bool simple_object_base::writeBinary_(commUtil::abstractCommHandle *fp, const ob
 }
 
       
-size_t simple_object_base::binarySize_(const object_map& m) throw(std::string)
+size_t simple_object_base::binarySize_(const object_map& m)
 {
-  throw std::string("simple_object_base::binarySize_: recheck this implementation: \n"
+  throw std::runtime_error("simple_object_base::binarySize_: recheck this implementation: \n"
     "  any utilization must take account of the fact that binarySize(std::string) is not constant!");
 #if 0
   size_t val(0);
@@ -474,19 +474,19 @@ size_t simple_object_base::binarySize_(const object_map& m) throw(std::string)
     
 // ---------------------------------------- arbitrary named parameter utility methods: -------------------------------------------
 
-const std::type_info& simple_object_base::named_parm_type(const object_map& map, const std::string& key) throw(std::string) 
+const std::type_info& simple_object_base::named_parm_type(const object_map& map, const std::string& key) 
 { 
   const std::type_info *ptype(NULL);
   object_map::const_iterator itP = map.find(key);
   if (itP != map.end())
     ptype = &((*itP).second->type());
   else
-    throw std::string("named_parm_type: no entry found for specified key: ") + key;   
+    throw std::runtime_error("named_parm_type: no entry found for specified key: ") + key;   
   return *ptype;
 }
 
 // object pointers themselves:
-const simple_object_base* simple_object_base::get_named_object(const object_map& map, const std::string& key) throw(std::string)
+const simple_object_base* simple_object_base::get_named_object(const object_map& map, const std::string& key)
 {
   // note on form: dispatcher-type partial specializations only allowed at namespace scope.
   object_map::const_iterator itP = map.find(key);
@@ -494,12 +494,12 @@ const simple_object_base* simple_object_base::get_named_object(const object_map&
   if (itP != map.end())
     pobject = (*itP).second;
   else  
-    throw std::string("get_named_object: no entry found for specified key: ") + key;
+    throw std::runtime_error("get_named_object: no entry found for specified key: ") + key;
   
   return pobject; 
 }
 
-void simple_object_base::set_named_object(object_map& map, const std::string& key, const simple_object_base* pobject, bool transfer_ownership) throw(std::string)
+void simple_object_base::set_named_object(object_map& map, const std::string& key, const simple_object_base* pobject, bool transfer_ownership)
 {
   // Notes on form: 
   //   -- dispatcher-type partial specializations only allowed at namespace scope;
@@ -522,7 +522,7 @@ void simple_object_base::set_named_object(object_map& map, const std::string& ke
 
 
 // methods to allow binary read and write from pointer to base-class:
-bool simple_object_base::readBinaryVirtual(commUtil::abstractCommHandle *fp, simple_object_base*& pobject) throw(std::string)
+bool simple_object_base::readBinaryVirtual(commUtil::abstractCommHandle *fp, simple_object_base*& pobject)
 {
   using commUtil::readBinary;
   bool status(true);
@@ -543,7 +543,7 @@ bool simple_object_base::readBinaryVirtual(commUtil::abstractCommHandle *fp, sim
       case NONE_TYPE:
         pobject = NULL;
         #if 1
-        throw std::string("simple_object_base::readBinaryVirtual: read of NONE_TYPE object");
+        throw std::runtime_error("simple_object_base::readBinaryVirtual: read of NONE_TYPE object");
         #endif
       // break;
       #if defined(__USE_MERE)
@@ -581,7 +581,7 @@ bool simple_object_base::readBinaryVirtual(commUtil::abstractCommHandle *fp, sim
         pobject = new simple_object<object_map>();
       break;
       default:
-        throw std::string("simple_object_base::type_info_from_enum: unrecognized type enum");
+        throw std::runtime_error("simple_object_base::type_info_from_enum: unrecognized type enum");
       // break;    
     }
     // call the appropriate virtual readBinary:
@@ -591,7 +591,7 @@ bool simple_object_base::readBinaryVirtual(commUtil::abstractCommHandle *fp, sim
   return status;  
 }
 
-bool simple_object_base::writeBinaryVirtual(commUtil::abstractCommHandle *fp, const simple_object_base* pobject) throw(std::string)
+bool simple_object_base::writeBinaryVirtual(commUtil::abstractCommHandle *fp, const simple_object_base* pobject)
 {
   using commUtil::writeBinary;
   bool status(true);
@@ -601,7 +601,7 @@ bool simple_object_base::writeBinaryVirtual(commUtil::abstractCommHandle *fp, co
   return status;  
 }
 
-size_t simple_object_base::binarySizeVirtual(const simple_object_base* pobject) throw(std::string)
+size_t simple_object_base::binarySizeVirtual(const simple_object_base* pobject)
 {
   size_t val(0);
   
@@ -610,35 +610,35 @@ size_t simple_object_base::binarySizeVirtual(const simple_object_base* pobject) 
   return val;
 }
 
-bool simple_object_base::readBinary(commUtil::abstractCommHandle *fp) throw(std::string)
+bool simple_object_base::readBinary(commUtil::abstractCommHandle *fp)
 { 
   #if 0
-  throw std::string("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
+  throw std::runtime_error("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
     + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"); 
   #else
-  throw std::string("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
+  throw std::runtime_error("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
     + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer");   
   #endif
 }
 
-bool simple_object_base::writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string)      
+bool simple_object_base::writeBinary(commUtil::abstractCommHandle *fp)const      
 { 
   #if 0
-  throw std::string("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
+  throw std::runtime_error("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
     + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"); 
   #else
-  throw std::string("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
+  throw std::runtime_error("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
     + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer");   
   #endif
 }
 
-size_t simple_object_base::binarySize(void)const throw(std::string)
+size_t simple_object_base::binarySize(void)const
 { 
   #if 0
-  throw std::string("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
+  throw std::runtime_error("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
     + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"); 
   #else
-  throw std::string("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
+  throw std::runtime_error("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
     + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer");   
   #endif
 }
@@ -663,7 +663,7 @@ bool simple_object_base::own_data(void)const
  *     ownership flag is not set is an error.
  *   .
  */
-void simple_object_base::release_data(void)const throw(std::runtime_error)
+void simple_object_base::release_data(void)const
 {
   throw std::runtime_error("simple_object_base::release_data: _pure_(?!) simple_object_base");
 }
@@ -688,13 +688,13 @@ simple_object_base::simple_object_base(generic_ptr_base* pg)
 
 // note: the read/writeBinary methods are "virtual": they cannot be inlined:
 
-bool simple_object<simple_object_base::object_list>::readBinary(commUtil::abstractCommHandle *fp) throw(std::string)
+bool simple_object<simple_object_base::object_list>::readBinary(commUtil::abstractCommHandle *fp)
 { return simple_object_base::readBinary_(fp, as_<object_list>()); }
 
-bool simple_object<simple_object_base::object_list>::writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string)      
+bool simple_object<simple_object_base::object_list>::writeBinary(commUtil::abstractCommHandle *fp)const      
 { return simple_object_base::writeBinary_(fp, as_<object_list>()); }
 
-size_t simple_object<simple_object_base::object_list>::binarySize(void)const throw(std::string)
+size_t simple_object<simple_object_base::object_list>::binarySize(void)const
 { return simple_object_base::binarySize_(as_<object_list>()); }
 
 
@@ -722,7 +722,7 @@ bool simple_object<simple_object_base::object_list>::own_data(void)const
  *     ownership flag is not set is an error.
  *   .
  */
-void simple_object<simple_object_base::object_list>::release_data(void)const throw(std::runtime_error)
+void simple_object<simple_object_base::object_list>::release_data(void)const
 {
   throw std::runtime_error("simple_object<simple_object_base::object_list>::release_data: \n"
     "  only supported for single-entity simple_object types");
@@ -797,13 +797,13 @@ simple_object<simple_object_base::object_list>::simple_object(const object_list&
 
 // note: the read/writeBinary methods are "virtual": they cannot be inlined:
 
-bool simple_object<simple_object_base::object_map>::readBinary(commUtil::abstractCommHandle *fp) throw(std::string)
+bool simple_object<simple_object_base::object_map>::readBinary(commUtil::abstractCommHandle *fp)
 { return simple_object_base::readBinary_(fp, as_<object_map>()); }
 
-bool simple_object<simple_object_base::object_map>::writeBinary(commUtil::abstractCommHandle *fp)const throw(std::string)      
+bool simple_object<simple_object_base::object_map>::writeBinary(commUtil::abstractCommHandle *fp)const      
 { return simple_object_base::writeBinary_(fp, as_<object_map>()); }
 
-size_t simple_object<simple_object_base::object_map>::binarySize(void)const throw(std::string)
+size_t simple_object<simple_object_base::object_map>::binarySize(void)const
 { return simple_object_base::binarySize_(as_<object_map>()); }
 
 const std::type_info& simple_object<simple_object_base::object_map>::type(void)const
@@ -830,7 +830,7 @@ bool simple_object<simple_object_base::object_map>::own_data(void)const
  *     ownership flag is not set is an error.
  *   .
  */
-void simple_object<simple_object_base::object_map>::release_data(void)const throw(std::runtime_error)
+void simple_object<simple_object_base::object_map>::release_data(void)const
 {
   throw std::runtime_error("simple_object<simple_object_base::object_map>::release_data: \n"
     "  only supported for single-entity simple_object types");

@@ -34,47 +34,47 @@ namespace commUtil{
 
 #if defined(__USE_MPI) // ------------------------------------------- MPI ONLY SECTION ------------------------------------------------------------
 template <class U>
-inline void gather(const U& u, abstractCommHandle *h) throw()
+inline void gather(const U& u, abstractCommHandle *h)
 {  
  processCommHandle *h_(dynamic_cast<processCommHandle*>(h));
  if (NULL == h_)
-   throw std::string("commUtil::gather: cast to derived processCommHandle* fails");
+   throw std::runtime_error("commUtil::gather: cast to derived processCommHandle* fails");
  h_->gather(u); 
 }
 
 template <class U>
-inline void gather(const U& u, std::vector<U>& vU, abstractCommHandle *h) throw()
+inline void gather(const U& u, std::vector<U>& vU, abstractCommHandle *h)
 { 
  processCommHandle *h_(dynamic_cast<processCommHandle*>(h));
  if (NULL == h_)
-   throw std::string("commUtil::gather: cast to derived processCommHandle* fails");
+   throw std::runtime_error("commUtil::gather: cast to derived processCommHandle* fails");
  h_->gather(u, vU); 
 }
 
 template <class U>
-inline void all_gather(const U& u, std::vector<U>& vU, abstractCommHandle *h) throw()
+inline void all_gather(const U& u, std::vector<U>& vU, abstractCommHandle *h)
 { 
  processCommHandle *h_(dynamic_cast<processCommHandle*>(h));
  if (NULL == h_)
-   throw std::string("commUtil::all_gather: cast to derived processCommHandle* fails");
+   throw std::runtime_error("commUtil::all_gather: cast to derived processCommHandle* fails");
  h_->all_gather(u, vU); 
 }
 
 template <class U>
-inline void scatter(U& u, abstractCommHandle *h) throw()
+inline void scatter(U& u, abstractCommHandle *h)
 { 
  processCommHandle *h_(dynamic_cast<processCommHandle*>(h));
  if (NULL == h_)
-   throw std::string("commUtil::scatter: cast to derived processCommHandle* fails");
+   throw std::runtime_error("commUtil::scatter: cast to derived processCommHandle* fails");
  h_->scatter(u); 
 }
 
 template <class U>
-inline void scatter(const std::vector<U>& vU, U& u, abstractCommHandle *h) throw()
+inline void scatter(const std::vector<U>& vU, U& u, abstractCommHandle *h)
 { 
  processCommHandle *h_(dynamic_cast<processCommHandle*>(h));
  if (NULL == h_)
-   throw std::string("commUtil::scatter: cast to derived processCommHandle* fails");
+   throw std::runtime_error("commUtil::scatter: cast to derived processCommHandle* fails");
  h_->scatter(vU, u); 
 }
 

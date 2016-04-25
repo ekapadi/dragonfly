@@ -250,28 +250,28 @@ public:
   void reset(void);
 
 		
-	size_t lock(unsigned long key) throw(std::string);
+	size_t lock(unsigned long key);
 
   /*
    * returns true if lock has been acquired
 	 */
-  bool trylock(unsigned long key, size_t& nLock) throw(std::string);
+  bool trylock(unsigned long key, size_t& nLock);
 
 
   template <class K>
-  size_t lock(const K& k) throw(std::string);
+  size_t lock(const K& k);
 
 
   /*
    * returns true if lock has been acquired
 	 */
   template <class K>
-  bool trylock(const K& k, size_t& nLock) throw(std::string);
+  bool trylock(const K& k, size_t& nLock);
 
   
-	void unlock(size_t nLock) throw(std::string);
+	void unlock(size_t nLock);
 
-  void allocLocks(size_t N_locks) throw(std::string);
+  void allocLocks(size_t N_locks);
 	
   size_t N_locks(void) { return N_locks_; }
 
@@ -314,14 +314,14 @@ const pthread_cond_t CONST_PTHREAD_COND_INITIALIZER = PTHREAD_COND_INITIALIZER;
  * @param[in]      indices  list of index iterators, one iterator for each thread tasks 
  */
 template <class WS, class IT1, class IT2, class U1, class U2>
-bool OMP_parallel_for( void (*threadFunc)(WS&, const loopIteratorList<IT1,IT2,U1,U2>&) throw(std::string),
+bool OMP_parallel_for( void (*threadFunc)(WS&, const loopIteratorList<IT1,IT2,U1,U2>&),
                        WS& workspace,                        
 											 const loopIteratorList<IT1,IT2,U1,U2>& indices );
 
 #if 0
 // this version helps prevent compiler-confusion:
 template <class WS, class IT1, class IT2>
-inline bool OMP_parallel_for( void (*threadFunc)(WS&, const loopIteratorArray<IT1,IT2>&) throw(std::string),
+inline bool OMP_parallel_for( void (*threadFunc)(WS&, const loopIteratorArray<IT1,IT2>&),
                               WS& workspace,                        
 											        const loopIteratorArray<IT1,IT2>& indices );
 #endif
@@ -340,7 +340,7 @@ void* OMP_parallel_for_aux_const(void *pvArgs);
  * @param[in,out]      indices  list of index iterators, one iterator for each thread tasks 
  */
 template <class WS, class IT1, class IT2, class U1, class U2>
-bool OMP_parallel_for( void (*threadFunc)(WS&, loopIteratorList<IT1,IT2,U1,U2>&) throw(std::string),
+bool OMP_parallel_for( void (*threadFunc)(WS&, loopIteratorList<IT1,IT2,U1,U2>&),
                        WS& workspace,                        
 											 loopIteratorList<IT1,IT2,U1,U2>& indices );
 
@@ -360,7 +360,7 @@ template <class CLASS_, class RVAL, class MEMBER_FUNC, class IT>
 std::vector<RVAL> parallel_for(
   CLASS_ *instance, 
   MEMBER_FUNC threadFunc, 
-  IT begin_, IT end_, size_t N_THREAD = OMP_NUM_THREADS()) throw(std::string);
+  IT begin_, IT end_, size_t N_THREAD = OMP_NUM_THREADS());
   
 template <class CLASS_, class RVAL, class MEMBER_FUNC, class IT>
 void* parallel_for_aux(void *pvArgs);
@@ -370,7 +370,7 @@ template <class CLASS_, class RVAL, class MEMBER_FUNC, class IT, class ARG>
 std::vector<RVAL> parallel_for(
   CLASS_ *instance, 
   MEMBER_FUNC threadFunc, 
-  IT begin_, IT end_, ARG arg, size_t N_THREAD = OMP_NUM_THREADS()) throw(std::string);
+  IT begin_, IT end_, ARG arg, size_t N_THREAD = OMP_NUM_THREADS());
   
 template <class CLASS_, class RVAL, class MEMBER_FUNC, class IT, class ARG>
 void* parallel_for_aux(void *pvArgs);
@@ -403,22 +403,22 @@ struct _iostream_thread_lock_base{
 };
 
 struct _iostream_thread_lock: private _iostream_thread_lock_base {
-  static inline void lock(void) throw(std::string)
+  static inline void lock(void)
   { 
 #if defined(__USE_PTHREAD)   
     if (pthread_mutex_lock(&mutex_))
-      throw std::string("_iostream_thread_lock::lock: pthread_mutex_lock error return");
+      throw std::runtime_error("_iostream_thread_lock::lock: pthread_mutex_lock error return");
 #endif
   }
 };
 extern _iostream_thread_lock log_lock; 
  
 struct _iostream_thread_unlock: private _iostream_thread_lock_base {
-  static inline void unlock(void) throw(std::string)
+  static inline void unlock(void)
   { 
 #if defined(__USE_PTHREAD) 
     if (pthread_mutex_unlock(&mutex_))
-      throw std::string("_iostream_thread_unlock::unlock: pthread_mutex_unlock error return");
+      throw std::runtime_error("_iostream_thread_unlock::unlock: pthread_mutex_unlock error return");
 #endif
   }
 };

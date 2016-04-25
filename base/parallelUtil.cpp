@@ -98,7 +98,7 @@ void multiMutex::namedLock::write(std::ostream& os)const
      os<<"--LOCKED--("<<tid_<<")";
    else
    if (pthread_mutex_unlock(const_cast<pthread_mutex_t*>(&mutex_)))
-     throw std::string("multiMutex::namedLock::write: pthread_mutex_unlock error return");       
+     throw std::runtime_error("multiMutex::namedLock::write: pthread_mutex_unlock error return");       
 }
 #endif
 
@@ -109,7 +109,7 @@ multiMutex::namedLock::namedLock(void)
 {}
 
 			
-size_t multiMutex::lock(unsigned long key) throw(std::string)
+size_t multiMutex::lock(unsigned long key)
 {
  #if 0
  // *** DEBUG ***
@@ -123,7 +123,7 @@ size_t multiMutex::lock(unsigned long key) throw(std::string)
  namedLock *pLock(NULL);
 
  if (pthread_mutex_lock(&controlMutex_))
-   throw std::string("multiMutex::lock: pthread_mutex_lock error return");
+   throw std::runtime_error("multiMutex::lock: pthread_mutex_lock error return");
 
  for (size_t n=0; n < N_locks_; ++n){
 	 namedLock& cLock(vLock_[n]);
@@ -155,7 +155,7 @@ size_t multiMutex::lock(unsigned long key) throw(std::string)
  }
 
  if (NULL == pLock)
-   throw std::string("multiMutex::lock: no new lock available");
+   throw std::runtime_error("multiMutex::lock: no new lock available");
  // This case should probably be a throw -- it will segfault next...
  // Either there are fewer locks than threads, or a thread took a lock
  //   for another key and didn't give it back.
@@ -167,7 +167,7 @@ size_t multiMutex::lock(unsigned long key) throw(std::string)
  ++pLock->refCount_;
 
  if (pthread_mutex_unlock(&controlMutex_))
-   throw std::string("multiMutex::lock: pthread_mutex_unlock error return");
+   throw std::runtime_error("multiMutex::lock: pthread_mutex_unlock error return");
 
  #if 0
  // *** DEBUG ***
@@ -178,7 +178,7 @@ size_t multiMutex::lock(unsigned long key) throw(std::string)
  #if 1
  // block until available:
  if (pthread_mutex_lock(&pLock->mutex_))
-   throw std::string("multiMutex::lock: pthread_mutex_lock error return");
+   throw std::runtime_error("multiMutex::lock: pthread_mutex_lock error return");
  pLock->tid_ = pthread_self();
  assert(pLock->tid_ != 0);
  #else
@@ -190,7 +190,7 @@ size_t multiMutex::lock(unsigned long key) throw(std::string)
    oss<<"multiMutex::lock: pthread_mutex_trylock returns "<<status<<": "<<strerror(status)<<"\n"
      <<" full mutex: ";
    write(oss);
-   throw oss.str(); 
+   throw std::runtime_error(oss.str()); 
  }
  pLock->tid_ = pthread_self();
  assert(pLock->tid_ != 0); 
@@ -207,13 +207,13 @@ size_t multiMutex::lock(unsigned long key) throw(std::string)
 }
 
 
-bool multiMutex::trylock(unsigned long key, size_t& nLock) throw(std::string)
+bool multiMutex::trylock(unsigned long key, size_t& nLock)
 {
   bool status(true);
   namedLock *pLock(NULL);
 
   if (pthread_mutex_lock(&controlMutex_))
-    throw std::string("multiMutex::lock: pthread_mutex_lock error return");
+    throw std::runtime_error("multiMutex::lock: pthread_mutex_lock error return");
 
   for (size_t n=0; n < N_locks_; ++n){
 	  namedLock& cLock(vLock_[n]);
@@ -235,7 +235,7 @@ bool multiMutex::trylock(unsigned long key, size_t& nLock) throw(std::string)
   }
 
   if (NULL == pLock)
-    throw std::string("multiMutex::lock: no new lock available");
+    throw std::runtime_error("multiMutex::lock: no new lock available");
   // This case should probably be a throw -- it will segfault next...
   // Either there are fewer locks than threads, or a thread took a lock
   //   for another key and didn't give it back.
@@ -247,7 +247,7 @@ bool multiMutex::trylock(unsigned long key, size_t& nLock) throw(std::string)
   ++pLock->refCount_;
 
   if (pthread_mutex_unlock(&controlMutex_))
-    throw std::string("multiMutex::lock: pthread_mutex_unlock error return");
+    throw std::runtime_error("multiMutex::lock: pthread_mutex_unlock error return");
 
   // attempt to lock the mutex:
   int N_STAT(0);
@@ -255,7 +255,7 @@ bool multiMutex::trylock(unsigned long key, size_t& nLock) throw(std::string)
     if (N_STAT == EBUSY)
       status = false; // mutex is locked
     else
-      throw std::string("multiMutex::trylock: pthread_mutex_trylock error return");
+      throw std::runtime_error("multiMutex::trylock: pthread_mutex_trylock error return");
   }
   else{
     pLock->tid_ = pthread_self();
@@ -267,7 +267,7 @@ bool multiMutex::trylock(unsigned long key, size_t& nLock) throw(std::string)
 
 
 
-void multiMutex::unlock(size_t nLock) throw(std::string)
+void multiMutex::unlock(size_t nLock)
 {
  #if 0
  // *** DEBUG ***
@@ -278,19 +278,19 @@ void multiMutex::unlock(size_t nLock) throw(std::string)
  
  // Note: the lockObject _shall_ belong to this multimutex!
  if( nLock >= N_locks_ )
-   throw std::string("multiMutex::unlock: key out-of-range");
+   throw std::runtime_error("multiMutex::unlock: key out-of-range");
 	 
  namedLock &cLock(vLock_[nLock]);
  // <number of unlocks> == <number of locks>
  if (vLock_[nLock].refCount_ == 0)
-   throw std::string("multiMutex::unlock: too many unlocks/locks");
+   throw std::runtime_error("multiMutex::unlock: too many unlocks/locks");
 	 
  if (pthread_mutex_unlock(&cLock.mutex_))
-   throw std::string("multiMutex::unlock: pthread_mutex_unlock error return");	
+   throw std::runtime_error("multiMutex::unlock: pthread_mutex_unlock error return");	
  
  // maintain the mutex list:
  if (pthread_mutex_lock(&controlMutex_))
-   throw std::string("multiMutex::unlock: pthread_mutex_lock error return");	
+   throw std::runtime_error("multiMutex::unlock: pthread_mutex_lock error return");	
 
  if (0 == --cLock.refCount_){
 	 cLock.key_ = static_cast<unsigned long>(NULL); // remove the name.
@@ -298,7 +298,7 @@ void multiMutex::unlock(size_t nLock) throw(std::string)
  }
  
  if (pthread_mutex_unlock(&controlMutex_))
-   throw std::string("multiMutex::unlock: pthread_mutex_unlock error return");		  
+   throw std::runtime_error("multiMutex::unlock: pthread_mutex_unlock error return");		  
    
  #if 0
  // *** DEBUG ***
@@ -308,7 +308,7 @@ void multiMutex::unlock(size_t nLock) throw(std::string)
  #endif	    
 }
 
-void multiMutex::allocLocks(size_t N_locks) throw(std::string)
+void multiMutex::allocLocks(size_t N_locks)
 {
   if (vLock_ != NULL)
     delete[] vLock_;
@@ -349,7 +349,7 @@ multiMutex::~multiMutex(void)
  delete[] vLock_;
  // mark so that it is _obvious_ the multiMutex has been destroyed:
  if (pthread_mutex_destroy(&controlMutex_))
-   throw std::string("multiMutex::~multiMutex: pthread_mutex_destroy error return");
+   throw std::runtime_error("multiMutex::~multiMutex: pthread_mutex_destroy error return");
 }		
 
 // get the environment variable: OMP_NUM_THREADS (if it doesn't exist, return 1):

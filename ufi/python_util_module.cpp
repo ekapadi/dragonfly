@@ -124,7 +124,7 @@ using namespace boost::python;
 namespace python_util{
 namespace implementation_module{
 
-std::string python_error_string(void) throw()
+std::string python_error_string(void)
 {
   // assume interpreter is initialized:
   std::string msg;
@@ -183,9 +183,9 @@ std::string python_error_string(void) throw()
     else
       msg = "python error-state NOT set";
   }
-  catch(std::string& new_error){
+  catch(const std::runtime_error& x){
     msg = "python_error_string: unable to extract error information from python C/API:\n  "
-    msg += new_error;
+    msg += x.what();
   }
   
   return msg;
@@ -788,7 +788,7 @@ void write_pickle<mere::C, mere::R, mere::Z>
 namespace python_util{
 namespace implementation_module{
 
-std::string python_error_string(void) throw()
+std::string python_error_string(void)
 {
   // assume interpreter is initialized:
   std::string msg;
@@ -848,9 +848,9 @@ std::string python_error_string(void) throw()
     else
       msg = "python error-state NOT set";
   }
-  catch(std::string& new_error){
+  catch(const std::runtime_error& x){
     msg = "python_error_string: unable to extract error information from python C/API:\n  ";
-    msg += new_error;
+    msg += x.what();
   }
   
   return msg;
@@ -896,7 +896,7 @@ void extract_simple_object<std::complex<double>, double, long>
     if (ppreamble != NULL){
       rval_ = PyRun_String(ppreamble->c_str(), Py_file_input, globals_, locals_);
       if (NULL == rval_)
-        throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+        throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
       Py_DECREF(rval_);
     }
     std::string exec_str(
@@ -906,14 +906,14 @@ void extract_simple_object<std::complex<double>, double, long>
       "  print 'embedded python exception:', sys.exc_info()\n");
     rval_ = PyRun_String(exec_str.c_str(), Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_); // usually "None"
 
 
     if (ppostscript != NULL){
       rval_ = PyRun_String(ppostscript->c_str(), Py_file_input, globals_, locals_);
       if (NULL == rval_)
-        throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+        throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
       Py_DECREF(rval_);
     }  
 
@@ -923,7 +923,7 @@ void extract_simple_object<std::complex<double>, double, long>
     // *** DEBUG ***
     rval_ = PyRun_String("obj_str = repr(object)", Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_);
     std::string stmp = extract<std::string>(PyDict_GetItemString(globals_, "obj_str");
     cout<<"object in embedded interpreter: "<<stmp<<endl;
@@ -935,16 +935,16 @@ void extract_simple_object<std::complex<double>, double, long>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 } 
@@ -981,20 +981,20 @@ void insert_simple_object<std::complex<double>, double, long>
     // get the string-representation and convert to a std::string:
     if (PyDict_SetItemString(globals_, "object", dest_)){
       Py_DECREF(dest_);
-      throw std::string("insert_simple_object<C,R,Z>: PyDict_SetItemString error return");
+      throw std::runtime_error("insert_simple_object<C,R,Z>: PyDict_SetItemString error return");
     }
     
     rval_ = PyRun_String("obj_str = repr(object)", Py_file_input, globals_, locals_);
     if (NULL == rval_){
       Py_DECREF(dest_);
-      throw std::string("insert_simple_object<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("insert_simple_object<C,R,Z>: PyRun_String error return");
     }
     Py_DECREF(rval_);
 
     // borrowed ref to "obj_str":
     PyObject* obj_str_ = PyDict_GetItemString(globals_, "obj_str");
     if (NULL == obj_str_)
-      throw std::string("insert_simple_object<C,R,Z>: PyDict_GetItemString error return");
+      throw std::runtime_error("insert_simple_object<C,R,Z>: PyDict_GetItemString error return");
 
     dest = extract<std::string>(obj_str_);
     
@@ -1004,16 +1004,16 @@ void insert_simple_object<std::complex<double>, double, long>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 }  
@@ -1056,13 +1056,13 @@ void read_pickle<std::complex<double>, double, long>
       "  print 'embedded python exception:', sys.exc_info()\n");
     rval_ = PyRun_String(exec_str.c_str(), Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("read_pickle<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("read_pickle<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_); // usually "None"
 
     // "PyDict_GetItemString" returns borrowed ref:
     PyObject* extractable = PyDict_GetItemString(globals_, "object");
     if (NULL == extractable)
-      throw std::string("read_pickle<C,R,Z>: PyDict_GetItemString error return");
+      throw std::runtime_error("read_pickle<C,R,Z>: PyDict_GetItemString error return");
  
     dest = extract<C,R,Z>(extractable);
 
@@ -1070,16 +1070,16 @@ void read_pickle<std::complex<double>, double, long>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 }
@@ -1115,7 +1115,7 @@ void write_pickle<std::complex<double>, double, long>
 
     if (PyDict_SetItemString(globals_, "object", src_)){
       Py_DECREF(src_);
-      throw std::string("write_pickle<C,R,Z>: PyDict_SetItemString error return");
+      throw std::runtime_error("write_pickle<C,R,Z>: PyDict_SetItemString error return");
     }
     
     // get the string-representation and convert to a std::string:
@@ -1130,7 +1130,7 @@ void write_pickle<std::complex<double>, double, long>
       "  print 'embedded python exception:', sys.exc_info()\n");                      
     rval_ = PyRun_String(exec_str.c_str(), Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("write_pickle<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("write_pickle<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_); 
     
     Py_DECREF(src_);
@@ -1139,16 +1139,16 @@ void write_pickle<std::complex<double>, double, long>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 }
@@ -1190,7 +1190,7 @@ void extract_simple_object<mere::C, mere::R, mere::Z>
     if (ppreamble != NULL){
       rval_ = PyRun_String(ppreamble->c_str(), Py_file_input, globals_, locals_);
       if (NULL == rval_)
-        throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+        throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
       Py_DECREF(rval_);
     }
     std::string exec_str(
@@ -1200,14 +1200,14 @@ void extract_simple_object<mere::C, mere::R, mere::Z>
       "  print 'embedded python exception:', sys.exc_info()\n");
     rval_ = PyRun_String(exec_str.c_str(), Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_); // usually "None"
 
 
     if (ppostscript != NULL){
       rval_ = PyRun_String(ppostscript->c_str(), Py_file_input, globals_, locals_);
       if (NULL == rval_)
-        throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+        throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
       Py_DECREF(rval_);
     }  
 
@@ -1217,7 +1217,7 @@ void extract_simple_object<mere::C, mere::R, mere::Z>
     // *** DEBUG ***
     rval_ = PyRun_String("obj_str = repr(object)", Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("extract_simple_object<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("extract_simple_object<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_);
     std::string stmp = extract<std::string>(PyDict_GetItemString(globals_, "obj_str");
     cout<<"object in embedded interpreter: "<<stmp<<endl;
@@ -1229,16 +1229,16 @@ void extract_simple_object<mere::C, mere::R, mere::Z>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 } 
@@ -1275,20 +1275,20 @@ void insert_simple_object<mere::C, mere::R, mere::Z>
     // get the string-representation and convert to a std::string:
     if (PyDict_SetItemString(globals_, "object", dest_)){
       Py_DECREF(dest_);
-      throw std::string("insert_simple_object<C,R,Z>: PyDict_SetItemString error return");
+      throw std::runtime_error("insert_simple_object<C,R,Z>: PyDict_SetItemString error return");
     }
     
     rval_ = PyRun_String("obj_str = repr(object)", Py_file_input, globals_, locals_);
     if (NULL == rval_){
       Py_DECREF(dest_);
-      throw std::string("insert_simple_object<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("insert_simple_object<C,R,Z>: PyRun_String error return");
     }
     Py_DECREF(rval_);
 
     // borrowed ref to "obj_str":
     PyObject* obj_str_ = PyDict_GetItemString(globals_, "obj_str")
     if (NULL == obj_str_)
-      throw std::string("insert_simple_object<C,R,Z>: PyDict_GetItemString error return");
+      throw std::runtime_error("insert_simple_object<C,R,Z>: PyDict_GetItemString error return");
 
     dest = extract<std::string>(obj_str_);
     
@@ -1298,16 +1298,16 @@ void insert_simple_object<mere::C, mere::R, mere::Z>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 }  
@@ -1350,13 +1350,13 @@ void read_pickle<mere::C, mere::R, mere::Z>
       "  print 'embedded python exception:', sys.exc_info()\n");
     rval_ = PyRun_String(exec_str.c_str(), Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("read_pickle<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("read_pickle<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_); // usually "None"
 
     // "PyDict_GetItemString" returns borrowed ref:
     PyObject* extractable = PyDict_GetItemString(globals_, "object");
     if (NULL == extractable)
-      throw std::string("read_pickle<C,R,Z>: PyDict_GetItemString error return");
+      throw std::runtime_error("read_pickle<C,R,Z>: PyDict_GetItemString error return");
  
     dest = extract<C,R,Z>(extractable);
 
@@ -1364,16 +1364,16 @@ void read_pickle<mere::C, mere::R, mere::Z>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 }
@@ -1409,7 +1409,7 @@ void write_pickle<mere::C, mere::R, mere::Z>
 
     if (PyDict_SetItemString(globals_, "object", src_)){
       Py_DECREF(src_);
-      throw std::string("write_pickle<C,R,Z>: PyDict_SetItemString error return");
+      throw std::runtime_error("write_pickle<C,R,Z>: PyDict_SetItemString error return");
     }
     
     // get the string-representation and convert to a std::string:
@@ -1424,7 +1424,7 @@ void write_pickle<mere::C, mere::R, mere::Z>
       "  print 'embedded python exception:', sys.exc_info()\n");                      
     rval_ = PyRun_String(exec_str.c_str(), Py_file_input, globals_, locals_);
     if (NULL == rval_)
-      throw std::string("write_pickle<C,R,Z>: PyRun_String error return");
+      throw std::runtime_error("write_pickle<C,R,Z>: PyRun_String error return");
     Py_DECREF(rval_); 
     
     Py_DECREF(src_);
@@ -1433,16 +1433,16 @@ void write_pickle<mere::C, mere::R, mere::Z>
     Py_Finalize();
     #endif
   }
-  catch(std::string& msg)
+  catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw msg;
+    throw x;
     #else
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw msg;
+    throw x;
     #endif
   }   
 }
@@ -1611,11 +1611,11 @@ int datatype_enum<size_t>(void)
  *     will have read-only access (enforced at non-const simple_object_base::ptr<T>(void) method).
  */
 template < >
-simple_object_base* extract<simple_object_base*>(const PyObject* src) throw(python_error)
+simple_object_base* extract<simple_object_base*>(const PyObject* src)
 { return simple_object_base::extract(src); }
 
 template < >
-bool extract<bool>(const PyObject* src_) throw(python_error)
+bool extract<bool>(const PyObject* src_)
 {
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));
@@ -1632,7 +1632,7 @@ bool extract<bool>(const PyObject* src_) throw(python_error)
 
 
 template < >
-std::string extract<std::string>(const PyObject* src_) throw(python_error)
+std::string extract<std::string>(const PyObject* src_)
 {
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));
@@ -1655,11 +1655,11 @@ std::string extract<std::string>(const PyObject* src_) throw(python_error)
  *    See: "simple_object_base::set_default_inserter" method.
  */
 template < >
-PyObject* insert<simple_object_base* const>(simple_object_base* const& src) throw(python_error)
+PyObject* insert<simple_object_base* const>(simple_object_base* const& src)
 { return simple_object_base::insert(src); }
 
 template < >
-PyObject* insert<bool>(const bool& flag) throw(python_error)
+PyObject* insert<bool>(const bool& flag)
 {
   PyObject* dest(NULL);
   
@@ -1671,7 +1671,7 @@ PyObject* insert<bool>(const bool& flag) throw(python_error)
 
 
 template < >
-PyObject* insert<std::string>(const std::string& s) throw(python_error)
+PyObject* insert<std::string>(const std::string& s)
 {
   PyObject* dest(NULL);
   
@@ -1827,7 +1827,7 @@ bool type_check<const size_t*>(const PyObject* src_)
 }
 
 template < >
-PyObject* insert<std::complex<double>, double, long>(const simple_object_base* src) throw(python_error)
+PyObject* insert<std::complex<double>, double, long>(const simple_object_base* src)
 {
   typedef std::complex<double> C;
   typedef double R;
@@ -1951,7 +1951,7 @@ PyObject* insert<std::complex<double>, double, long>(const simple_object_base* s
 
 
 template < >
-PyObject* insert<std::complex<double> >(const std::complex<double>& c) throw(python_error)
+PyObject* insert<std::complex<double> >(const std::complex<double>& c)
 {
   PyObject *dest(NULL);
   
@@ -1963,7 +1963,7 @@ PyObject* insert<std::complex<double> >(const std::complex<double>& c) throw(pyt
 }
 
 template < >
-PyObject* insert<double>(const double& r) throw(python_error)
+PyObject* insert<double>(const double& r)
 {
   PyObject *dest(NULL);
   
@@ -1976,7 +1976,7 @@ PyObject* insert<double>(const double& r) throw(python_error)
 
 
 template < >
-PyObject* insert<long>(const long& z) throw(python_error)
+PyObject* insert<long>(const long& z)
 {
   PyObject *dest(NULL);
   
@@ -1989,7 +1989,7 @@ PyObject* insert<long>(const long& z) throw(python_error)
 
 //! Convert a python object to a simple_object (array references are read-only).
 template < >
-simple_object_base* extract<std::complex<double>, double, long>(const PyObject* src_) throw(python_error)
+simple_object_base* extract<std::complex<double>, double, long>(const PyObject* src_)
 {
   typedef std::complex<double> C;
   typedef double R;
@@ -2176,7 +2176,7 @@ simple_object_base* extract<std::complex<double>, double, long>(const PyObject* 
     Py_DECREF(arg_);
     Py_DECREF(str_);    
     
-    throw msg;        
+    throw std::runtime_error(msg);        
   }
 
   if (NULL == dest)
@@ -2187,7 +2187,7 @@ simple_object_base* extract<std::complex<double>, double, long>(const PyObject* 
 
 
 template < >
-std::complex<double> extract<std::complex<double> >(const PyObject* src_) throw(python_error)
+std::complex<double> extract<std::complex<double> >(const PyObject* src_)
 {
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));
@@ -2203,7 +2203,7 @@ std::complex<double> extract<std::complex<double> >(const PyObject* src_) throw(
 }
 
 template < >
-double extract<double>(const PyObject* src_) throw(python_error)
+double extract<double>(const PyObject* src_)
 {
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));
@@ -2219,7 +2219,7 @@ double extract<double>(const PyObject* src_) throw(python_error)
 }
 
 template < >
-long extract<long>(const PyObject* src_) throw(python_error)
+long extract<long>(const PyObject* src_)
 {
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));
@@ -2303,7 +2303,7 @@ bool type_check<mere::Z*>(const PyObject* src)
 
 
 template < >
-PyObject* insert<mere::C, mere::R, mere::Z>(const simple_object_base* src) throw(python_error)
+PyObject* insert<mere::C, mere::R, mere::Z>(const simple_object_base* src)
 {
   typedef mere::C C;
   typedef mere::R R;
@@ -2429,7 +2429,7 @@ PyObject* insert<mere::C, mere::R, mere::Z>(const simple_object_base* src) throw
 }
 
 template < >
-PyObject* insert<mere::C>(const mere::C& c) throw(python_error)
+PyObject* insert<mere::C>(const mere::C& c)
 {
   PyObject *dest(NULL);
   
@@ -2446,7 +2446,7 @@ PyObject* insert<mere::C>(const mere::C& c) throw(python_error)
 }
 
 template < >
-PyObject* insert<mere::R>(const mere::R& r) throw(python_error)
+PyObject* insert<mere::R>(const mere::R& r)
 {
   PyObject *dest(NULL);
   
@@ -2463,7 +2463,7 @@ PyObject* insert<mere::R>(const mere::R& r) throw(python_error)
 
 
 template < >
-PyObject* insert<mere::Z>(const mere::Z& z) throw(python_error)
+PyObject* insert<mere::Z>(const mere::Z& z)
 {
   PyObject *dest(NULL);
   
@@ -2481,7 +2481,7 @@ PyObject* insert<mere::Z>(const mere::Z& z) throw(python_error)
 
 //! Convert a python object to a simple_object (array references are read/write).
 template < >
-simple_object_base* extract<mere::C, mere::R, mere::Z>(const PyObject* src_) throw(python_error)
+simple_object_base* extract<mere::C, mere::R, mere::Z>(const PyObject* src_)
 {
   using boost::python::extract;
   typedef mere::C C;
@@ -2660,7 +2660,7 @@ simple_object_base* extract<mere::C, mere::R, mere::Z>(const PyObject* src_) thr
     Py_DECREF(arg_);
     Py_DECREF(str_);    
     
-    throw msg;        
+    throw std::runtime_error(msg);        
   }
 
   if (NULL == dest)
@@ -2671,7 +2671,7 @@ simple_object_base* extract<mere::C, mere::R, mere::Z>(const PyObject* src_) thr
 
 
 template < >
-mere::C extract<mere::C>(const PyObject* src_) throw(python_error)
+mere::C extract<mere::C>(const PyObject* src_)
 {  
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));
@@ -2691,7 +2691,7 @@ mere::C extract<mere::C>(const PyObject* src_) throw(python_error)
 }
 
 template < >
-double extract<mere::R>(const PyObject* src_) throw(python_error)
+double extract<mere::R>(const PyObject* src_)
 {
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));
@@ -2710,7 +2710,7 @@ double extract<mere::R>(const PyObject* src_) throw(python_error)
 }
 
 template < >
-long extract<mere::Z>(const PyObject* src_) throw(python_error)
+long extract<mere::Z>(const PyObject* src_)
 {
   // python C/API does not use "const":
   PyObject *src(const_cast<PyObject*>(src_));

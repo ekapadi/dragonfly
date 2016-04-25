@@ -37,11 +37,11 @@ namespace parallelUtil{
 // implicit assumption here is that "K" is a pointer to some object,
 //   and that reinterpret_cast returns the unsigned long equivalent to the pointer:
 template <class K>
-inline size_t multiMutex::lock(const K& k) throw(std::string)
+inline size_t multiMutex::lock(const K& k)
 { return multiMutex::lock(reinterpret_cast<unsigned long>(k)); }
 
 template <class K>
-inline bool multiMutex::trylock(const K& k, size_t& nLock) throw(std::string)
+inline bool multiMutex::trylock(const K& k, size_t& nLock)
 { return multiMutex::trylock(reinterpret_cast<unsigned long>(k), nLock); }
 
   
@@ -300,7 +300,7 @@ loopIteratorArray<IT1,IT2>::loopIteratorArray( void )
 
 
 template <class WS, class IT1, class IT2, class U1, class U2>
-bool OMP_parallel_for( void (*threadFunc)(WS&, const loopIteratorList<IT1,IT2,U1,U2>&) throw(std::string),
+bool OMP_parallel_for( void (*threadFunc)(WS&, const loopIteratorList<IT1,IT2,U1,U2>&),
                        WS& workspace,                        
 											 const loopIteratorList<IT1,IT2,U1,U2>& indices )
 {
@@ -355,7 +355,7 @@ void* OMP_parallel_for_aux_const(void *pvArgs)
 
 
 template <class WS, class IT1, class IT2, class U1, class U2>
-bool OMP_parallel_for( void (*threadFunc)(WS&, loopIteratorList<IT1,IT2,U1,U2>&) throw(std::string),
+bool OMP_parallel_for( void (*threadFunc)(WS&, loopIteratorList<IT1,IT2,U1,U2>&),
                        WS& workspace,                        
 											 loopIteratorList<IT1,IT2,U1,U2>& indices )
 {
@@ -419,7 +419,7 @@ template <class CLASS_, class RVAL, class MEMBER_FUNC, class IT>
 std::vector<RVAL> parallel_for(
   CLASS_ *instance, 
   MEMBER_FUNC threadFunc, 
-  IT begin_, IT end_, size_t N_THREAD) throw(std::string)
+  IT begin_, IT end_, size_t N_THREAD)
 {
   bool status(true);
 
@@ -431,7 +431,7 @@ std::vector<RVAL> parallel_for(
 
   // return-value information:
   //   bool => value is std::vector<RVAL>*
-  //     otherwise it is a std::string* (e.g. a thrown exception)
+  //     otherwise it is a std::runtime_error* (e.g. a thrown exception)
   typedef std::pair<bool, void*> thread_result_t;
   
   IT_list indices(begin_, end_);
@@ -459,30 +459,7 @@ std::vector<RVAL> parallel_for(
   
   // join the threads:
   for(size_t nt = 0; status && (nt < N_THREAD); ++nt){
-    #if 0
-    // join the thread
-	  thread_result_t *p_result_;
-    if (pthread_join(vThread[nt], reinterpret_cast<void**>(&p_result_)) != 0){ 
-      status = false;
-      break;
-    }
-    // append to overall result:
-    if (p_result_->first){
-      std::vector<RVAL>* pv_result_(reinterpret_cast<std::vector<RVAL>*>(p_result_->second));
-      result.insert(result.end(), pv_result_->begin(), pv_result_->end());     
-      delete pv_result_;
-      delete p_result_;
-    }
-    else{
-      // thread function threw exception:
-      std::string *pmsg_(reinterpret_cast<std::string*>(p_result_->second));
-      std::string msg(*pmsg_);
-      delete pmsg_;
-      delete p_result_;
-      throw msg;
-    }
-	  delete vFunctor[nt].second.second;
-    #else
+
     // gcc-4.1.2 port: strict-aliasing rules:
     // join the thread
 	  void_ptr_union<thread_result_t> p_result_;
@@ -499,14 +476,14 @@ std::vector<RVAL> parallel_for(
     }
     else{
       // thread function threw exception:
-      std::string *pmsg_(reinterpret_cast<std::string*>(p_result_.ptr->second));
-      std::string msg(*pmsg_);
-      delete pmsg_;
+      std::runtime_error *px_(reinterpret_cast<std::runtime_error*>(p_result_.ptr->second));
+      std::runtime_error x(*px_);
+      delete px_;
       delete p_result_.ptr;
-      throw msg;
+      throw std::runtime_error(x);
     }
 	  delete vFunctor[nt].second.second;    
-    #endif
+
   } 
 
   #if 0
@@ -515,7 +492,7 @@ std::vector<RVAL> parallel_for(
   #endif
 
   if (!status)
-    throw std::string("parallel_for: pthread method error return");
+    throw std::runtime_error("parallel_for: pthread method error return");
 
   return result;    
 }  
@@ -531,7 +508,7 @@ void* parallel_for_aux(void *pvArgs)
 
   // return-value information:
   //   bool => value is std::vector<RVAL>*
-  //     otherwise it is a std::string* (e.g. a thrown exception)
+  //     otherwise it is a std::runtime_error* (e.g. a thrown exception)
   typedef std::pair<bool, void*> thread_result_t;
   thread_result_t *presult(new thread_result_t(true, NULL));
   
@@ -548,10 +525,10 @@ void* parallel_for_aux(void *pvArgs)
 
     presult->second = reinterpret_cast<void*>(pv_result); 
   }
-  catch (std::string msg){
+  catch (const std::runtime_error &x){
     presult->first = false; // indicate ERROR return
     assert(presult->second == NULL);
-    presult->second = reinterpret_cast<void*>(new std::string(msg));
+    presult->second = reinterpret_cast<void*>(new std::runtime_error(x));
   }
   
   return presult;
@@ -563,7 +540,7 @@ template <class CLASS_, class RVAL, class MEMBER_FUNC, class IT, class ARG>
 std::vector<RVAL> parallel_for(
   CLASS_ *instance, 
   MEMBER_FUNC threadFunc, 
-  IT begin_, IT end_, ARG arg, size_t N_THREAD) throw(std::string)
+  IT begin_, IT end_, ARG arg, size_t N_THREAD)
 {
   bool status(true);
 
@@ -576,7 +553,7 @@ std::vector<RVAL> parallel_for(
 
   // return-value information:
   //   bool => value is std::vector<RVAL>*
-  //     otherwise it is a std::string* (e.g. a thrown exception)
+  //     otherwise it is a std::runtime_error* (e.g. a thrown exception)
   typedef std::pair<bool, void*> thread_result_t;
   
   IT_list indices(begin_, end_);
@@ -600,30 +577,7 @@ std::vector<RVAL> parallel_for(
   
   // join the threads:
   for(size_t nt = 0; status && (nt < N_THREAD); ++nt){
-    #if 0
-    // join the thread
-	  thread_result_t *p_result_;
-    if (pthread_join(vThread[nt], reinterpret_cast<void**>(&p_result_)) != 0){ 
-      status = false;
-      break;
-    }
-    // append to overall result:
-    if (p_result_->first){
-      std::vector<RVAL>* pv_result_(reinterpret_cast<std::vector<RVAL>*>(p_result_->second));
-      result.insert(result.end(), pv_result_->begin(), pv_result_->end());     
-      delete pv_result_;
-      delete p_result_;
-    }
-    else{
-      // thread function threw exception:
-      std::string *pmsg_(reinterpret_cast<std::string*>(p_result_->second));
-      std::string msg(*pmsg_);
-      delete pmsg_;
-      delete p_result_;
-      throw msg;
-    }
-	  delete vFunctor[nt].second.second.first;
-    #else
+
     // gcc-4.1.2 port: strict-aliasing rules:
     // join the thread
 	  void_ptr_union<thread_result_t> p_result_;
@@ -640,18 +594,18 @@ std::vector<RVAL> parallel_for(
     }
     else{
       // thread function threw exception:
-      std::string *pmsg_(reinterpret_cast<std::string*>(p_result_.ptr->second));
-      std::string msg(*pmsg_);
-      delete pmsg_;
+      std::runtime_error *px_(reinterpret_cast<std::runtime_error*>(p_result_.ptr->second));
+      std::runtime_error x(*px_);
+      delete px_;
       delete p_result_.ptr;
-      throw msg;
+      throw x;
     }
 	  delete vFunctor[nt].second.second.first;    
-    #endif
+
   } 
 
   if (!status)
-    throw std::string("parallel_for: pthread method error return");
+    throw std::runtime_error("parallel_for: pthread method error return");
 
   return result;    
 }  
@@ -669,7 +623,7 @@ void* parallel_for_aux(void *pvArgs)
 
   // return-value information:
   //   bool => value is std::vector<RVAL>*
-  //     otherwise it is a std::string* (e.g. a thrown exception)
+  //     otherwise it is a std::runtime_error* (e.g. a thrown exception)
   typedef std::pair<bool, void*> thread_result_t;
   thread_result_t *presult(new thread_result_t(true, NULL));
   
@@ -687,10 +641,10 @@ void* parallel_for_aux(void *pvArgs)
       
     presult->second = reinterpret_cast<void*>(pv_result); 
   }
-  catch (std::string msg){
+  catch (const std::runtime_error &x){
     presult->first = false; // indicate ERROR return
     assert(presult->second == NULL);
-    presult->second = reinterpret_cast<void*>(new std::string(msg));
+    presult->second = reinterpret_cast<void*>(new std::runtime_error(x));
   }
   
   return presult;

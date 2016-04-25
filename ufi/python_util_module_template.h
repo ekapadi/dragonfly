@@ -67,7 +67,7 @@ python_deallocator<T>::python_deallocator(T* ptr)
 *       extern template class python_deallocator<T>;
 */
 template <class T>
-PyObject* python_deallocator<T>::registered_type_object(void) throw(python_error)
+PyObject* python_deallocator<T>::registered_type_object(void)
 {
   // create a stack copy and then copy to the heap; this allows
   //   initializer syntax to be used to intialize the C/API object:
@@ -126,7 +126,7 @@ PyObject* python_deallocator<T>::registered_type_object(void) throw(python_error
 *   @param[in] ptr  pointer to allocated data controlled by this deallocator
 */
 template <class T>
-void python_deallocator<T>::attach_deallocator(PyObject *owner, T* ptr) throw(python_error)
+void python_deallocator<T>::attach_deallocator(PyObject *owner, T* ptr)
 {
   assert(!(PyArray_FLAGS(owner)&NPY_OWNDATA));
   
@@ -179,7 +179,7 @@ int datatype_enum(void)
  *   @return  new reference to the python object
  */
 template <class T>
-PyObject* insert(const T& t) throw(python_error)
+PyObject* insert(const T& t)
 {
   return t.insert();
 }
@@ -197,7 +197,7 @@ PyObject* insert(const T& t) throw(python_error)
  *   Usage note: shape specification of multidimensional arrays should be completed outside of this method.
  */
 template <class T>
-PyObject* insert(T* ptr, size_t len, bool transfer_ownership) throw(python_error, std::runtime_error)
+PyObject* insert(T* ptr, size_t len, bool transfer_ownership)
 {
   // the value-type (may have RANK>0):
   // (this will also be used in the following for the non-const type)
@@ -296,7 +296,7 @@ PyObject* insert(T* ptr, size_t len, bool transfer_ownership) throw(python_error
  *   WARNING: python value_type (see "datatype_enum<T>") must be in-memory compatible to C type; no conversion occurs.
  */
 template <class T,size_t DIM>
-PyObject* insert(const linalg::ntuple<T,DIM>& src) throw(python_error, std::runtime_error)
+PyObject* insert(const linalg::ntuple<T,DIM>& src)
 { return insert(src.begin(), DIM, false); }
 
 /**
@@ -305,7 +305,7 @@ PyObject* insert(const linalg::ntuple<T,DIM>& src) throw(python_error, std::runt
  *   @return converted value
  */
 template <class T>
-T extract(const PyObject* src) throw(python_error)
+T extract(const PyObject* src)
 {
   T rval;
   rval.extract(src);
@@ -326,7 +326,7 @@ T extract(const PyObject* src) throw(python_error)
  */
 // implementation note: "own_data" changed from optional "own_data=true" because of ambiguity between "false" and NULL. 
 template <class T>
-void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data) throw(python_error, std::runtime_error)
+void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data)
 {
   // python/C api does not use "const:
   PyObject *src(const_cast<PyObject*>(src_));
@@ -445,7 +445,7 @@ void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data) throw(py
         }
     }
     else 
-      throw std::string("python_util::implementation_module::extract: python object is not a sequence"); 
+      throw python_error("python_util::implementation_module::extract: python object is not a sequence"); 
     #endif
     
   }
@@ -460,7 +460,7 @@ void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data) throw(py
              <<"  datatype_enum:       "<<datatype_enum<double>()<<"\n"
              <<"  array-datatype-enum: "<<PyArray_TYPE(src)<<"\n"<<std::endl;
     #endif
-    throw std::runtime_error("python_util::implementation_module::extract: python object has no direct in-memory mapping to target type");
+    throw python_error("python_util::implementation_module::extract: python object has no direct in-memory mapping to target type");
   }
 }
 
@@ -471,7 +471,7 @@ void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data) throw(py
  *    .
  */
 template <class T,size_t DIM>
-void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src) throw(python_error, std::runtime_error)
+void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src)
 {
   if (type_check<const T*>(src) 
       && (DIM == PyArray_SIZE(src))
@@ -485,7 +485,7 @@ void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src) throw(python_erro
     std::copy(data, data+DIM, dest.begin());
   }
   else
-    throw std::runtime_error("python_util::implementation_module::extract: python object has no direct in-memory mapping to ntuple<T,DIM>");
+    throw python_error("python_util::implementation_module::extract: python object has no direct in-memory mapping to ntuple<T,DIM>");
 }
 
 } // namespace implementation_module

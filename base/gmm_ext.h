@@ -237,7 +237,7 @@ namespace gmm{
     		virtual bool operator < (const generic_iterator_base &other) const=0;
 
         #if 0
-        virtual void copy(const generic_iterator_base& other) throw()=0;
+        virtual void copy(const generic_iterator_base& other)=0;
 				#endif
         
 				virtual generic_iterator_base* clone(void)const=0;
@@ -315,7 +315,7 @@ namespace gmm{
 				  pit_ = NULL;
 				}
 
-        void copy(const generic_iterator_wrapper& other) throw()
+        void copy(const generic_iterator_wrapper& other)
 	      { 
 				  if (NULL != pit_){
 					  delete pit_;
@@ -721,20 +721,20 @@ template <typename MAT1, typename MAT2, typename MAT3>
 
 // A = U S V^{\daggar}
 template <typename MAT1, typename MAT2, typename VEC3, typename MAT4>
-  void svd_qr(const MAT1 &A, const MAT2 &U_, const VEC3 &S_, const MAT4 &V_) throw();
+  void svd_qr(const MAT1 &A, const MAT2 &U_, const VEC3 &S_, const MAT4 &V_);
 
 // supporting utility methods for svd_QR:
 
 // bi-diagonal decomposition:
 //  A = U [D, F] V^{\daggar}, where D and F are diagonal and super-diagonal components of the decomposition:
 template <typename MAT1, typename MAT2, typename VEC3, typename VEC4, typename MAT5>
-  void bidiag_decomp( const MAT1 &A, const MAT2 &U_, const VEC3 &D_, const VEC4 &F_, const MAT5& V_) throw();
+  void bidiag_decomp( const MAT1 &A, const MAT2 &U_, const VEC3 &D_, const VEC4 &F_, const MAT5& V_);
 
 template <typename VEC1, typename MAT2>
-  void diag(const VEC1& D, const MAT2& A_) throw();
+  void diag(const VEC1& D, const MAT2& A_);
 
 template <typename VEC1, typename VEC2, typename MAT3>
-  void diag(const VEC1& D, const VEC2& F, const MAT3& A_) throw();  
+  void diag(const VEC1& D, const VEC2& F, const MAT3& A_);  
 
 /**
  * @ingroup arbitrary_precision
@@ -748,19 +748,19 @@ namespace svd_qr_util{
 
   // |f[i]| < |d[i] * d[i+1]| *eps -> 0 
   template <typename VEC1, typename VEC2>
-    void chop_small_elements( const VEC1 &d, const VEC2 &f ) throw();
+    void chop_small_elements( const VEC1 &d, const VEC2 &f );
 
   // 2 x 2 SVD, by-hand:  
   template <typename VEC1, typename VEC2, typename MAT3, typename MAT4>
-    void svd_2x2(const VEC1 &d, const VEC2 &f, const MAT3 &U, const MAT4 &V) throw();
+    void svd_2x2(const VEC1 &d, const VEC2 &f, const MAT3 &U, const MAT4 &V);
 
   // chase out zero _on_ d[k_0]:
   template <typename VEC1, typename VEC2, typename MAT3>
-    void chase_out_intermediate_zero(const VEC1 &d, const VEC2 &f, const MAT3 &U, size_t k0) throw();
+    void chase_out_intermediate_zero(const VEC1 &d, const VEC2 &f, const MAT3 &U, size_t k0);
 
   // chase out zero at end of diagonal d:
   template <typename VEC1, typename VEC2, typename MAT3>
-    void chase_out_trailing_zero(const VEC1 &d, const VEC2 &f, const MAT3 &V) throw();
+    void chase_out_trailing_zero(const VEC1 &d, const VEC2 &f, const MAT3 &V);
 
   // trailing eigenvalue of a bidiagonal matrix: D: diagonal, F: super-diagonal.
   //   (note: for the moment, this routine implicitely assumes _real_ D and F; _probably_ OK for complex).
@@ -776,7 +776,7 @@ namespace svd_qr_util{
   // one step of the QR SVD of the bidiagonal matrix:
   // (implicitely this assumes that D and F are _real_)
   template <typename VEC1, typename VEC2, typename MAT3, typename MAT4>
-    void qr_step(const VEC1 &D_, const VEC2 &F_, const MAT3 &U_, const MAT4 &V_) throw();
+    void qr_step(const VEC1 &D_, const VEC2 &F_, const MAT3 &U_, const MAT4 &V_);
 
 } // namespace svd_qr_util
 
@@ -788,14 +788,14 @@ namespace svd_qr_util{
 template <typename MAT1, typename MAT2>
 inline void null_space( const MAT1& A, const MAT2& NV_,
                         typename gmm::number_traits<typename gmm::linalg_traits<MAT1>::value_type>::magnitude_type nullRelativeTol 
-                        = number::epsilon<typename gmm::number_traits<typename gmm::linalg_traits<MAT1>::value_type>::magnitude_type>() ) throw();
+                        = number::epsilon<typename gmm::number_traits<typename gmm::linalg_traits<MAT1>::value_type>::magnitude_type>() );
 
 // NV matrix version:
 // For this version the dimension of the null space is unknown => NV cannot be pre-sized (convention: NV shall be 0 x 0):
 template <typename MAT1, typename MAT2>
   void null_space( const MAT1& A, const MAT2& NV_,
                    typename gmm::number_traits<typename gmm::linalg_traits<MAT1>::value_type>::magnitude_type nullRelativeTol,
-									 gmm::abstract_matrix ) throw();
+									 gmm::abstract_matrix );
 
 // NV vector version:
 // For this version the dimension of the null space is 1, A is M x N matrix => NV shall be allocated with length min(M,N).
@@ -803,13 +803,13 @@ template <typename MAT1, typename MAT2>
 template <typename MAT1, typename VEC2>
   void null_space( const MAT1& A, const VEC2& NV_,
                    typename gmm::number_traits<typename gmm::linalg_traits<MAT1>::value_type>::magnitude_type nullRelativeTol,
-									 gmm::abstract_vector ) throw();
+									 gmm::abstract_vector );
   
 #if 0
 // NOT yet quite correct for arbitrary complex matrices.
 
 template <typename MAT1, typename MAT2, typename VEC3, typename MAT4>
-  void svd_jacobi(const MAT1 &A, const MAT2 &U_, const VEC3 &S_, const MAT4 &V_) throw();
+  void svd_jacobi(const MAT1 &A, const MAT2 &U_, const VEC3 &S_, const MAT4 &V_);
 	
 // Complex Jacobi rotation utilities:
 template <class T>
@@ -818,33 +818,33 @@ void jacobi_rotation( const typename gmm::number_traits<T>::magnitude_type& a_jj
                       const T& a_jk,
                       typename gmm::number_traits<T>::magnitude_type& c,
                       typename gmm::number_traits<T>::magnitude_type& s,
-                      T& e ) throw();
+                      T& e );
                       
 // Apply Q* v
 template <typename T> inline
 void apply_jacobi_rotation_left(const typename gmm::number_traits<T>::magnitude_type &c,
                                 const typename gmm::number_traits<T>::magnitude_type &s,
                                 const T &e,
-                                T& x, T& y) throw();
+                                T& x, T& y);
 
 // Apply v^T Q
 template <typename T> inline
 void apply_jacobi_rotation_right(const typename gmm::number_traits<T>::magnitude_type &c,
                                  const typename gmm::number_traits<T>::magnitude_type &s,
                                  const T &e,
-                                 T& x, T& y) throw();
+                                 T& x, T& y);
 
 template <typename MAT, typename T>
 void apply_jacobi_rotation_left(const typename gmm::number_traits<T>::magnitude_type &c,
                                 const typename gmm::number_traits<T>::magnitude_type &s,
                                 const T &e,
-                                size_t i, size_t k, const MAT &AA) throw(); 
+                                size_t i, size_t k, const MAT &AA); 
 
 template <typename MAT, typename T>
 void apply_jacobi_rotation_right (const typename gmm::number_traits<T>::magnitude_type &c,
                                   const typename gmm::number_traits<T>::magnitude_type &s,
                                   const T &e,
-                                  size_t i, size_t k, const MAT &AA) throw(); 
+                                  size_t i, size_t k, const MAT &AA); 
 #endif
  
 
@@ -856,16 +856,16 @@ void apply_jacobi_rotation_right (const typename gmm::number_traits<T>::magnitud
 
 template <typename VEC1> void house_vector(const VEC1 &V_,
     const typename gmm::linalg_traits<VEC1>::value_type &tau_, 
-    const typename gmm::number_traits<typename gmm::linalg_traits<VEC1>::value_type>::magnitude_type &beta_ ) throw();
+    const typename gmm::number_traits<typename gmm::linalg_traits<VEC1>::value_type>::magnitude_type &beta_ );
     
 // multiply A to the left by the reflector stored in V, tau.
 template <typename MAT1, typename VEC2> inline
   void row_house_update(const MAT1 &A_, 
-    const VEC2 &V, const typename gmm::linalg_traits<MAT1>::value_type &tau) throw();
+    const VEC2 &V, const typename gmm::linalg_traits<MAT1>::value_type &tau);
     
 // multiply A to the right by the reflector stored in V, tau. 
 template <typename MAT1, typename VEC2> inline
-  void col_house_update(const MAT1 &A_, const VEC2 &V, const typename gmm::linalg_traits<MAT1>::value_type &tau) throw();          
+  void col_house_update(const MAT1 &A_, const VEC2 &V, const typename gmm::linalg_traits<MAT1>::value_type &tau);          
     
 } // namespace gmm_ext
 

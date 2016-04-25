@@ -33,7 +33,7 @@ size_t min_index(IT itStart, IT itEnd)
 {
   IT itU = std::min_element(itStart, itEnd);
   if (itU == itEnd)
-    throw std::string("min_index: empty range has no minimum");
+    throw std::runtime_error("min_index: empty range has no minimum");
   return static_cast<size_t>(itU - itStart); 
 }
 
@@ -44,7 +44,7 @@ size_t max_index(IT itStart, IT itEnd)
   
   IT itU = std::max_element(itStart, itEnd);
   if (itU == itEnd)
-    throw std::string("min_index: empty range has no minimum");
+    throw std::runtime_error("min_index: empty range has no minimum");
   return static_cast<size_t>(itU - itStart); 
 }
 
@@ -565,7 +565,7 @@ namespace linalg{
 
 // Do _not_ resize destination: allows to work correctly for vector references:
 template <class V1, class V2, class V3>
-void elementwiseDiv( const V1& v1, const V2& v2, V3& v3 )throw()
+void elementwiseDiv( const V1& v1, const V2& v2, V3& v3 )
 {
 #if 0
  // Initialization may be required by some arbitrary precision implementations:
@@ -575,7 +575,7 @@ void elementwiseDiv( const V1& v1, const V2& v2, V3& v3 )throw()
 #endif
  if( (gmm::vect_size(v1) != gmm::vect_size(v2) ) 
      || (gmm::vect_size(v2) != gmm::vect_size(v3) ))
-   throw std::string("elementwiseMult: vector sizes don't match");
+   throw std::runtime_error("elementwiseMult: vector sizes don't match");
 #if 0   
  std::transform(v1.begin(), v1.end(), v2.begin(), v3.begin(),
                 std::multiplies<typename gmm::linalg_traits<V1>::value_type>()); // value_type's must match
@@ -589,7 +589,7 @@ void elementwiseDiv( const V1& v1, const V2& v2, V3& v3 )throw()
 
 // Do _not_ resize destination: allows to work correctly for vector references:
 template <class V1, class V2, class V3>
-void elementwiseMult( const V1& v1, const V2& v2, V3& v3 )throw()
+void elementwiseMult( const V1& v1, const V2& v2, V3& v3 )
 {
 #if 0
  // Initialization may be required by some arbitrary precision implementations:
@@ -599,7 +599,7 @@ void elementwiseMult( const V1& v1, const V2& v2, V3& v3 )throw()
 #endif
  if( (gmm::vect_size(v1) != gmm::vect_size(v2) ) 
      || (gmm::vect_size(v2) != gmm::vect_size(v3) ))
-   throw std::string("elementwiseMult: vector sizes don't match");
+   throw std::runtime_error("elementwiseMult: vector sizes don't match");
 #if 0   
  std::transform(v1.begin(), v1.end(), v2.begin(), v3.begin(),
                 std::multiplies<typename gmm::linalg_traits<V1>::value_type>()); // value_type's must match
@@ -972,27 +972,27 @@ inline size_t binarySize(const std::pair<T1,T2>& p)
 namespace linalg{
 
 template <class T>
-void saveVectorData(const std::vector<T>& V, const std::string& sFileName) throw()
+void saveVectorData(const std::vector<T>& V, const std::string& sFileName)
 {                    
     abstractCommHandle *fp = open(sFileName.c_str(),"wb");
     if (NULL==fp)
-      throw std::string("Error: unable to open file ") + sFileName + std::string(" for write");
+      throw std::runtime_error("Error: unable to open file ") + sFileName + std::string(" for write");
 
     if (!writeBinary( fp, V ))
-      throw std::string("I/O error writing to file ") + sFileName;
+      throw std::runtime_error("I/O error writing to file ") + sFileName;
 		    
     close(fp);    
 } 
 
 template <class T>
-void loadVectorData(std::vector<T>& V, const std::string& sFileName) throw()
+void loadVectorData(std::vector<T>& V, const std::string& sFileName)
 {                    
     abstractCommHandle *fp = open(sFileName.c_str(),"rb");
     if (NULL==fp)
-      throw std::string("Error: unable to open file ") + sFileName + std::string(" for read");
+      throw std::runtime_error("Error: unable to open file ") + sFileName + std::string(" for read");
 
     if (!readBinary( fp, V ))
-      throw std::string("I/O error reading from file ") + sFileName;
+      throw std::runtime_error("I/O error reading from file ") + sFileName;
 		    
     close(fp);    
 }
@@ -1219,7 +1219,7 @@ void cart2sphere(const T1& x, const T1& y, const T1& z,
 
     break;
     default:
-      throw std::string("cart2sphere<T1,T2>: unrecognized special case");
+      throw std::runtime_error("cart2sphere<T1,T2>: unrecognized special case");
   }
 
   // transfer to return values:
@@ -1357,7 +1357,7 @@ void sphere2cart(const T1& r_, const T1& theta_, const T1& phi_,
 
     break;
     default:
-      throw std::string("sphere2cart<T1,T2>: unrecognized special case");
+      throw std::runtime_error("sphere2cart<T1,T2>: unrecognized special case");
   }
 
   // transfer to return values: 
@@ -1516,7 +1516,7 @@ void quadraticFormula(const V1& vP, V2& vRoot, typename V1::value_type& D)
   typedef typename V2::value_type T2;
   
   if ( vP.size() != 3 )
-    throw std::string("quadraticFormula<V1,V2>: vP is not a 2nd degree polynomial");
+    throw std::runtime_error("quadraticFormula<V1,V2>: vP is not a 2nd degree polynomial");
 
   // Implementation note: could also assume that output parameter has already been allocated (in case of _reference_ output type);
   //   however, at the moment, I do not want to bring (or duplicate) the "gmm" linalg_traits mechanisms here, 
@@ -1558,7 +1558,7 @@ void quadraticDiscriminant(const V1& vP, typename V1::value_type& D)
   typedef typename V1::value_type T1;
   
   if ( vP.size() != 3 )
-    throw std::string("quadraticDiscriminant<V1>: vP is not a 2nd degree polynomial");
+    throw std::runtime_error("quadraticDiscriminant<V1>: vP is not a 2nd degree polynomial");
 
   const T1 
     &a(vP[0]),
@@ -1577,7 +1577,7 @@ template <class T>
 void cubicFormula( const std::vector<T>& vP, std::vector< std::complex<T> >& vRoot )
 {
   if ( vP.size() != 4 )
-    throw std::string("cubicFormula<T>: vP is not a 3rd degree polynomial");
+    throw std::runtime_error("cubicFormula<T>: vP is not a 3rd degree polynomial");
 
   vRoot.clear();   
   vRoot.resize(3, std::complex<T>( zero<T>(), zero<T>() ) ); // three roots
@@ -1684,7 +1684,7 @@ template <class T>
 void cubicFormula( const std::vector< std::complex<T> >& vP, std::vector< std::complex<T> >& vRoot )
 {
   if ( vP.size() != 4 )
-    throw std::string("cubicFormula<T>: vP is not a 3rd degree polynomial");
+    throw std::runtime_error("cubicFormula<T>: vP is not a 3rd degree polynomial");
 
   vRoot.clear();   
   vRoot.resize(3, std::complex<T>( zero<T>(), zero<T>() ) ); // three roots
@@ -1846,7 +1846,7 @@ std::complex<T> polyval( const std::vector< std::complex<T> >& vP, const std::co
 template <class T>
 inline void sphericalToHelical( const T& v_r, const T& v_theta, const T& v_phi,
                                 const T& r, const T& theta, const T& phi,
-                                T& v_minus, T& v_0, T& v_plus, bool cosTheta )throw()
+                                T& v_minus, T& v_0, T& v_plus, bool cosTheta )
 {
  const T 
    ct( cosTheta? theta: cos(theta) ), st( cosTheta? sqrt(one<T>()-sqr(ct)): sin(theta) ),
@@ -1863,33 +1863,33 @@ inline void sphericalToHelical( const T& v_r, const T& v_theta, const T& v_phi,
 template <class T>
 inline void sphericalToHelical( const T& v_r, const T& v_theta, const T& v_phi,
                                 const T& r, const T& theta, const long& m,
-                                T& v_minus, T& v_0, T& v_plus, bool cosTheta )throw()
+                                T& v_minus, T& v_0, T& v_plus, bool cosTheta )
 {
  const T 
-   ct( cosTheta? theta: cos(theta) ), st( cosTheta? sqrt(one<T>()-sqr(ct)): sin(theta) ),
-   sqrt2_2( sqrt(integer<T>(2))/integer<T>(2) );
+   ct( cosTheta? theta: cos(theta) ), st( cosTheta? sqrt(one<T>() - sqr(ct)): sin(theta) ),
+   sqrt2_2( sqrt(integer<T>(2)) / integer<T>(2) );
 
  switch (m){
    case -1:
      v_minus = zero<T>();
      v_0 = zero<T>();
-     v_plus =  -sqrt2_2 * (st*v_r  + ct*v_theta  - one_i<T>()*v_phi);
+     v_plus =  -sqrt2_2 * (st * v_r  + ct * v_theta  - one_i<T>() * v_phi);
    break;
    
    case 0:
      v_minus = zero<T>();
-     v_0 =     ct*v_r  - st*v_theta;
+     v_0 =     ct * v_r  - st * v_theta;
      v_plus = zero<T>();
    break;
    
    case 1:
-     v_minus = sqrt2_2 * (st*v_r  + ct*v_theta  + one_i<T>()*v_phi); 
+     v_minus = sqrt2_2 * (st * v_r  + ct * v_theta  + one_i<T>() * v_phi); 
      v_0 = zero<T>();
      v_plus = zero<T>();
    break;
    
    default:
-     throw std::string("sphericalToHelical: m-value out of domain {-1, 0, 1} ");
+     throw std::runtime_error("sphericalToHelical: m-value out of domain {-1, 0, 1} ");
    // break;
  }
 } 
@@ -1904,7 +1904,7 @@ inline void sphericalToHelical( const T& v_r, const T& v_theta, const T& v_phi,
 	
 // return a _uniform_ distribution for the specified co-ordinate variable (with the specified symmetry):
 template <class R>
-R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)throw()
+R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)
 {
  R val(zero<R>());
 
@@ -1935,7 +1935,7 @@ R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)throw()
 			 break; 
 
 			 default:
-				 throw std::string("linalgUtil::randomCoord: cylindrical symmetry with co-ordinate offset out of range [0,2]");
+				 throw std::runtime_error("linalgUtil::randomCoord: cylindrical symmetry with co-ordinate offset out of range [0,2]");
 			 break; 
 		 }			 
 	 break;
@@ -1956,14 +1956,14 @@ R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)throw()
 			 break;
 
 			 default:
-				 throw std::string("linalgUtil::randomCoord: spherical symmetry with co-ordinate offset out of range [0,2]\n",
+				 throw std::runtime_error("linalgUtil::randomCoord: spherical symmetry with co-ordinate offset out of range [0,2]\n",
 						               " (hyperspheres _not_ implemented because DIM !=> <max number of co-ords>)");
 			 break; 
 		 }			 
 	 break;
 
 	 default:
-		 throw std::string("linalgUtil::randomCoord: unknown co-ordinate symmetry");
+		 throw std::runtime_error("linalgUtil::randomCoord: unknown co-ordinate symmetry");
 	 break;
  }
  
@@ -1971,13 +1971,13 @@ R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)throw()
 }
 
 #if 0
-// OK: original reference, and it's idea for 3D Box-Mueller transform appears to not be correct.
+// OK: original reference, and its idea for 3D Box-Mueller transform appears to *not* be correct.
 //   This reference was: Aravind Kalaiah and Amitabh Varshney, "Statistical Point Geometry", Eurographics Symposium on Geometry Processing (2003), 
 //     L. Kobbelt and P. Schroeder and H. Hoppe (Editors). 
 
 // return an instance of an isotropic 3D _normal_ distribution with the given mean and variance (cartesian form):
 template <class R>
-void normalDist(const ntuple<R,3>& mean, const R& variance, ntuple<R,3>& p)throw()
+void normalDist(const ntuple<R,3>& mean, const R& variance, ntuple<R,3>& p)
 {
  // This is _exact_, but not optimized for speed (or stability).  OK for arbitrary precision, for now...
  // 3D Box-Mueller transform:
@@ -2017,13 +2017,13 @@ void normalDist(const ntuple<R,3>& mean, const R& variance, ntuple<R,3>& p)throw
 namespace gmm{
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u) throw()
+inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u)
 {
  return gmm::writeBinary(fp, u, typename linalg_traits<U>::linalg_type());
 }
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector) throw()
+inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector)
 {
  using commUtil::writeBinary;
  bool status(true);
@@ -2035,7 +2035,7 @@ inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_v
 }
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_dense) throw()
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_dense)
 {
  using commUtil::writeBinary;
  bool status(true);
@@ -2051,7 +2051,7 @@ bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, 
 }
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_skyline) throw()
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_skyline)
 {
  using commUtil::writeBinary;
  bool status(true);
@@ -2075,7 +2075,7 @@ bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, 
 }
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_matrix) throw()
+inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_matrix)
 {
  using commUtil::writeBinary;
  bool status(true);
@@ -2092,7 +2092,7 @@ inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_m
 }
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, row_major) throw()
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, row_major)
 {
  bool status(true);
  
@@ -2107,7 +2107,7 @@ bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, row_major) throw(
 }
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, col_major) throw()
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, col_major)
 {
  bool status(true);
  
@@ -2123,20 +2123,20 @@ bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, col_major) throw(
 
 // _allow_ references => do _not_ necessarily resize destinations:
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u)
 {
  return readBinary(fp, u, typename linalg_traits<U>::linalg_type(), typename linalg_traits<U>::is_reference());
 }
 
 // allow "const reference" to temporary (this is the gmm reference type, which may actually be modifiable!).
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, const U& u) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, const U& u)
 {
  return readBinary(fp, linalg_const_cast(u));
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_false) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_false)
 {
  using commUtil::readBinary;
  bool status(true);
@@ -2152,7 +2152,7 @@ inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, 
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_modifiable) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_modifiable)
 {
  using commUtil::readBinary;
  bool status(true);
@@ -2161,7 +2161,7 @@ inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, 
  status = ( status && readBinary(fp, N) );
  
  if (N != vect_size(u))
-   throw std::string("gmm::readBinary(abstractCommHandle *, U&, abstract_vector, linalg_modifiable): size of destination doesn't match read size");
+   throw std::runtime_error("gmm::readBinary(abstractCommHandle *, U&, abstract_vector, linalg_modifiable): size of destination doesn't match read size");
 
  return
    status
@@ -2169,14 +2169,14 @@ inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, 
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_const) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_const)
 {
- throw std::string("gmm::readBinary: can't modify a const reference");
+ throw std::runtime_error("gmm::readBinary: can't modify a const reference");
  return false;
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_dense) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_dense)
 {
  using commUtil::readBinary;
  bool status(true);
@@ -2192,7 +2192,7 @@ inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, 
 }
 
 template <class U>
-bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_skyline) throw()
+bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_skyline)
 {
  using commUtil::readBinary;
  bool status(true);
@@ -2228,7 +2228,7 @@ bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstrac
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_false) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_false)
 {
  using commUtil::readBinary;
  bool status(true);
@@ -2247,7 +2247,7 @@ inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, 
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_modifiable) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_modifiable)
 {
  using commUtil::readBinary;
  bool status(true);
@@ -2259,7 +2259,7 @@ inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, 
   
  // don't resize _reference_ types:
  if ( (mat_nrows(u) != nrows) || (mat_ncols(u) != ncols) )
-   throw std::string("gmm::readBinary(abstractCommHandle*, U&, abstract_matrix, linalg_modifiable): size of destination doesn't match read size");
+   throw std::runtime_error("gmm::readBinary(abstractCommHandle*, U&, abstract_matrix, linalg_modifiable): size of destination doesn't match read size");
 	 	
  return 
    status
@@ -2268,14 +2268,14 @@ inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, 
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_const) throw()
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_const)
 {
- throw std::string("gmm::readBinary: can't modify a const reference");
+ throw std::runtime_error("gmm::readBinary: can't modify a const reference");
  return false;
 }
 
 template <class U>
-bool readBinary(commUtil::abstractCommHandle *fp, U& u, row_major) throw()
+bool readBinary(commUtil::abstractCommHandle *fp, U& u, row_major)
 {
  bool status(true);
 
@@ -2290,7 +2290,7 @@ bool readBinary(commUtil::abstractCommHandle *fp, U& u, row_major) throw()
 }
 
 template <class U>
- bool readBinary(commUtil::abstractCommHandle *fp, U& u, col_major) throw()
+ bool readBinary(commUtil::abstractCommHandle *fp, U& u, col_major)
 {
  bool status(true);
 

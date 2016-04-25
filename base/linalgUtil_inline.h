@@ -55,7 +55,7 @@ inline bool readBinary(commUtil::abstractCommHandle* fp, linalg::CSYS_KIND& e)
 inline size_t binarySize(const linalg::CSYS_KIND& e) { return binarySize(static_cast<long>(e)); }
 
 
-inline void write(std::ostream& os, const linalg::CSYS_KIND& e)throw()
+inline void write(std::ostream& os, const linalg::CSYS_KIND& e)
 {
  std::string s;
  switch (e){
@@ -72,13 +72,13 @@ inline void write(std::ostream& os, const linalg::CSYS_KIND& e)throw()
 	   s = "SPHERICAL";
 	 break;
 	 default:
-	   throw std::string("write(std::ostream& os, const CSYS_KIND& e): invalid CSYS_KIND");
+	   throw std::runtime_error("write(std::ostream& os, const CSYS_KIND& e): invalid CSYS_KIND");
 //	 break;
  };
  os<<s;
 }
 
-inline void read(std::istream& is, linalg::CSYS_KIND& e)throw()
+inline void read(std::istream& is, linalg::CSYS_KIND& e)
 {
  std::string s;
  is >> s;
@@ -95,7 +95,7 @@ inline void read(std::istream& is, linalg::CSYS_KIND& e)throw()
 	 if (s == "SPHERICAL")
 	   e = linalg::SPHERICAL;
 	 else
-	   throw std::string("read(std::istream& is, CSYS_KIND& e): invalid CSYS_KIND");	    	 
+	   throw std::runtime_error("read(std::istream& is, CSYS_KIND& e): invalid CSYS_KIND");	    	 
  }
 }
 

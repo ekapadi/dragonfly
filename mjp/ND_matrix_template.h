@@ -191,15 +191,15 @@ bool row_major_index<N,NDIM>::wrap(const row_major_index& x1, const row_major_in
 }                                           
 
 template <class N, size_t NDIM>        
-inline bool row_major_index<N,NDIM>::writeBinary(commUtil::abstractCommHandle* fp)const throw(std::string)
+inline bool row_major_index<N,NDIM>::writeBinary(commUtil::abstractCommHandle* fp)const
 { return base_class::writeBinary(fp); }
 
 template <class N, size_t NDIM>        
-inline bool row_major_index<N,NDIM>::readBinary(commUtil::abstractCommHandle* fp) throw(std::string)
+inline bool row_major_index<N,NDIM>::readBinary(commUtil::abstractCommHandle* fp)
 { return base_class::readBinary(fp); }
 
 template <class N, size_t NDIM>        
-inline size_t row_major_index<N,NDIM>::binarySize(void)const throw(std::string)
+inline size_t row_major_index<N,NDIM>::binarySize(void)const
 { return base_class::binarySize(); }
 
 #if !defined(__INTEL_COMPILER) && !defined(__PGI)
@@ -211,13 +211,13 @@ template <class N, size_t NDIM>
 template <class R>
 row_major_index<N,NDIM> row_major_index<N,NDIM>::ND_bin(
   const ntuple<R,NDIM>& p, const ntuple_interval<R,NDIM>& domain_cube,
-  const shape_type& shape, value_type shift) throw(std::string)
+  const shape_type& shape, value_type shift)
 {
   row_major_index result(0,false);
   
   // "left_closure" \leftarrow  x \in [start, end)
   if (!(domain_cube.left_closure(p)))
-    throw std::string("row_major_index<N,NDIM>::ND_bin: ntuple not in domain hypercube");
+    throw std::runtime_error("row_major_index<N,NDIM>::ND_bin: ntuple not in domain hypercube");
     
   for(size_t n = 0; n < NDIM; ++n){
     R L((domain_cube.end()[n] - domain_cube.start()[n])/integer<R>(shape[n])), 
@@ -238,12 +238,12 @@ row_major_index<N,NDIM> row_major_index<N,NDIM>::ND_bin(
 template <class N, size_t NDIM>        
 ntuple_interval<R,NDIM> row_major_index<N,NDIM>::ND_edges(
   const row_major_index& indices, const ntuple_interval<R,NDIM>& domain_cube,
-  const shape_type& shape, value_type shift, const R& epsilon_) throw(std::string)
+  const shape_type& shape, value_type shift, const R& epsilon_)
 {
   ntuple<R,NDIM> start_, end_;
 
   if (!indices.in_domain(shape, shift))
-    throw std::string("row_major_index<N,NDIM>::ND_edges: indices out-of-range for specified shape and base shift");
+    throw std::runtime_error("row_major_index<N,NDIM>::ND_edges: indices out-of-range for specified shape and base shift");
 
   for(size_t n = 0; n < NDIM; ++n){
     R L_bin((domain_cube.end()[n] - domain_cube.start()[n])/integer<R>(shape[n])); 
@@ -330,7 +330,7 @@ inline row_major_index<N,NDIM>::row_major_index(const ntuple<N1,NDIM>& other)
  */    
 template <class U, size_t NDIM>
 typename gmm::linalg_traits<U>::reference
-  ND_deref(U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n) throw(std::runtime_error)
+  ND_deref(U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n)
 {
   const row_major_index<size_t,NDIM>& n_(static_cast<const row_major_index<size_t,NDIM>&>(n));
   return u[n_.inverse(shape)]; 
@@ -346,7 +346,7 @@ typename gmm::linalg_traits<U>::reference
  */    
 template <class U, size_t NDIM>
 const typename gmm::linalg_traits<U>::reference
-  ND_deref(const U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n) throw(std::runtime_error)
+  ND_deref(const U& u, const ntuple<size_t,NDIM>& shape, const ntuple<size_t,NDIM>& n)
 {
   const row_major_index<size_t,NDIM>& n_(static_cast<const row_major_index<size_t,NDIM>&>(n));
   return const_cast<U&>(u)[n_.inverse(shape)]; // force by-reference return.
@@ -358,7 +358,7 @@ const typename gmm::linalg_traits<U>::reference
  *   param[in]  deriv_order  derivative order
  */
 template <class T>
-std::vector<T> central_diff_weights(size_t Np, size_t deriv_order) throw(std::runtime_error)
+std::vector<T> central_diff_weights(size_t Np, size_t deriv_order)
 {
   // based on python implementation from scipy-0.7.1: "common.py: central_diff_weights":
   using TMatrix::factorialFunctor;
@@ -400,7 +400,7 @@ std::vector<T> central_diff_weights(size_t Np, size_t deriv_order) throw(std::ru
 template <class U1, class U2, size_t NDIM>
 void central_diff(
   U1& dest, const ntuple<size_t, NDIM>& shape, 
-  const U2& src, size_t dim, size_t Np, size_t deriv_order, int BC_enum) throw(std::runtime_error)
+  const U2& src, size_t dim, size_t Np, size_t deriv_order, int BC_enum)
 {
   // assume U1 and U2 are _linear_ container-types 
   //   (this is what the present N-dimensional array implementation expects, in addition to the "shape" ntuple).
@@ -534,7 +534,7 @@ void central_diff(
 
 
 template <class U, size_t NDIM>
-void linear_interpolator<U,NDIM>::apply(const ntuple<R,NDIM>& x_i, value_type& y_i)const throw(std::runtime_error)
+void linear_interpolator<U,NDIM>::apply(const ntuple<R,NDIM>& x_i, value_type& y_i)const
 {
   if (!domain_.closure(x_i))
     throw std::runtime_error("linear_interpolator<U,NDIM>::apply: coordinates out of instantiated domain");
@@ -604,7 +604,7 @@ void linear_interpolator<U,NDIM>::apply(const ntuple<R,NDIM>& x_i, value_type& y
  */
 template <class U, size_t NDIM>
 template <class U1, class U2>
-void linear_interpolator<U,NDIM>::apply(const U1& x_i, U2& y_i)const throw(std::runtime_error)
+void linear_interpolator<U,NDIM>::apply(const U1& x_i, U2& y_i)const
 {
   // resize dest only if destination is _not_ a reference type:
   // see note at "simple_object_base::is" regarding type_info comparison by-name, to enable cross-module use with current GNU C++ ABI:
@@ -630,7 +630,7 @@ void linear_interpolator<U,NDIM>::apply(const U1& x_i, U2& y_i)const throw(std::
 
 template <class U, size_t NDIM>
 linear_interpolator<U,NDIM>::linear_interpolator
-  (const ntuple_interval<R,NDIM>& domain, const U& y, const ntuple<size_t,NDIM>& shape, interp_kind e) throw(std::runtime_error)
+  (const ntuple_interval<R,NDIM>& domain, const U& y, const ntuple<size_t,NDIM>& shape, interp_kind e)
   : domain_(domain), scale_(domain.scale()), data_(y), shape_(shape), kind_(e)
 {
   if (NDIM+1 > sizeof(size_t)*8)
@@ -640,7 +640,7 @@ linear_interpolator<U,NDIM>::linear_interpolator
 
 template <class U, size_t NDIM>
 linear_interpolator<U,NDIM>::linear_interpolator
-  (const ntuple_interval<R,NDIM>& domain, U& y, const ntuple<size_t,NDIM>& shape, interp_kind e, bool transfer_ownership) throw(std::runtime_error)
+  (const ntuple_interval<R,NDIM>& domain, U& y, const ntuple<size_t,NDIM>& shape, interp_kind e, bool transfer_ownership)
   : domain_(domain), scale_(domain.scale()), shape_(shape), kind_(e)
 {
   if (NDIM+1 > sizeof(size_t)*8)

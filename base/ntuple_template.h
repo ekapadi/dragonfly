@@ -62,14 +62,14 @@ inline const T* ntuple<T,DIM>::end()const
 		
 
 template <class T, size_t DIM>
-inline size_t ntuple<T,DIM>::size(void)const throw()
+inline size_t ntuple<T,DIM>::size(void)const
 { return DIM; }
 
 template <class T, size_t DIM>
-inline void ntuple<T,DIM>::resize(size_t n) throw()
+inline void ntuple<T,DIM>::resize(size_t n)
 { 
   if (n != DIM)
-    throw std::string("ntuple<T,DIM>::resize: size not equal to fixed ntuple dimension");
+    throw std::runtime_error("ntuple<T,DIM>::resize: size not equal to fixed ntuple dimension");
 } 
 
 template <class T, size_t DIM>
@@ -312,7 +312,7 @@ template <class T, size_t DIM>
 ntuple<T,DIM> ntuple<T,DIM>::cross(const ntuple<T,DIM>& other)const
 {
  if (DIM != 3)
-   throw std::string("ntuple<T,DIM>::cross: not implemented for DIM != 3");
+   throw std::runtime_error("ntuple<T,DIM>::cross: not implemented for DIM != 3");
  
  return
  ntuple<T,DIM>(
@@ -328,7 +328,7 @@ template <class S>
 ntuple<T,DIM> ntuple<T,DIM>::cross(const ntuple<S,DIM>& other)const
 {
  if (DIM != 3)
-   throw std::string("ntuple<T,DIM>::cross: not implemented for DIM != 3");
+   throw std::runtime_error("ntuple<T,DIM>::cross: not implemented for DIM != 3");
  
  return
  ntuple<T,DIM>(
@@ -360,14 +360,14 @@ inline ntuple<T,DIM> ntuple<T,DIM>::filled(const T& t)
 }
 
 template <class T, size_t DIM>
-inline void ntuple<T,DIM>::sort(ntuple<T,DIM>& p) throw()
+inline void ntuple<T,DIM>::sort(ntuple<T,DIM>& p)
 {
  std::sort( p.begin(), p.end() );
 }
     
 #if 0 // --------------------------- obsolete: use linalgUtil.h: "argsort" ------------------------------------
 template <class T, size_t DIM>
-void ntuple<T,DIM>::index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn) throw()
+void ntuple<T,DIM>::index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn)
 {
  ntuple<T,DIM> p_(p); // copy it
  
@@ -381,7 +381,7 @@ void ntuple<T,DIM>::index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn) t
 #endif // --------------------------- end: obsolete ----------------------------------------------------------
 
 template <class T, size_t DIM>
-void ntuple<T,DIM>::apply( T (*func)(const T&), const ntuple<T,DIM>& src, ntuple<T,DIM>& dest) throw()
+void ntuple<T,DIM>::apply( T (*func)(const T&), const ntuple<T,DIM>& src, ntuple<T,DIM>& dest)
 {
  for(size_t n=0; n<DIM; ++n)
    dest.v_[n] = func(src.v_[n]); 
@@ -641,19 +641,19 @@ inline size_t max_element(const ntuple<T,DIM>& p)
 }
 
 template <class T, size_t DIM>
-inline void sort(ntuple<T,DIM>& p) throw()
+inline void sort(ntuple<T,DIM>& p)
 {
  ntuple<T,DIM>::sort(p);
 }
 
 template <class T, size_t DIM>
-inline void index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn) throw()
+inline void index_sort(const ntuple<T,DIM>& p, ntuple<size_t,DIM>& vn)
 {
  ntuple<T,DIM>::index_sort(p, vn);
 }
 
 template <class T1, class T2, size_t DIM>
-inline void conv(ntuple<T1,DIM>& dest, const ntuple<T2,DIM>& src) throw()
+inline void conv(ntuple<T1,DIM>& dest, const ntuple<T2,DIM>& src)
 {
  for(size_t n=0; n<DIM; ++n)
    conv(dest[n], src[n]);

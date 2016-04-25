@@ -32,10 +32,10 @@ namespace commUtil{
 #if defined(__USE_MPI) // ------------------------------------------- MPI ONLY SECTION ------------------------------------------------------------
 // gather to another rank:
 template <class U>
-void processCommHandle::gather(const U& u) throw()
+void processCommHandle::gather(const U& u)
 {	
 	if (!valid() || !writing()) 
-  	throw std::string("processCommHandle::gather<U>(const U& u): invalid handle or not open for write");
+  	throw std::runtime_error("processCommHandle::gather<U>(const U& u): invalid handle or not open for write");
 
   // allocate the send-buffer:
 	const size_t size_(binarySize(u));
@@ -43,7 +43,7 @@ void processCommHandle::gather(const U& u) throw()
 	abstractCommHandle *hmem 
 	  = memoryCommHandle::open(buf, size_, "wb");
 	if (!writeBinary(hmem, u))
-	  throw std::string("processCommHandle::gather<U>: I/O error writing to memory");
+	  throw std::runtime_error("processCommHandle::gather<U>: I/O error writing to memory");
 	close(hmem);
 		
 	dynamic_cast<const MPI::Intracomm*>(pComm_)->Gather(buf, size_, MPI::BYTE, NULL, 0, 0, rank());
@@ -53,10 +53,10 @@ void processCommHandle::gather(const U& u) throw()
 
 // gather to this rank:
 template <class U>
-void processCommHandle::gather(const U& u, std::vector<U>& vU) throw()
+void processCommHandle::gather(const U& u, std::vector<U>& vU)
 {
 	if (!valid() || !writing() || !reading()) 
-  	throw std::string("processCommHandle::gather<U>(const U& u, std::vector<U>& vU): invalid handle or not open for read/write");
+  	throw std::runtime_error("processCommHandle::gather<U>(const U& u, std::vector<U>& vU): invalid handle or not open for read/write");
 
   // allocate the send and receive buffers:
 	const size_t 
@@ -70,7 +70,7 @@ void processCommHandle::gather(const U& u, std::vector<U>& vU) throw()
 	  *hsend_mem = memoryCommHandle::open(sbuf, size_, "wb"),
 	  *hrecv_mem = memoryCommHandle::open(rbuf, size_*procs_, "rb");
 	if (!writeBinary(hsend_mem, u))
-	  throw std::string("processCommHandle::gather<U>: I/O error writing to memory");
+	  throw std::runtime_error("processCommHandle::gather<U>: I/O error writing to memory");
 	close(hsend_mem);
 		
 	dynamic_cast<const MPI::Intracomm*>(pComm_)->Gather(sbuf, size_, MPI::BYTE, rbuf, size_/*  *procs_ */, MPI::BYTE, pComm_->Get_rank());
@@ -84,7 +84,7 @@ void processCommHandle::gather(const U& u, std::vector<U>& vU) throw()
     status = (status && readBinary(hrecv_mem, *itU));
 	}
 	if (!status)
-	  throw std::string("processCommHandle::gather<U>: I/O error reading from memory");
+	  throw std::runtime_error("processCommHandle::gather<U>: I/O error reading from memory");
 	close(hrecv_mem);
 		
 	delete[] reinterpret_cast<unsigned char*>(sbuf);
@@ -93,10 +93,10 @@ void processCommHandle::gather(const U& u, std::vector<U>& vU) throw()
 
 // gather to all ranks:
 template <class U>
-void processCommHandle::all_gather(const U& u, std::vector<U>& vU) throw()
+void processCommHandle::all_gather(const U& u, std::vector<U>& vU)
 {
 	if (!valid() || !writing() || !reading()) 
-  	throw std::string("processCommHandle::all_gather<U>(const U& u, std::vector<U>& vU): invalid handle or not open for read/write");
+  	throw std::runtime_error("processCommHandle::all_gather<U>(const U& u, std::vector<U>& vU): invalid handle or not open for read/write");
 
   // allocate the send and receive buffers:
 	const size_t 
@@ -110,7 +110,7 @@ void processCommHandle::all_gather(const U& u, std::vector<U>& vU) throw()
 	  *hsend_mem = memoryCommHandle::open(sbuf, size_, "wb"),
 	  *hrecv_mem = memoryCommHandle::open(rbuf, size_*procs_, "rb");
 	if (!writeBinary(hsend_mem, u))
-	  throw std::string("processCommHandle::all_gather<U>: I/O error writing to memory");
+	  throw std::runtime_error("processCommHandle::all_gather<U>: I/O error writing to memory");
 	close(hsend_mem);
 		
 	dynamic_cast<const MPI::Intracomm*>(pComm_)->Allgather(sbuf, size_, MPI::BYTE, rbuf, size_ /* *procs_ */, MPI::BYTE);
@@ -124,7 +124,7 @@ void processCommHandle::all_gather(const U& u, std::vector<U>& vU) throw()
     status = (status && readBinary(hrecv_mem, *itU));
 	}
 	if (!status)
-	  throw std::string("processCommHandle::all_gather<U>: I/O error reading from memory");
+	  throw std::runtime_error("processCommHandle::all_gather<U>: I/O error reading from memory");
 	close(hrecv_mem);
 		
 	delete[] reinterpret_cast<unsigned char*>(sbuf);
@@ -133,10 +133,10 @@ void processCommHandle::all_gather(const U& u, std::vector<U>& vU) throw()
 
 // scatter from another rank:
 template <class U>
-void processCommHandle::scatter(U& u) throw()
+void processCommHandle::scatter(U& u)
 {
 	if (!valid() || !reading()) 
-  	throw std::string("processCommHandle::scatter<U>(U& u): invalid handle or not open for read");
+  	throw std::runtime_error("processCommHandle::scatter<U>(U& u): invalid handle or not open for read");
 
   // allocate the receive buffer:
 	const size_t 
@@ -151,7 +151,7 @@ void processCommHandle::scatter(U& u) throw()
 
   // transfer to destination:
   if (!readBinary(hrecv_mem, u))
-	  throw std::string("processCommHandle::scatter<U>(U& u): I/O error reading from memory");
+	  throw std::runtime_error("processCommHandle::scatter<U>(U& u): I/O error reading from memory");
 	close(hrecv_mem);
 	
 	delete[] reinterpret_cast<unsigned char*>(rbuf);	
@@ -159,10 +159,10 @@ void processCommHandle::scatter(U& u) throw()
 
 // scatter from this rank:
 template <class U>
-void processCommHandle::scatter(const std::vector<U>& vU, U& u) throw()
+void processCommHandle::scatter(const std::vector<U>& vU, U& u)
 {
 	if (!valid() || !writing() || !reading()) 
-  	throw std::string("processCommHandle::scatter<U>(const std::vector<U>& vU, U& u): invalid handle or not open for read/write");
+  	throw std::runtime_error("processCommHandle::scatter<U>(const std::vector<U>& vU, U& u): invalid handle or not open for read/write");
 
   // allocate the send and receive buffers:
 	const size_t 
@@ -182,13 +182,13 @@ void processCommHandle::scatter(const std::vector<U>& vU, U& u) throw()
     status = (status && writeBinary(hsend_mem, *itU));
 	}
 	if (!status)
-	  throw std::string("processCommHandle::scatter<U>(const std::vector<U>& vU, U& u): I/O error writing to memory");
+	  throw std::runtime_error("processCommHandle::scatter<U>(const std::vector<U>& vU, U& u): I/O error writing to memory");
 	close(hsend_mem);
 		
 	dynamic_cast<const MPI::Intracomm*>(pComm_)->Scatter(sbuf, size_/* *procs_ */, MPI::BYTE, rbuf, size_, MPI::BYTE, pComm_->Get_rank());
 
 	if (!readBinary(hrecv_mem, u))
-	  throw std::string("processCommHandle::scatter<U>(const std::vector<U>& vU, U& u): I/O error reading from memory");
+	  throw std::runtime_error("processCommHandle::scatter<U>(const std::vector<U>& vU, U& u): I/O error reading from memory");
 	close(hrecv_mem);
 		
 	delete[] reinterpret_cast<unsigned char*>(sbuf);

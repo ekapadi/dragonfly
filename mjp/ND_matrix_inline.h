@@ -121,7 +121,7 @@ inline typename linear_interpolator<U,NDIM>::S linear_interpolator<U,NDIM>::B_(c
 
 
 template <class U, size_t NDIM>
-inline typename linear_interpolator<U,NDIM>::value_type linear_interpolator<U,NDIM>::operator()(const ntuple<R,NDIM>& x_i)const throw(std::runtime_error)
+inline typename linear_interpolator<U,NDIM>::value_type linear_interpolator<U,NDIM>::operator()(const ntuple<R,NDIM>& x_i)const
 { 
   value_type y_i;
   apply(x_i, y_i);

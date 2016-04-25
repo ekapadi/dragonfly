@@ -309,11 +309,11 @@ namespace linalg{
 
 // Do _not_ resize destination: allows to work correctly for vector references:
 template <class V1, class V2, class V3>
-void elementwiseDiv( const V1& v1, const V2& v2, V3& v3 )throw();
+void elementwiseDiv( const V1& v1, const V2& v2, V3& v3 );
 
 // Do _not_ resize destination: allows to work correctly for vector references:
 template <class V1, class V2, class V3>
-void elementwiseMult( const V1& v1, const V2& v2, V3& v3 )throw();
+void elementwiseMult( const V1& v1, const V2& v2, V3& v3 );
 
 #if 0
 template <class T1, class T2, class T3>
@@ -522,10 +522,10 @@ size_t binarySize(const std::pair<T1,T2>& p);
 namespace linalg{
 
 template <class T>
-void saveVectorData(const std::vector<T>& V, const std::string& sFileName) throw();
+void saveVectorData(const std::vector<T>& V, const std::string& sFileName);
 
 template <class T>
-void loadVectorData(std::vector<T>& V, const std::string& sFileName) throw();
+void loadVectorData(std::vector<T>& V, const std::string& sFileName);
 
 #if 0 // omit for now
 template <class domainType, class rangeType>
@@ -675,7 +675,7 @@ enum CSYS_KIND {NO_CSYS, CARTESIAN, CYLINDRICAL, SPHERICAL};
   template <class T>
   void sphericalToHelical( const T& v_r, const T& v_theta, const T& v_phi,
                            const T& r, const T& theta, const T& phi,
-                           T& v_minus, T& v_0, T& v_plus, bool cosTheta=false )throw();    
+                           T& v_minus, T& v_0, T& v_plus, bool cosTheta=false );    
 
   /** 
     * @brief convert vector [v_r, v_theta, v_phi](r, theta, phi) to [v_minus, v_0, v_plus] in helical basis.
@@ -684,7 +684,7 @@ enum CSYS_KIND {NO_CSYS, CARTESIAN, CYLINDRICAL, SPHERICAL};
   template <class T>
   void sphericalToHelical( const T& v_r, const T& v_theta, const T& v_phi,
                            const T& r, const T& theta, const long& m,
-                           T& v_minus, T& v_0, T& v_plus, bool cosTheta=false )throw();
+                           T& v_minus, T& v_0, T& v_plus, bool cosTheta=false );
 
 // *******************************************************************************************************  
 #endif // ========================== end, move from numericalFunctor.h: ============================================================
@@ -698,9 +698,9 @@ inline bool writeBinary(commUtil::abstractCommHandle* fp, const linalg::CSYS_KIN
 
 inline bool readBinary(commUtil::abstractCommHandle* fp, linalg::CSYS_KIND& e);
 
-inline void write(std::ostream& os, const linalg::CSYS_KIND& e)throw();
+inline void write(std::ostream& os, const linalg::CSYS_KIND& e);
 
-inline void read(std::istream& is, linalg::CSYS_KIND& e)throw();
+inline void read(std::istream& is, linalg::CSYS_KIND& e);
 
 inline std::ostream& operator<<(std::ostream& os, const linalg::CSYS_KIND& e);
 
@@ -712,7 +712,7 @@ namespace linalg{
 
 // return an instance of a _uniform_ distribution for the specified co-ordinate (with the specified symmetry):
 template <class R>
-R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)throw();
+R randomCoord(CSYS_KIND eCSYS, size_t dimOffset);
 
 } // namespace linalg
 
@@ -722,73 +722,73 @@ R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)throw();
 namespace gmm{
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u) throw();
+inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u);
 
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector) throw();
+inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector);
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_dense) throw();
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_dense);
 
 // WARNING: the following almost certainly does _not_ work for sub-index types:
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_skyline) throw();
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_skyline);
 
 
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_matrix) throw();
+inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_matrix);
 
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, row_major) throw();
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, row_major);
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, col_major) throw();
+bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, col_major);
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u);
 
 // allow "const reference" to temporary:
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, const U& u) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, const U& u);
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_false) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_false);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_modifiable) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_modifiable);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_const) throw();
-
-
-template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_dense) throw();
-
-template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_skyline) throw();
-
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_const);
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_false) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_dense);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_modifiable) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_skyline);
 
-template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_const) throw();
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, row_major) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_false);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, col_major) throw();
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_modifiable);
+
+template <class U>
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_const);
+
+
+template <class U>
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, row_major);
+
+template <class U>
+inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, col_major);
 
 
 
