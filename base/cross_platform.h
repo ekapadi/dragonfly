@@ -6,6 +6,9 @@
 #if !defined(__cross_platform__h)
 #define __cross_platform__h
 
+// Formerly namespace name for TR1 features, now in C++11:
+#define _STL_EXT_NAMESPACE_ std
+
 #if !defined(_WIN32)
 #define __attribute_may_alias__ __attribute__((may_alias))
 #else

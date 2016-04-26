@@ -22,8 +22,6 @@
 /* *********************************************************************** */
 
 
-#include <portability.h>
-
 #if defined(__USE_PTHREAD)
   #include <pthread.h>
 #endif
@@ -41,9 +39,11 @@
 #include <assert.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <limits.h>
 
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
@@ -52,8 +52,9 @@
 #include <vector>
 
 #include <typeinfo>
-#include <tr1/type_traits>
+#include <type_traits>
 
+#include "cross_platform.h"
 #include "commUtil.h"
 
 using std::cout;

@@ -158,7 +158,7 @@ template <class T> struct python_array_flags;
  */
 template <class T>
 struct python_array_flags{
-  static const int flags = NPY_CARRAY;
+  static const int flags = NPY_ARRAY_CARRAY;
 };
 
 /**
@@ -166,7 +166,7 @@ struct python_array_flags{
  */
 template <class T>
 struct python_array_flags<const T>{
-  static const int flags = NPY_CARRAY_RO;
+  static const int flags = NPY_ARRAY_CARRAY_RO;
 };
 
 /**

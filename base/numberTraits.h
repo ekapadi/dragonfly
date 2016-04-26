@@ -120,10 +120,33 @@ template <class T>
 inline T epsilon(void)
 { return std::numeric_limits<T>::epsilon(); }
 
+template <class T>
+inline T pi(void)
+{ throw std::runtime_error("number::pi<T>: not implemented"); }
+
 template <class T0, class T1>
 inline T0 conv(const T1& t1)
 { return static_cast<T0>(t1); }
 
+template <class T>
+inline T sqr(const T& t)
+{ return t * t; }
+
+template <class T>
+inline typename numberTraits<T>::magnitudeType sqrNorm(const T& t)
+{ return sqr(t); }
+
+template <class T>
+inline T mod(const T& x, const T& y)
+{ throw std::runtime_error("number::mod: *generic* modulus not implemented"); }
+
+template <class T>
+inline T pow_n(const T& x, long n)
+{ throw std::runtime_error("number::pow_n: not implemented"); }
+
+template <>
+inline long mod(const long& x, const long& y)
+{ return x % y; }
 
 #if defined(__USE_MERE)
 template <>
@@ -136,6 +159,17 @@ template <>
 const mere::C& epsilon<mere::C>(void);
 
 template <>
+inline mere::R sqrNorm(const mere::C& c)
+{ return c * mere::conj(c); }
+
+template <>
+inline mere::C mod(const mere::C& x, const mere::C& y);
+
+template <>
+inline mere::C pow_n(const mere::C& c, long n)
+{ return mere::pow_n(c, n); }
+
+template <>
 mere::R integer<R,long>(const long& n);
 
 template <>
@@ -143,6 +177,16 @@ const mere::R& zero<mere::R>(void);
 
 template <>
 const mere::R& epsilon<mere::R>(void);
+
+template <>
+inline const mere::R& pi(void);
+
+template <>
+inline mere::R mod(const mere::R& x, const mere::R& y);
+
+template <>
+inline mere::R pow_n(const mere::R& r, long n)
+{ return mere::pow_n(r, n); }
 
 #else
 template <>
@@ -156,10 +200,55 @@ inline  std::complex<double> zero<std::complex<double> >(void)
 template <>
 inline std::complex<double> epsilon<std::complex<double> >(void)
 { return std::complex<double>(epsilon<double>()); }
+
+template <>
+inline double sqrNorm(const std::complex<double>& c)
+{ return sqr(std::real(c)) + sqr(std::imag(c)); }
+
+template <>
+inline double mod(const double& x, const double& y)
+{ return std::fmod(x, y); }
+
+template <>
+inline double pow_n(const double& r, long n)
+{ return std::pow(r, static_cast<double>(n)); }
+
+template <>
+inline double pi(void)
+{ return 3.14159265358979323846; }
+
 #endif
 
 
 } // namespace number
+
+#if defined(__commUtil__h)
+#if !defined(__USE_MERE)
+// ----------- Specialize binary I/O for std::complex<double>, which is *not* a POD type: --------------
+
+namespace commUtil{
+
+
+template<>
+inline bool writeBinary(abstractCommHandle *fp, const std::complex<double>& c)
+{ return writeBinary_POD_dispatch_(fp, c, std::true_type()); }
+
+template<>
+inline bool readBinary(abstractCommHandle *fp, std::complex<double>& c)
+{ return readBinary_POD_dispatch_(fp, c, std::true_type()); }
+
+
+template <>
+inline size_t binarySize(const std::complex<double>& c)
+{ return binarySize_POD_dispatch_(c, std::true_type()); }
+
+
+} // namespace commUtil
+
+// -----------------------------------------------------------------------------------------------------
+#endif
+#endif
+
 #endif // !defined(__numericalConstants__h)
 
 

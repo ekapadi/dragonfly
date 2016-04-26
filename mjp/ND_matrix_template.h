@@ -361,7 +361,8 @@ template <class T>
 std::vector<T> central_diff_weights(size_t Np, size_t deriv_order)
 {
   // based on python implementation from scipy-0.7.1: "common.py: central_diff_weights":
-  using TMatrix::factorialFunctor;
+  using linalg::factorial;
+  using number::pow_n;
   
   if ((Np < deriv_order+1) || (Np % 2 == 0))
     throw std::runtime_error("central_diff_weights: Number of points must be odd, and at least the derivative order + 1.");
@@ -376,9 +377,7 @@ std::vector<T> central_diff_weights(size_t Np, size_t deriv_order)
   std::vector<T> w(Np, zero<T>());
   gmm::copy(gmm::mat_row(X, deriv_order), w);
 
-  factorialFunctor<long> factorial;
-  long prefactor(0);
-  factorial.apply(static_cast<long>(deriv_order), prefactor);
+  long prefactor = factorial<long>(static_cast<size_t>(deriv_order));
   gmm::scale(w, integer<T>(prefactor));
 
   return w;   

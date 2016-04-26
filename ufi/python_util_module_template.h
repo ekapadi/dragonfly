@@ -128,7 +128,7 @@ PyObject* python_deallocator<T>::registered_type_object(void)
 template <class T>
 void python_deallocator<T>::attach_deallocator(PyObject *owner, T* ptr)
 {
-  assert(!(PyArray_FLAGS(owner)&NPY_OWNDATA));
+  assert(!(PyArray_FLAGS(reinterpret_cast<PyArrayObject*>(owner)) & NPY_ARRAY_OWNDATA));
   
   PyObject *newobj = reinterpret_cast<PyObject*>(PyObject_New(python_deallocator<T>, reinterpret_cast<PyTypeObject*>(class_type_object_)));
   if (newobj == NULL)
@@ -139,8 +139,8 @@ void python_deallocator<T>::attach_deallocator(PyObject *owner, T* ptr)
 
   // assign as the base-class of the owning array 
   //  (assume that this is done with a ref-count = 1, newly-created array):
-  assert(NULL == PyArray_BASE(owner));
-  PyArray_BASE(owner) = newobj;
+  assert(NULL == PyArray_BASE(reinterpret_cast<PyArrayObject*>(owner)));
+  PyArray_SetBaseObject(reinterpret_cast<PyArrayObject*>(owner), newobj);
 }
 
 
@@ -214,7 +214,7 @@ PyObject* insert(T* ptr, size_t len, bool transfer_ownership)
   
   // number of dimensions for destination array:
   size_t DIM(1); 
-  npy_int dims[2] = {len,0}; // worst-case number of dims (this implementation limited to RANK <= 1). 
+  npy_int dims[2] = {static_cast<npy_int>(len), 0}; // worst-case number of dims (this implementation limited to RANK <= 1). 
   if (linalg::tensor_traits<value_type>::rank > 0){
     if (linalg::tensor_traits<value_type>::rank == 1){
       // transfer ntuple<T,1> as 1-dimension:
@@ -234,7 +234,7 @@ PyObject* insert(T* ptr, size_t len, bool transfer_ownership)
     if (NULL == dest)
       throw python_error("python_util::implementation_module::insert: ");
       
-    std::copy(ptr, ptr+len, reinterpret_cast<PTR>(PyArray_DATA(dest)));
+    std::copy(ptr, ptr+len, reinterpret_cast<PTR>(PyArray_DATA(reinterpret_cast<PyArrayObject*>(dest))));
   }
   else{
     // create python array with reference to incoming data pointer (if T is "const", this will be a read-only array):
@@ -345,8 +345,8 @@ void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data)
   
     if (linalg::tensor_traits<value_type>::rank > 0){
       if (linalg::tensor_traits<value_type>::rank == 1){
-        if (!(((linalg::tensor_traits<value_type>::N_components == 1) && (static_cast<size_t>(PyArray_NDIM(src)) == 1))
-              || (linalg::tensor_traits<value_type>::N_components == static_cast<size_t>(PyArray_DIM(src,PyArray_NDIM(src)-1)))))
+        if (!(((linalg::tensor_traits<value_type>::N_components == 1) && (static_cast<size_t>(PyArray_NDIM(reinterpret_cast<PyArrayObject*>(src))) == 1))
+              || (linalg::tensor_traits<value_type>::N_components == static_cast<size_t>(PyArray_DIM(reinterpret_cast<PyArrayObject*>(src), PyArray_NDIM(reinterpret_cast<PyArrayObject*>(src))-1)))))
           throw std::runtime_error("python_util::implementation_module::extract: RANK=1: \n"
             "  array and non-scalar must either both be 1D, or last dimension of python array must match N_components of non-scalar");   
       }
@@ -356,11 +356,11 @@ void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data)
   
     #if !defined(EMBEDDED_PYTHON)
     if (own_data){
-      const PTR data(reinterpret_cast<PTR>(PyArray_DATA(src)));
+      const PTR data(reinterpret_cast<PTR>(PyArray_DATA(reinterpret_cast<PyArrayObject*>(src))));
       if (PyErr_Occurred())
         throw python_error("python_util::implementation_module::extract: ");
         
-      len = static_cast<size_t>(PyArray_SIZE(src));
+      len = static_cast<size_t>(PyArray_SIZE(reinterpret_cast<PyArrayObject*>(src)));
       if (PyErr_Occurred())
         throw python_error("python_util::implementation_module::extract: ");
         
@@ -374,11 +374,11 @@ void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data)
       std::copy(data, data+len, ptr);
     }
     else{
-      ptr = reinterpret_cast<T*>(PyArray_DATA(src));
+      ptr = reinterpret_cast<T*>(PyArray_DATA(reinterpret_cast<PyArrayObject*>(src)));
       if (PyErr_Occurred())
         throw python_error("python_util::implementation_module::extract: ");
         
-      len = static_cast<size_t>(PyArray_SIZE(src));
+      len = static_cast<size_t>(PyArray_SIZE(reinterpret_cast<PyArrayObject*>(src)));
       if (PyErr_Occurred())
         throw python_error("python_util::implementation_module::extract: ");
       len /= linalg::tensor_traits<value_type>::N_components;
@@ -452,13 +452,13 @@ void extract(T*& ptr, size_t& len, const PyObject* src_, bool own_data)
   else{
     #if 1
     // *** DEBUG ***
-    std::cerr<<"array-check:   "<<PyArray_Check(src)<<"\n"
-             <<"  ISCARRAY_RO: "<<PyArray_ISCARRAY_RO(src)<<"\n"
-             <<"  ISFARRAY_RO: "<<PyArray_ISFARRAY_RO(src)<<"\n"
-             <<"  ISCARRAY:    "<<PyArray_ISCARRAY(src)<<"\n"
-             <<"  ISFARRAY:    "<<PyArray_ISFARRAY(src)<<"\n"
+    std::cerr<<"array-check:   "<<PyArray_Check(reinterpret_cast<PyArrayObject*>(src))<<"\n"
+             <<"  ISCARRAY_RO: "<<PyArray_ISCARRAY_RO(reinterpret_cast<PyArrayObject*>(src))<<"\n"
+             <<"  ISFARRAY_RO: "<<PyArray_ISFARRAY_RO(reinterpret_cast<PyArrayObject*>(src))<<"\n"
+             <<"  ISCARRAY:    "<<PyArray_ISCARRAY(reinterpret_cast<PyArrayObject*>(src))<<"\n"
+             <<"  ISFARRAY:    "<<PyArray_ISFARRAY(reinterpret_cast<PyArrayObject*>(src))<<"\n"
              <<"  datatype_enum:       "<<datatype_enum<double>()<<"\n"
-             <<"  array-datatype-enum: "<<PyArray_TYPE(src)<<"\n"<<std::endl;
+             <<"  array-datatype-enum: "<<PyArray_TYPE(reinterpret_cast<PyArrayObject*>(src))<<"\n"<<std::endl;
     #endif
     throw python_error("python_util::implementation_module::extract: python object has no direct in-memory mapping to target type");
   }
@@ -474,11 +474,11 @@ template <class T,size_t DIM>
 void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src)
 {
   if (type_check<const T*>(src) 
-      && (DIM == PyArray_SIZE(src))
-      && ( (PyArray_NDIM(src) == 1) 
-           || ((PyArray_NDIM(src) == 2) && (PyArray_DIM(src,0) == 1)) 
-           || ((PyArray_NDIM(src) == 2) && (PyArray_DIM(src,1) == 1)))){
-    const T *data(reinterpret_cast<const T*>(PyArray_DATA(src)));
+      && (DIM == PyArray_SIZE(reinterpret_cast<PyArrayObject*>(src))
+      && ( (PyArray_NDIM(reinterpret_cast<PyArrayObject*>(src)) == 1) 
+           || ((PyArray_NDIM(reinterpret_cast<PyArrayObject*>(src)) == 2) && (PyArray_DIM(reinterpret_cast<PyArrayObject*>(src),0) == 1)) 
+           || ((PyArray_NDIM(reinterpret_cast<PyArrayObject*>(src)) == 2) && (PyArray_DIM(reinterpret_cast<PyArrayObject*>(src),1) == 1))))){
+    const T *data(reinterpret_cast<const T*>(PyArray_DATA(reinterpret_cast<PyArrayObject*>(src))));
     if (PyErr_Occurred())
       throw python_error("python_util::implementation_module::extract: ");
 
@@ -491,9 +491,11 @@ void extract(linalg::ntuple<T,DIM>& dest, const PyObject* src)
 } // namespace implementation_module
 } // namespace python_util
 
-
+// ------------------ Omit, for the moment: ------------------------
+#if 0
 // additional STL / gmm-interfaced insert and extract methods:
 #include "python_util_module_gmm_template.h"
-
+#endif
+// -----------------------------------------------------------------
 
 #endif // __python_util_module_template__h

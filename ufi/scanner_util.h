@@ -59,7 +59,7 @@ const std::string
 } // namespace scanner_util
 
 
-#if 1 // ---------------------- moved from numericalFunctor.h: 08.08.2009 --------------------------------
+#if 0 // ---------------------- moved from numericalFunctor.h: 08.08.2009 --------------------------------
 // Specialization of hash<T> functor required in order to use hash_map with std::string as a key:
 namespace _STL_EXT_NAMESPACE_
 {

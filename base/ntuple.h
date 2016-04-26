@@ -25,6 +25,7 @@
 
 namespace linalg{
 
+#if 0
 // most of the following are required in order to move "ntuple" to "namespace linalg":
 using number::epsilon;
 using number::zero;
@@ -34,6 +35,7 @@ using number::integer;
 using number::ratio;
 using number::conv;
 using number::numberTraits;
+#endif
     
 template <class T, size_t DIM=3>
 class ntuple{
@@ -371,6 +373,8 @@ inline std::ostream& operator<<(std::ostream& os, const ntuple_interval<T,DIM>& 
 
 //! @cond full_docs
 // Insert HASH functions for ntuple into the appropriate namespace
+
+#if 0 // ---------------------- Previous version: ------------------------
 namespace _STL_EXT_NAMESPACE_{
 
 // a unique hash for elements with values up to (1U<<(UBITS/DIM) - 1):
@@ -420,6 +424,22 @@ inline size_t hash< linalg::ntuple<long,3> >::operator()(const linalg::ntuple<lo
 } 
 
 } // namespace _STL_EXT_NAMESPACE_
+#else // ---------------------- new version(, using "linalg::hash_combine"): -------------------------
+namespace std{
+
+  template <class T, size_t DIM>
+  struct hash<  linalg::ntuple<T,DIM> >{
+    inline size_t operator()(const linalg::ntuple<T,DIM>& p)const
+    {
+      size_t seed = 0x123456789abcdef0;
+      for(size_t n = 0; n < DIM; ++n)
+        linalg::hash_combine(seed, p[n]);
+      return seed;
+    } 
+  };
+
+} // namespace std
+#endif
 ///< @endcond
 
 #if defined(GMM_DEF_H__)

@@ -322,10 +322,11 @@ inline bool readBinary(abstractCommHandle *fp, U& u )
 #else
 // ---------------- versions using TR1: ---------------------------------------------------
 template <class U>
-inline bool writeBinary_POD_dispatch_(abstractCommHandle *fp, const U& u, std::tr1::false_type)
+inline bool writeBinary_POD_dispatch_(abstractCommHandle *fp, const U& u, std::false_type)
 { return u.writeBinary(fp); }
+
 template <class U>
-inline bool writeBinary_POD_dispatch_(abstractCommHandle *fp, const U& u, std::tr1::true_type)
+inline bool writeBinary_POD_dispatch_(abstractCommHandle *fp, const U& u, std::true_type)
 { 
   bool status(true);
   status = (status && (1 == write(&u, sizeof(u), 1, fp) ) );	
@@ -334,14 +335,14 @@ inline bool writeBinary_POD_dispatch_(abstractCommHandle *fp, const U& u, std::t
 
 template<class U>
 inline bool writeBinary(abstractCommHandle *fp, const U& u)
-{ return writeBinary_POD_dispatch_(fp, u, typename std::tr1::is_pod<U>::type()); }
-
+{ return writeBinary_POD_dispatch_(fp, u, typename std::is_pod<U>::type()); }
 
 template <class U>
-inline bool readBinary_POD_dispatch_(abstractCommHandle *fp, U& u, std::tr1::false_type)
+inline bool readBinary_POD_dispatch_(abstractCommHandle *fp, U& u, std::false_type)
 { return u.readBinary(fp); }
+
 template <class U>
-inline bool readBinary_POD_dispatch_(abstractCommHandle *fp, U& u, std::tr1::true_type)
+inline bool readBinary_POD_dispatch_(abstractCommHandle *fp, U& u, std::true_type)
 { 
   bool status(true);
   status = (status && (1 == read(&u, sizeof(u), 1, fp) ) );	
@@ -350,19 +351,19 @@ inline bool readBinary_POD_dispatch_(abstractCommHandle *fp, U& u, std::tr1::tru
 
 template<class U>
 inline bool readBinary(abstractCommHandle *fp, U& u)
-{ return readBinary_POD_dispatch_(fp, u, typename std::tr1::is_pod<U>::type()); }
-
+{ return readBinary_POD_dispatch_(fp, u, typename std::is_pod<U>::type()); }
 
 template <class U>
-inline size_t binarySize_POD_dispatch_(U& u, std::tr1::false_type)
+inline size_t binarySize_POD_dispatch_(U& u, std::false_type)
 { return u.binarySize(); }
+
 template <class U>
-inline size_t binarySize_POD_dispatch_(U& u, std::tr1::true_type)
+inline size_t binarySize_POD_dispatch_(U& u, std::true_type)
 { return sizeof(u); }
 
 template <class U>
 inline size_t binarySize(const U& u)
-{ return binarySize_POD_dispatch_(u, typename std::tr1::is_pod<U>::type()); }
+{ return binarySize_POD_dispatch_(u, typename std::is_pod<U>::type()); }
 
 #endif
 

@@ -22,7 +22,46 @@
 /*                                                                         */
 /* *********************************************************************** */
 
+#include <assert.h>
+#include <stdexcept>
 
+#include <cstddef>
+using std::size_t;
+
+#include <type_traits>
+#include <algorithm>
+#include <limits>
+#include <complex>
+#include <iostream>
+#include <iomanip>
+using std::cout;
+using std::endl;
+using std::setw;
+
+#include <gmm/gmm.h>
+
+#include "cross_platform.h"
+#include "numberTraits.h"
+#if 1
+// most of the following are required in order to move "ntuple" to "namespace linalg":
+using number::epsilon;
+using number::zero;
+using number::one;
+using number::pi;
+using number::integer;
+using number::ratio;
+using number::mod;
+using number::conv;
+using number::numberTraits;
+#endif
+#include "factorial.h"
+
+
+#include "commUtil.h"
+using commUtil::abstractCommHandle;
+
+#include "hash_combine.h"
+#include "ntuple.h"
 #include "ND_matrix.h"
 
 namespace linalg{

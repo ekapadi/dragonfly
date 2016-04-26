@@ -244,7 +244,7 @@ template <class T>
 inline const T& simple_object_base::as(void)const
 {
   if (!is<T>())
-    throw std::runtime_error("simple_object_base::as: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name();
+    throw std::runtime_error(std::string("simple_object_base::as: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name());
   return as_<T>();  
 }
 
@@ -252,7 +252,7 @@ template <class T>
 inline T& simple_object_base::as(void)
 {
   if (!is<T>())
-    throw std::runtime_error("simple_object_base::as: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name();
+    throw std::runtime_error(std::string("simple_object_base::as: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name());
   return as_<T>(); 
 }
 
@@ -260,7 +260,7 @@ template <class T>
 inline const T* simple_object_base::ptr(void)const
 {
   if (!is<T>())
-    throw std::runtime_error("simple_object_base::ptr: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name();
+    throw std::runtime_error(std::string("simple_object_base::ptr: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name());
   return ptr_<T>();  
 }
 
@@ -268,7 +268,7 @@ template <class T>
 inline T* simple_object_base::ptr(void)
 {
   if (!is<T>())
-    throw std::runtime_error("simple_object_base::ptr: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name();
+    throw std::runtime_error(std::string("simple_object_base::ptr: object does not have requested type: ") + typeid(T).name() + std::string(", defined as: ") + type().name());
   if (size()>1 && !own_data())
     throw std::runtime_error("simple_object_base::ptr: non-const pointer access to RANK>0 number objects requires data ownership.");
   return ptr_<T>(); 
@@ -288,7 +288,7 @@ const U& simple_object_base::get_named_parm(const object_map& map, const std::st
     if (itP != map.end())
       p = &((*itP).second->as<U>());
     else  
-      throw std::runtime_error("get_named_parm<U>: no entry found for specified key: ") + key;
+      throw std::runtime_error(std::string("get_named_parm<U>: no entry found for specified key: ") + key);
   }
   else
     throw std::runtime_error("get_named_parm<U>: no reference available on target type \"U\"; \n"
@@ -325,7 +325,7 @@ void simple_object_base::get_named_parm(const object_map& map, const std::string
   if (itP != map.end())
     psrc = (*itP).second;
   else  
-    throw std::runtime_error("get_named_parm<U>: no entry found for specified key: ") + key;
+    throw std::runtime_error(std::string("get_named_parm<U>: no entry found for specified key: ") + key);
   
   extract(val, psrc); 
 }

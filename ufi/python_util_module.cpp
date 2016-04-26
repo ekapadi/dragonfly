@@ -21,8 +21,21 @@
 /*                                                                         */
 /* *********************************************************************** */
 
+#if 1 
+#include <Python.h>
+#if !defined(EMBEDDED_PYTHON)
+#define NO_IMPORT_ARRAY
+#else
+// turned _off_ for the moment ("multiarray.so" import problems):
+// #define PY_ARRAY_UNIQUE_SYMBOL PyArray_API
+#endif
 
-#include <portability.h>
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+// #include <numpy/ufuncobject.h>
+// #include <numpy/__multiarray_api.h>
+// #include <numpy/__ufunc_api.h>
+#endif 
 
 #include <pthread.h>
 
@@ -33,21 +46,6 @@
 #if defined(__USE_OMP) 
   #include <omp.h>
 #endif
-
-#if 1 
-#include <Python.h>
-#if !defined(EMBEDDED_PYTHON)
-#define NO_IMPORT_ARRAY
-#else
-// turned _off_ for the moment ("multiarray.so" import problems):
-// #define PY_ARRAY_UNIQUE_SYMBOL PyArray_API
-#endif
-
-#include <numpy/arrayobject.h>
-// #include <numpy/ufuncobject.h>
-// #include <numpy/__multiarray_api.h>
-// #include <numpy/__ufunc_api.h>
-#endif 
 
 #include <assert.h>
 
@@ -64,47 +62,38 @@ using std::endl;
 #include <list>
 
 #include <functional>
-#if defined(__PGI)
-  // PGI compiler uses STLport standard template library; extensions are in "std" namespace (see _STL_EXT_NAMESPACE_ macro in "portability.h"):
-  #include <algorithm>
-  #include <numeric>
-  // #include <slist>
-  #include <hash_map>
-#else
-  #include <algorithm>
-  #include <numeric>
-  #include <ext/algorithm>  
-  #include <ext/numeric>
-  // #include <ext/slist>
-  #include <ext/hash_map>
-#endif
+
+#include <algorithm>
+#include <numeric>
+#include <unordered_map>
 
 #include <typeinfo>
-#include <tr1/type_traits>
+#include <type_traits>
 
-#include <commUtil.h>
+#include "cross_platform.h"
+
+#include "commUtil.h"
 using commUtil::abstractCommHandle;
 using commUtil::readBinary;
 using commUtil::writeBinary;
 
-#include <numericalConstants.h>
+#include "numberTraits.h"
+using number::numberTraits;
+using number::epsilon;
+using number::zero;
+using number::one;
+using number::pi;
+using number::integer;
+using number::ratio;
+using number::mod;
+using number::conv;
 
-#if 0
-#include <gmm/gmm_kernel.h>
-#include <gmm/gmm_dense_lu.h>
-#include <vector_view.h>
-#include <matrix_view.h>
-#endif
-
-#include <ntuple.h>
+#include "hash_combine.h"
+#include "ntuple.h"
 using linalg::ntuple;
 
-#if 0
-using linalg::ntuple_interval;
-#endif
-
-#include <scanner_util.h>
-#include <python_util.h>
+#include "scanner_util.h"
+#include "python_util.h"
 
 
 #if 0
@@ -942,9 +931,10 @@ void extract_simple_object<std::complex<double>, double, long>
     Py_Finalize();
     throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 } 
@@ -1011,9 +1001,10 @@ void insert_simple_object<std::complex<double>, double, long>
     Py_Finalize();
     throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 }  
@@ -1077,9 +1068,10 @@ void read_pickle<std::complex<double>, double, long>
     Py_Finalize();
     throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 }
@@ -1146,9 +1138,10 @@ void write_pickle<std::complex<double>, double, long>
     Py_Finalize();
     throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 }
@@ -1236,9 +1229,10 @@ void extract_simple_object<mere::C, mere::R, mere::Z>
     Py_Finalize();
     throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 } 
@@ -1303,11 +1297,11 @@ void insert_simple_object<mere::C, mere::R, mere::Z>
     #if 0
     PyErr_Print();
     Py_Finalize();
-    throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 }  
@@ -1371,9 +1365,10 @@ void read_pickle<mere::C, mere::R, mere::Z>
     Py_Finalize();
     throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 }
@@ -1440,9 +1435,10 @@ void write_pickle<mere::C, mere::R, mere::Z>
     Py_Finalize();
     throw x;
     #else
+    std::string msg(x.what());
     msg += ":\n" + python_error_string();
     Py_Finalize();
-    throw x;
+    throw std::runtime_error(msg);
     #endif
   }   
 }
@@ -1695,7 +1691,7 @@ bool type_check<std::complex<double> >(const PyObject* src_)
 template < >
 bool type_check<std::complex<double>*>(const PyObject* src_)
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_CDOUBLE:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -1710,7 +1706,7 @@ bool type_check<std::complex<double>*>(const PyObject* src_)
 template < >
 bool type_check<const std::complex<double>*>(const PyObject* src_)
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_CDOUBLE:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -1732,7 +1728,7 @@ bool type_check<double>(const PyObject* src_)
 template < >
 bool type_check<double*>(const PyObject* src_) 
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_DOUBLE:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -1747,7 +1743,7 @@ bool type_check<double*>(const PyObject* src_)
 template < >
 bool type_check<const double*>(const PyObject* src_) 
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_DOUBLE:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -1769,7 +1765,7 @@ bool type_check<long>(const PyObject* src_)
 template < >
 bool type_check<long*>(const PyObject* src_) 
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_LONG:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -1784,7 +1780,7 @@ bool type_check<long*>(const PyObject* src_)
 template < >
 bool type_check<const long*>(const PyObject* src_) 
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_LONG:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -1799,7 +1795,7 @@ bool type_check<const long*>(const PyObject* src_)
 template < >
 bool type_check<size_t*>(const PyObject* src_) 
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_LONG:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -1814,7 +1810,7 @@ bool type_check<size_t*>(const PyObject* src_)
 template < >
 bool type_check<const size_t*>(const PyObject* src_) 
 {
-  PyObject *src = const_cast<PyObject*>(src_);
+  PyArrayObject *src = reinterpret_cast<PyArrayObject*>(const_cast<PyObject*>(src_));
   // supported conversion is from numpy array of type NPY_LONG:
   //   minimum requirement for meaningful conversion is that array is contiguous, aligned, in machine-byte order;
   //   it _also_ may or may-not be writeable (RO (read-only) is the lesser requirement).
@@ -2045,13 +2041,14 @@ simple_object_base* extract<std::complex<double>, double, long>(const PyObject* 
       else{
         #if 1
         // *** DEBUG ***
-        std::cerr<<"array-check:   "<<PyArray_Check(src)<<"\n"
-                 <<"  ISCARRAY_RO: "<<PyArray_ISCARRAY_RO(src)<<"\n"
-                 <<"  ISFARRAY_RO: "<<PyArray_ISFARRAY_RO(src)<<"\n"
-                 <<"  ISCARRAY:    "<<PyArray_ISCARRAY(src)<<"\n"
-                 <<"  ISFARRAY:    "<<PyArray_ISFARRAY(src)<<"\n"
+        PyArrayObject *src_ = reinterpret_cast<PyArrayObject*>(src);
+        std::cerr<<"array-check:   "<<PyArray_Check(src_)<<"\n"
+                 <<"  ISCARRAY_RO: "<<PyArray_ISCARRAY_RO(src_)<<"\n"
+                 <<"  ISFARRAY_RO: "<<PyArray_ISFARRAY_RO(src_)<<"\n"
+                 <<"  ISCARRAY:    "<<PyArray_ISCARRAY(src_)<<"\n"
+                 <<"  ISFARRAY:    "<<PyArray_ISFARRAY(src_)<<"\n"
                  <<"  datatype_enum:       "<<datatype_enum<double>()<<"\n"
-                 <<"  array-datatype-enum: "<<PyArray_TYPE(src)<<"\n"<<std::endl;
+                 <<"  array-datatype-enum: "<<PyArray_TYPE(src_)<<"\n"<<std::endl;
         #endif
         throw std::runtime_error("extract<simple_object_base*>: either python array cannot be referenced as in-memory mapping,\n"
                                  "  or its data-type is not supported");  

@@ -126,18 +126,18 @@ namespace gmm{
   };
   
   template <>
-  struct linalg_type_mapper<std::tr1::false_type>{
+  struct linalg_type_mapper<std::false_type>{
     typedef linalg_false type;
   };  
   
   template <>
-  struct linalg_type_mapper<std::tr1::true_type>{
+  struct linalg_type_mapper<std::true_type>{
     typedef linalg_true type;
   };
     
   template <class T>
   struct is_POD{
-    typedef typename linalg_type_mapper<typename std::tr1::is_pod<T>::type>::type POD_type;
+    typedef typename linalg_type_mapper<typename std::is_pod<T>::type>::type POD_type;
   };   
 
   #endif
@@ -631,7 +631,7 @@ vect_begin(const_cast<V&>(v)),
   template<> struct index_is_sorted<basic_index_ref>
   {  typedef linalg_false bool_type; };
 
-#if 1
+#if 0
 	// _try_ moving from gmm/gmm_interface.h:
 template <typename IT, typename ITINDEX, typename V>	
 	tab_ref_index_ref_with_origin<IT, ITINDEX, V>::	
@@ -869,7 +869,11 @@ template <typename MAT1, typename VEC2> inline
     
 } // namespace gmm_ext
 
+// -------------------- omit, for the moment: ------------------------
+#if 0
 #include "gmm_ext_householder.h"
 #include "gmm_ext_template.h"
+#endif
+// -------------------------------------------------------------------
 
 #endif // __gmm_ext__h 

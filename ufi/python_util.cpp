@@ -28,7 +28,13 @@
 // ================================================================
 #endif
 
-#include <portability.h>
+#include <Python.h>
+#define NO_IMPORT_ARRAY
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+// #include <numpy/ufuncobject.h>
+// #include <numpy/__multiarray_api.h>
+// #include <numpy/__ufunc_api.h>
 
 #include <pthread.h>
 
@@ -40,14 +46,10 @@
   #include <omp.h>
 #endif
 
-#include <Python.h>
-#define NO_IMPORT_ARRAY
-#include <numpy/arrayobject.h>
-// #include <numpy/ufuncobject.h>
-// #include <numpy/__multiarray_api.h>
-// #include <numpy/__ufunc_api.h>
-
 #include <assert.h>
+
+#include <typeinfo>
+#include <type_traits>
 
 #include <stdexcept>
 #include <iostream>
@@ -59,30 +61,41 @@
 #include <list>
 
 #include <functional>
-#if defined(__PGI)
-  // PGI compiler uses STLport standard template library; extensions are in "std" namespace (see _STL_EXT_NAMESPACE_ macro in "portability.h"):
-  #include <algorithm>
-  #include <numeric>
-  // #include <slist>
-  #include <hash_map>
-#else
-  #include <algorithm>
-  #include <numeric>
-  #include <ext/algorithm>  
-  #include <ext/numeric>
-  // #include <ext/slist>
-  #include <ext/hash_map>
+#include <algorithm>
+#include <numeric>
+#include <unordered_map>
+
+#if 0 // Moved below
+// --------- for gmm::binarySize: -------------
+#include <gmm/gmm_kernel.h>
+#include <gmm/gmm_dense_lu.h>
+
+#include <ghostIterator.h>
+#include <gmm_ext.h>
+// --------------------------------------------
 #endif
 
-#include <typeinfo>
-#include <tr1/type_traits>
-
-#include <commUtil.h>
+#include "cross_platform.h"
+#include "commUtil.h"
 using commUtil::abstractCommHandle;
 using commUtil::readBinary;
 using commUtil::writeBinary;
 
-#include <numericalConstants.h>
+#include "numberTraits.h"
+using number::numberTraits;
+using number::epsilon;
+using number::zero;
+using number::one;
+using number::pi;
+using number::integer;
+using number::ratio;
+using number::mod;
+using number::conv;
+
+#include "hash_combine.h"
+#include "ntuple.h"
+using linalg::ntuple;
+#include "scanner_util.h"
 
 // --------- for gmm::binarySize: -------------
 #include <gmm/gmm_kernel.h>
@@ -92,13 +105,6 @@ using commUtil::writeBinary;
 #include <gmm_ext.h>
 // --------------------------------------------
 
-
-#include <ntuple.h>
-using linalg::ntuple;
-
-
-#include <scanner_util.h>
-
 #if 0
 // ================================================================
 #undef EXCLUDE_TEMPLATE_BODIES
@@ -106,7 +112,7 @@ using linalg::ntuple;
 // ================================================================
 #endif
 
-#include <python_util.h>
+#include "python_util.h"
 
 #if 0
 // ================================================================
@@ -184,7 +190,7 @@ generic_object< ... above types ... >
 // -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-const char* python_error::what(void)const
+const char* python_error::what(void)const noexcept (true)
 { return what_.c_str(); }
 
 python_error::~python_error(void)
@@ -259,7 +265,7 @@ simple_object_base::RECOGNIZED_TYPE simple_object_base::enum_from_type_info(cons
   if (0 == strcmp(type_.name(),  typeid(object_map).name()))
     val = OBJECT_MAP_TYPE;  
   else
-    throw std::runtime_error("simple_object_base::enum_from_type_info: unrecognized type_info: ") + type_.name();
+    throw std::runtime_error(std::string("simple_object_base::enum_from_type_info: unrecognized type_info: ") + type_.name());
     
   return val;
 }
@@ -481,7 +487,7 @@ const std::type_info& simple_object_base::named_parm_type(const object_map& map,
   if (itP != map.end())
     ptype = &((*itP).second->type());
   else
-    throw std::runtime_error("named_parm_type: no entry found for specified key: ") + key;   
+    throw std::runtime_error(std::string("named_parm_type: no entry found for specified key: ") + key);   
   return *ptype;
 }
 
@@ -494,7 +500,7 @@ const simple_object_base* simple_object_base::get_named_object(const object_map&
   if (itP != map.end())
     pobject = (*itP).second;
   else  
-    throw std::runtime_error("get_named_object: no entry found for specified key: ") + key;
+    throw std::runtime_error(std::string("get_named_object: no entry found for specified key: ") + key);
   
   return pobject; 
 }
@@ -613,33 +619,33 @@ size_t simple_object_base::binarySizeVirtual(const simple_object_base* pobject)
 bool simple_object_base::readBinary(commUtil::abstractCommHandle *fp)
 { 
   #if 0
-  throw std::runtime_error("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
-    + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"); 
+  throw std::runtime_error(std::string("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
+    + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer")); 
   #else
-  throw std::runtime_error("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
-    + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer");   
+  throw std::runtime_error(std::string("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
+    + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"));   
   #endif
 }
 
 bool simple_object_base::writeBinary(commUtil::abstractCommHandle *fp)const      
 { 
   #if 0
-  throw std::runtime_error("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
-    + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"); 
+  throw std::runtime_error(std::string("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
+    + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer")); 
   #else
-  throw std::runtime_error("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
-    + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer");   
+  throw std::runtime_error(std::string("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
+    + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"));   
   #endif
 }
 
 size_t simple_object_base::binarySize(void)const
 { 
   #if 0
-  throw std::runtime_error("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
-    + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"); 
+  throw std::runtime_error(std::string("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
+    + (pv_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer")); 
   #else
-  throw std::runtime_error("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
-    + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer");   
+  throw std::runtime_error(std::string("simple_object_base::binarySize: _pure_(?!) simple_object_base with ") 
+    + (pg_ == NULL?"NULL derived-class pointer":"non-NULL derived-class pointer"));   
   #endif
 }
 

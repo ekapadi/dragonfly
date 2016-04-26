@@ -66,7 +66,7 @@ class python_error: public std::exception{
   private:
     std::string what_;
   public:
-    virtual const char* what(void)const;
+    virtual const char* what(void)const noexcept (true);
     
     python_error& operator=(const python_error& other);    
     
@@ -111,7 +111,7 @@ class simple_object_base{
     //  (after initial implementation it turned out that "insert" was never necessary)
     typedef std::vector<simple_object_base*> object_list;
     
-    typedef _STL_EXT_NAMESPACE_::hash_map<std::string, simple_object_base*> object_map;
+    typedef std::unordered_map<std::string, simple_object_base*> object_map;
     
     /**
      * @brief Extract function typedef: convert a python object to a simple_object_base*: returns new pointer.
@@ -1215,9 +1215,9 @@ struct simple_object_traits<std::list<T> >{
   static inline bool is_single(void) { return false; }
 };
 
-// _STL_EXT_NAMESPACE_::hash_map with std::string as key (should this be generalized to allow other types as keys?):
+// std::unordered_map with std::string as key (should this be generalized to allow other types as keys?):
 template <class T>
-struct simple_object_traits<_STL_EXT_NAMESPACE_::hash_map<std::string, T> >{
+struct simple_object_traits<std::unordered_map<std::string, T> >{
   typedef map_entity entity_type;
   typedef abstract_null_entity number_type;
   static inline bool is_single(void) { return false; }

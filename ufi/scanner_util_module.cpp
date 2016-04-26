@@ -23,7 +23,7 @@
 /* *********************************************************************** */
 
 
-#include <portability.h>
+#include "cross_platform.h"
 
 #if defined(__USE_PTHREAD)
 #include <pthread.h>
