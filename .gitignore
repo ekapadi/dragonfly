@@ -1,3 +1,4 @@
+./third_party/
 BUILD/
 __pycache__/
 *.pyc
