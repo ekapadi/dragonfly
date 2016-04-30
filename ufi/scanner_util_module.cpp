@@ -46,19 +46,10 @@
 // #include <functional>
 // #include <algorithm>
 // #include <numeric>
-#if defined(__PGI)
-  // TACC port: see discussion in "portability.h" at definition of _STL_EXT_NAMESPACE_ macro:
-  // #include <slist>
-  #include <hash_map>
-#else
-  // #include <ext/algorithm>
-  // #include <ext/numeric>
-  // #include <ext/slist>
-  #include <ext/hash_map>
-#endif
+#include <unordered_map>
 
-// use the _outer_ header, in order to obtain the definition of the hash function for std::string:
-#include <scanner_util.h> 
+#include "cross_platform.h"
+#include "scanner_util.h" 
 
 namespace scanner_util{
 namespace implementation_module{

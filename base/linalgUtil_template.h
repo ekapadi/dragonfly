@@ -40,7 +40,7 @@ size_t min_index(IT itStart, IT itEnd)
 template <class IT>
 size_t max_index(IT itStart, IT itEnd)
 {
-  typedef typename std::iterator_traits<IT>::size_type size_type;
+//  typedef typename std::iterator_traits<IT>::size_type size_type;
   
   IT itU = std::max_element(itStart, itEnd);
   if (itU == itEnd)
@@ -976,10 +976,10 @@ void saveVectorData(const std::vector<T>& V, const std::string& sFileName)
 {                    
     abstractCommHandle *fp = open(sFileName.c_str(),"wb");
     if (NULL==fp)
-      throw std::runtime_error("Error: unable to open file ") + sFileName + std::string(" for write");
+      throw std::runtime_error(std::string("Error: unable to open file ") + sFileName + " for write");
 
     if (!writeBinary( fp, V ))
-      throw std::runtime_error("I/O error writing to file ") + sFileName;
+      throw std::runtime_error(std::string("I/O error writing to file ") + sFileName);
 		    
     close(fp);    
 } 
@@ -989,10 +989,10 @@ void loadVectorData(std::vector<T>& V, const std::string& sFileName)
 {                    
     abstractCommHandle *fp = open(sFileName.c_str(),"rb");
     if (NULL==fp)
-      throw std::runtime_error("Error: unable to open file ") + sFileName + std::string(" for read");
+      throw std::runtime_error(std::string("Error: unable to open file ") + sFileName + " for read");
 
     if (!readBinary( fp, V ))
-      throw std::runtime_error("I/O error reading from file ") + sFileName;
+      throw std::runtime_error(std::string("I/O error reading from file ") + sFileName);
 		    
     close(fp);    
 }
@@ -1956,8 +1956,8 @@ R randomCoord(CSYS_KIND eCSYS, size_t dimOffset)
 			 break;
 
 			 default:
-				 throw std::runtime_error("linalgUtil::randomCoord: spherical symmetry with co-ordinate offset out of range [0,2]\n",
-						               " (hyperspheres _not_ implemented because DIM !=> <max number of co-ords>)");
+				 throw std::runtime_error(std::string("linalgUtil::randomCoord: spherical symmetry with co-ordinate offset out of range [0,2]\n")
+						               + " (hyperspheres _not_ implemented because DIM !=> <max number of co-ords>)");
 			 break; 
 		 }			 
 	 break;

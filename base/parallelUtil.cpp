@@ -21,9 +21,6 @@
 /*                                                                         */
 /* *********************************************************************** */
 
-
-#include <portability.h>
-
 #if defined(__ICC)
   #pragma warning(disable:981) // operands are evaluated in unspecified order
 	#if defined(NDEBUG)
@@ -41,7 +38,10 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <asm/unistd.h> // for "by-number" syscalls to obtain system: "gettid"
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+
 #include <stdexcept>
 #include <typeinfo>
 #include <cstdio>
@@ -49,6 +49,8 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+using std::cout;
+using std::endl;
 
 #include <cmath>
 #include <complex>
@@ -57,8 +59,9 @@
 #include <algorithm>
 
 #include <typeinfo>
-#include <tr1/type_traits>
+#include <type_traits>
 
+#include "cross_platform.h"
 #include "commUtil.h"
 using commUtil::abstractCommHandle;
 using commUtil::fileHandle;
@@ -79,10 +82,8 @@ using commUtil::writeBinary;
 
 #include "parallelUtil.h"
 
-#include "statusUtil.h"
+// #include "statusUtil.h"
 
-using std::cout;
-using std::endl;
 
 namespace parallelUtil{
 
@@ -373,7 +374,11 @@ size_t OMP_NUM_THREADS(void)
 // (this could be an inline, but the requirement for "asm/unistd.h" would seem to cause undesirable global namespace pollution.)
 bool is_process_root(void)
 {
+#if 0
   return (syscall(__NR_getpid) == syscall(__NR_gettid));
+#else
+  return  (syscall(SYS_getpid) == syscall(SYS_gettid));
+#endif
 }
 
 

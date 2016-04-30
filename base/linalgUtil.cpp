@@ -22,8 +22,6 @@
 /* *********************************************************************** */
 
 
-#include <portability.h>
-
 #if defined(__USE_PTHREAD)
   #include <pthread.h>
 #endif
@@ -49,41 +47,45 @@
 #include <cstdlib>
 #include <cstdio>
 #include <ctime>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
 #include <stdexcept>
 #include <locale>
 #include <cmath>
 #include <string>
 #include <complex>
+
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+using std::cout;
+using std::endl;
+using std::setw;
+using std::setprecision;
+
 #include <vector>
 #include <list>
 
 #include <functional>
 #include <algorithm>
 #include <numeric>
-#if defined(__PGI)
-  // TACC port: see discussion in "portability.h" at definition of _STL_EXT_NAMESPACE_ macro:
-  // #include <slist>
-  #include <hash_map>
-#else
-  #include <ext/algorithm>
-  #include <ext/numeric>
-  // #include <ext/slist>
-  #include <ext/hash_map>
-#endif
+#include <unordered_map>
 
 #include <sstream>
 #include <typeinfo>
-#include <tr1/type_traits>
+#include <type_traits>
 
+using std::distance;
+using std::abs;
+using std::conj;
+
+#include "cross_platform.h"
 // #define __verbose__ 0
 
 #include <commUtil.h>
 using commUtil::abstractCommHandle;
 using commUtil::fileHandle;
+#if defined(__USE_MPI)
 using commUtil::processCommHandle;
+#endif
 using commUtil::open;
 using commUtil::read;
 using commUtil::write;
@@ -91,21 +93,30 @@ using commUtil::close;
 using commUtil::readBinary;
 using commUtil::writeBinary;
 
-#include <parallelUtil.h>
-#include <statusUtil.h>
+#include "parallelUtil.h"
+// #include "statusUtil.h"
 
 #if 0
   #include <scanner_util.h>
   #include <python_util.h>
 #endif
 
-#include <md5sum.h>
+// #include "md5sum.h"
 
 
-#include <tmp_src/ProcessFileParms.h>
-#include <tmp_src/Status.h>
+// #include <tmp_src/ProcessFileParms.h>
+// #include <tmp_src/Status.h>
 
-#include <numericalConstants.h>
+#include "numberTraits.h"
+using number::numberTraits;
+using number::zero;
+using number::one;
+using number::epsilon;
+using number::pi;
+using number::integer;
+using number::ratio;
+// using number::conj;
+
 #if 0
   #include <numericalFunctor.h>
   #include <md5sum_template_forward.h>
@@ -114,13 +125,14 @@ using commUtil::writeBinary;
 #include <gmm/gmm_kernel.h>
 #include <gmm/gmm_dense_lu.h>
 
-#include <ghostIterator.h>
-#include <gmm_ext.h>
+#include "ghostIterator.h"
+#include "gmm_ext.h"
 
-#include <ntuple.h>
+#include "hash_combine.h"
+#include "ntuple.h"
 using linalg::ntuple;
 
-#include <linalgUtil.h>
+#include "linalgUtil.h"
 
 #if 0 // -- delta --
   #include <numericalFunctor.h>
@@ -143,23 +155,10 @@ using linalg::ntuple;
 #include <factorialFunctor.h>
 #endif
 
-using number::zero;
-using number::one;
-using number::conj;
-
-using std::distance;
-using std::abs;
-using std::conj;
-
 #if 0 // -- delta --
 #include <regionSelector.h>
 #endif
-#include <ghostIterator.h>
-
-using std::cout;
-using std::endl;
-using std::setw;
-using std::setprecision;
+#include "ghostIterator.h"
 
 namespace linalg{
 

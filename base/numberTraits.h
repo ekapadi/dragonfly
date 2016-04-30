@@ -124,6 +124,25 @@ template <class T>
 inline T pi(void)
 { throw std::runtime_error("number::pi<T>: not implemented"); }
 
+// Default versions of the following template functions
+//   assume *real* number class "T".
+
+template <class T>
+inline T one_i(void)
+{ throw std::runtime_error("number::one_i<T>: not implemented"); }
+
+template <class T>
+inline typename numberTraits<T>::magnitudeType real(const T& t)
+{ return t; }
+
+template <class T>
+inline typename numberTraits<T>::magnitudeType imag(const T& t)
+{ return zero<T>(); }
+
+template <class T>
+inline T conj(const T& t)
+{ return real<T>(t); }
+
 template <class T0, class T1>
 inline T0 conv(const T1& t1)
 { return static_cast<T0>(t1); }
@@ -137,8 +156,25 @@ inline typename numberTraits<T>::magnitudeType sqrNorm(const T& t)
 { return sqr(t); }
 
 template <class T>
+inline typename numberTraits<T>::magnitudeType fabs(const T& t)
+{ throw std::runtime_error("number::fabs: *generic* absolute value not implemented"); }
+
+template <class T>
 inline T mod(const T& x, const T& y)
 { throw std::runtime_error("number::mod: *generic* modulus not implemented"); }
+
+template <class T>
+inline const T& min(const T& t0, const T& t1)
+{ return std::min(t0, t1); }
+
+template <class T>
+inline const T& max(const T& t0, const T& t1)
+{ return std::max(t0, t1); }
+
+// Instance from *uniform* distribution: t \in [0, 1].
+template <class T>
+inline T random(void)
+{ throw std::runtime_error("number::random: *generic* \"random\" not implemented"); }
 
 template <class T>
 inline T pow_n(const T& x, long n)
@@ -170,6 +206,22 @@ inline mere::C pow_n(const mere::C& c, long n)
 { return mere::pow_n(c, n); }
 
 template <>
+inline mere::C& one_i<mere::C>(void);
+
+template <>
+inline mere::R real<mere::C>(const mere::C& c);
+
+template <>
+inline mere::R imag<mere::C>(const mere::C& c);
+
+template <>
+inline mere::C conj<mere::C>(const mere::C& c);
+
+template <>
+inline mere::R fabs(const mere::C& c);
+{ return mere::fabs(c); }
+
+template <>
 mere::R integer<R,long>(const long& n);
 
 template <>
@@ -187,6 +239,10 @@ inline mere::R mod(const mere::R& x, const mere::R& y);
 template <>
 inline mere::R pow_n(const mere::R& r, long n)
 { return mere::pow_n(r, n); }
+
+template <>
+inline mere::R fabs(const mere::R& r);
+{ return mere::fabs(r); }
 
 #else
 template <>
@@ -206,6 +262,26 @@ inline double sqrNorm(const std::complex<double>& c)
 { return sqr(std::real(c)) + sqr(std::imag(c)); }
 
 template <>
+inline double fabs(const std::complex<double>& c)
+{ return std::real(std::abs(c)); }
+
+template <>
+inline std::complex<double> one_i<std::complex<double> >(void)
+{ return std::complex<double>(0.0, 1.0); }
+
+template <>
+inline double real(const std::complex<double>& c)
+{ return std::real(c); }
+
+template <>
+inline double imag(const std::complex<double>& c)
+{ return std::imag(c); }
+
+template <>
+inline std::complex<double> conj<std::complex<double> >(const std::complex<double>& c)
+{ return std::conj(c); }
+
+template <>
 inline double mod(const double& x, const double& y)
 { return std::fmod(x, y); }
 
@@ -216,6 +292,10 @@ inline double pow_n(const double& r, long n)
 template <>
 inline double pi(void)
 { return 3.14159265358979323846; }
+
+template <>
+inline double fabs(const double& r)
+{ return std::fabs(r); }
 
 #endif
 

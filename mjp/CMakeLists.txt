@@ -46,10 +46,18 @@ set(MJP_DIR ${DRAGONFLY_ROOT}/mjp)
 set(UFI_DIR ${DRAGONFLY_ROOT}/ufi)
 set(BASE_DIR ${DRAGONFLY_ROOT}/base)
 
+# Access *custom* cmake find macros.
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
 FIND_PACKAGE(PythonInterp 2.7)
 FIND_PACKAGE(PythonLibs 2.7)
 
 include_directories(${PYTHON_INCLUDE_DIR})
+
+FIND_PACKAGE(NumPy)
+INCLUDE_DIRECTORIES(${PYTHON_NUMPY_INCLUDE_DIR})
+add_definitions(-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION)
 
 include_directories(BEFORE 
   ${CMAKE_SOURCE_DIR}
@@ -65,14 +73,14 @@ link_directories(BEFORE
 )
 
 set (SOURCES ${SOURCES} 
-	${MJP_DIR}/ND_matrix.h
-	${MJP_DIR}/ND_matrix_inline.h
-	${MJP_DIR}/ND_matrix_template.h
-	${MJP_DIR}/ND_matrix.cpp
-	${MJP_DIR}/particle_packing.h
-	${MJP_DIR}/particle_packing_inline.h
-	${MJP_DIR}/particle_packing_template.h
-	${MJP_DIR}/particle_packing.cpp
+  ${MJP_DIR}/ND_matrix.h
+  ${MJP_DIR}/ND_matrix_inline.h
+  ${MJP_DIR}/ND_matrix_template.h
+  ${MJP_DIR}/ND_matrix.cpp
+  ${MJP_DIR}/particle_packing.h
+  ${MJP_DIR}/particle_packing_inline.h
+  ${MJP_DIR}/particle_packing_template.h
+  ${MJP_DIR}/particle_packing.cpp
 
   ${UFI_DIR}/python_util.h
   ${UFI_DIR}/python_util_inline.h
