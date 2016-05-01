@@ -64,8 +64,7 @@ include_directories(BEFORE
   ${DRAGONFLY_ROOT}/base
   ${DRAGONFLY_ROOT}/ufi
   ${DRAGONFLY_ROOT}/mjp
-  ${DRAGONFLY_ROOT}/third_party/gmm-5.0/include
-#   /opt/googletest/include
+  ${DRAGONFLY_ROOT}/third_party/include
 )
 
 link_directories(BEFORE
@@ -94,11 +93,17 @@ set (SOURCES ${SOURCES}
   ${UFI_DIR}/scanner_util_module.cpp
   ${UFI_DIR}/scanner_util_module.h
 
-  ${BASE_DIR}/commUtil.h
-  ${BASE_DIR}/commUtil_inline.h
-  ${BASE_DIR}/commUtil_template_forward.h
-  ${BASE_DIR}/commUtil_template.h
-  ${BASE_DIR}/commUtil.cpp
+# *Temporarily* remove "commUtil" dependency.
+# (Will be upgraded to use "std::iostream" instead of current handle-based system.)
+#  ${BASE_DIR}/commUtil.h
+#  ${BASE_DIR}/commUtil_inline.h
+#  ${BASE_DIR}/commUtil_template_forward.h
+#  ${BASE_DIR}/commUtil_template.h
+#  ${BASE_DIR}/commUtil.cpp
+  ${BASE_DIR}/commUtil_stub.h
+  ${BASE_DIR}/commUtil_stub_template.h
+  ${BASE_DIR}/commUtil_stub.cpp
+
   ${BASE_DIR}/ghostIterator.h
   ${BASE_DIR}/ghostIterator_template.h
   ${BASE_DIR}/gmm_ext.h

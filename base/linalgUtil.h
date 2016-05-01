@@ -253,10 +253,10 @@ namespace commUtil{
 // binary read and write for std::vector:
 
 template<class T>
-bool writeBinary(abstractCommHandle *fp, const std::vector<T>& V);
+bool writeBinary(std::ostream &out, const std::vector<T>& V);
 
 template<class T>
-bool readBinary(abstractCommHandle *fp, std::vector<T>& V );
+bool readBinary(std::istream &in, std::vector<T>& V );
 
 template <class T>
 size_t binarySize(const std::vector<T>& v);
@@ -264,10 +264,10 @@ size_t binarySize(const std::vector<T>& v);
 
 // binary read and write for std::list:
 template<class T>
-bool writeBinary(abstractCommHandle *fp, const std::list<T>& U);
+bool writeBinary(std::ostream &out, const std::list<T>& U);
 
 template<class T>
-bool readBinary(abstractCommHandle *fp, std::list<T>& U);
+bool readBinary(std::istream &in, std::list<T>& U);
 
 template <class T>
 size_t binarySize(const std::list<T>& u);
@@ -276,31 +276,31 @@ size_t binarySize(const std::list<T>& u);
 #if defined(__specialize_POD_binary__)
 // specializations for contiguous POD types:
 template<>
-bool writeBinary<double>(abstractCommHandle *fp, const std::vector<double>& V);
+bool writeBinary<double>(std::ostream &out, const std::vector<double>& V);
 
 template<>
-bool readBinary<double>(abstractCommHandle *fp, std::vector<double>& V );
-
-
-template<>
-bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const std::vector<std::complex<double> >& V);
-
-template<>
-bool readBinary<std::complex<double> >(abstractCommHandle *fp, std::vector<std::complex<double> >& V );
+bool readBinary<double>(std::istream &in, std::vector<double>& V );
 
 
 template<>
-bool writeBinary<long>(abstractCommHandle *fp, const std::vector<long>& V);
+bool writeBinary<std::complex<double> >(std::ostream &out, const std::vector<std::complex<double> >& V);
 
 template<>
-bool readBinary<long>(abstractCommHandle *fp, std::vector<long>& V );
+bool readBinary<std::complex<double> >(std::istream &in, std::vector<std::complex<double> >& V );
 
 
 template<>
-bool writeBinary<size_t>(abstractCommHandle *fp, const std::vector<size_t>& V);
+bool writeBinary<long>(std::ostream &out, const std::vector<long>& V);
 
 template<>
-bool readBinary<size_t>(abstractCommHandle *fp, std::vector<size_t>& V );
+bool readBinary<long>(std::istream &in, std::vector<long>& V );
+
+
+template<>
+bool writeBinary<size_t>(std::ostream &out, const std::vector<size_t>& V);
+
+template<>
+bool readBinary<size_t>(std::istream &in, std::vector<size_t>& V );
 #endif
 } // namespace commUtil
 
@@ -410,20 +410,20 @@ namespace commUtil{
 // note: these immediately hand-off to the "namespace gmm" methods:
 
 template <class T>
-inline bool writeBinary(abstractCommHandle *fp, const gmm::dense_matrix<T>& M);
+inline bool writeBinary(std::ostream &out, const gmm::dense_matrix<T>& M);
 
 template <class T>
-inline bool readBinary(abstractCommHandle *fp, gmm::dense_matrix<T>& M);
+inline bool readBinary(std::istream &in, gmm::dense_matrix<T>& M);
 
 template <class T>
 inline size_t binarySize(const gmm::dense_matrix<T>& M);
 
 
 template <class T>
-inline bool writeBinary(abstractCommHandle *fp, const gmm::row_matrix< gmm::slvector<T> >& M);
+inline bool writeBinary(std::ostream &out, const gmm::row_matrix< gmm::slvector<T> >& M);
 
 template <class T>
-inline bool readBinary(abstractCommHandle *fp, gmm::row_matrix< gmm::slvector<T> >& M);
+inline bool readBinary(std::istream &in, gmm::row_matrix< gmm::slvector<T> >& M);
 
 template <class T>
 inline size_t binarySize(const gmm::row_matrix< gmm::slvector<T> >& M);
@@ -433,60 +433,60 @@ inline size_t binarySize(const gmm::row_matrix< gmm::slvector<T> >& M);
 #if defined(__specialize_POD_binary__)
 // specializations for contiguous POD types:
 template <>
-inline bool writeBinary<double>(abstractCommHandle *fp, const gmm::dense_matrix<double>& M);
+inline bool writeBinary<double>(std::ostream &out, const gmm::dense_matrix<double>& M);
 
 template <>
-inline bool readBinary<double>(abstractCommHandle *fp, gmm::dense_matrix<double>& M);
+inline bool readBinary<double>(std::istream &in, gmm::dense_matrix<double>& M);
 
 
 template <>
-inline bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const gmm::dense_matrix<std::complex<double> >& M);
+inline bool writeBinary<std::complex<double> >(std::ostream &out, const gmm::dense_matrix<std::complex<double> >& M);
 
 template <>
-inline bool readBinary<std::complex<double> >(abstractCommHandle *fp, gmm::dense_matrix<std::complex<double> >& M);
+inline bool readBinary<std::complex<double> >(std::istream &in, gmm::dense_matrix<std::complex<double> >& M);
 
 
 // The following are especially for factoredPropagator. It is very difficult to specialize 
 //   these in a generic sense because of possibility of sub-vectors and sub-matrices with storage_type == abstract_skyline.
 template <class T>
-inline bool writeBinary(abstractCommHandle *fp, const gmm::slvector<T>& V);
+inline bool writeBinary(std::ostream &out, const gmm::slvector<T>& V);
 
 template <class T>
-inline bool readBinary(abstractCommHandle *fp, gmm::slvector<T>& V);
+inline bool readBinary(std::istream &in, gmm::slvector<T>& V);
 
 template <class T>
 inline size_t binarySize(const gmm::slvector<T>& V);
 
 
 template <>
-inline bool writeBinary<double>(abstractCommHandle *fp, const gmm::slvector<double>& V);
+inline bool writeBinary<double>(std::ostream &out, const gmm::slvector<double>& V);
 
 template <>
-inline bool readBinary<double>(abstractCommHandle *fp, gmm::slvector<double>& V);
-
-
-template <>
-inline bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const gmm::slvector<std::complex<double> >& V);
-
-template <>
-inline bool readBinary<std::complex<double> >(abstractCommHandle *fp, gmm::slvector<std::complex<double> >& V);
+inline bool readBinary<double>(std::istream &in, gmm::slvector<double>& V);
 
 
 template <>
-inline bool writeBinary<double>(abstractCommHandle *fp, const gmm::row_matrix< gmm::slvector<double> >& M);
+inline bool writeBinary<std::complex<double> >(std::ostream &out, const gmm::slvector<std::complex<double> >& V);
 
 template <>
-inline bool readBinary<double>(abstractCommHandle *fp, gmm::row_matrix< gmm::slvector<double> >& M);
+inline bool readBinary<std::complex<double> >(std::istream &in, gmm::slvector<std::complex<double> >& V);
+
+
+template <>
+inline bool writeBinary<double>(std::ostream &out, const gmm::row_matrix< gmm::slvector<double> >& M);
+
+template <>
+inline bool readBinary<double>(std::istream &in, gmm::row_matrix< gmm::slvector<double> >& M);
 
 template <>
 inline size_t binarySize<double>(const gmm::row_matrix< gmm::slvector<double> >& M);
 
 
 template <>
-inline bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const gmm::row_matrix< gmm::slvector<std::complex<double> > >& M);
+inline bool writeBinary<std::complex<double> >(std::ostream &out, const gmm::row_matrix< gmm::slvector<std::complex<double> > >& M);
 
 template <>
-inline bool readBinary<std::complex<double> >(abstractCommHandle *fp, gmm::row_matrix< gmm::slvector<std::complex<double> > >& M );
+inline bool readBinary<std::complex<double> >(std::istream &in, gmm::row_matrix< gmm::slvector<std::complex<double> > >& M );
 
 template <>
 inline size_t binarySize<std::complex<double> >(const gmm::row_matrix< gmm::slvector<std::complex<double> > >& M);
@@ -496,10 +496,10 @@ inline size_t binarySize<std::complex<double> >(const gmm::row_matrix< gmm::slve
 // binary read and write for std::map:
 
 template <class KEY, class DATA>
-bool writeBinary(abstractCommHandle *fp, const std::map<KEY,DATA>& M);
+bool writeBinary(std::ostream &out, const std::map<KEY,DATA>& M);
 
 template <class KEY, class DATA>
-bool readBinary(abstractCommHandle *fp,  std::map<KEY,DATA>& M);
+bool readBinary(std::istream &in,  std::map<KEY,DATA>& M);
 
 template <class KEY, class DATA>
 size_t binarySize(const std::map<KEY,DATA>& M);
@@ -508,10 +508,10 @@ size_t binarySize(const std::map<KEY,DATA>& M);
 // binary read and write for std::pair:
 
 template <class T1, class T2>
-bool writeBinary(abstractCommHandle *fp, const std::pair<T1,T2>& p);
+bool writeBinary(std::ostream &out, const std::pair<T1,T2>& p);
 
 template <class T1, class T2>
-bool readBinary(abstractCommHandle *fp, std::pair<T1,T2>& p);
+bool readBinary(std::istream &in, std::pair<T1,T2>& p);
 
 template <class T1, class T2>
 size_t binarySize(const std::pair<T1,T2>& p);
@@ -694,9 +694,9 @@ enum CSYS_KIND {NO_CSYS, CARTESIAN, CYLINDRICAL, SPHERICAL};
 
 
 namespace commUtil{
-inline bool writeBinary(commUtil::abstractCommHandle* fp, const linalg::CSYS_KIND& e);
+inline bool writeBinary(std::ostream &out, const linalg::CSYS_KIND& e);
 
-inline bool readBinary(commUtil::abstractCommHandle* fp, linalg::CSYS_KIND& e);
+inline bool readBinary(std::istream &in, linalg::CSYS_KIND& e);
 
 inline void write(std::ostream& os, const linalg::CSYS_KIND& e);
 
@@ -722,73 +722,73 @@ R randomCoord(CSYS_KIND eCSYS, size_t dimOffset);
 namespace gmm{
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u);
+inline bool writeBinary(std::ostream &out, const U& u);
 
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector);
+inline bool writeBinary(std::ostream &out, const U& u, abstract_vector);
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_dense);
+bool writeBinary(std::ostream &out, const U& u, abstract_vector, abstract_dense);
 
 // WARNING: the following almost certainly does _not_ work for sub-index types:
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_skyline);
+bool writeBinary(std::ostream &out, const U& u, abstract_vector, abstract_skyline);
 
 
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_matrix);
+inline bool writeBinary(std::ostream &out, const U& u, abstract_matrix);
 
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, row_major);
+bool writeBinary(std::ostream &out, const U& u, row_major);
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, col_major);
+bool writeBinary(std::ostream &out, const U& u, col_major);
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u);
+inline bool readBinary(std::istream &in, U& u);
 
 // allow "const reference" to temporary:
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, const U& u);
+inline bool readBinary(std::istream &in, const U& u);
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_false);
+inline bool readBinary(std::istream &in, U& u, abstract_vector, linalg_false);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_modifiable);
+inline bool readBinary(std::istream &in, U& u, abstract_vector, linalg_modifiable);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_const);
-
-
-template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_dense);
-
-template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_skyline);
-
+inline bool readBinary(std::istream &in, U& u, abstract_vector, linalg_const);
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_false);
+inline bool readBinary(std::istream &in, U& u, abstract_vector, abstract_dense);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_modifiable);
+inline bool readBinary(std::istream &in, U& u, abstract_vector, abstract_skyline);
 
-template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_const);
 
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, row_major);
+inline bool readBinary(std::istream &in, U& u, abstract_matrix, linalg_false);
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, col_major);
+inline bool readBinary(std::istream &in, U& u, abstract_matrix, linalg_modifiable);
+
+template <class U>
+inline bool readBinary(std::istream &in, U& u, abstract_matrix, linalg_const);
+
+
+template <class U>
+inline bool readBinary(std::istream &in, U& u, row_major);
+
+template <class U>
+inline bool readBinary(std::istream &in, U& u, col_major);
 
 
 

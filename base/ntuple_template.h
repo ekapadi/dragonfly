@@ -388,63 +388,44 @@ void ntuple<T,DIM>::apply( T (*func)(const T&), const ntuple<T,DIM>& src, ntuple
 }
 		
 template <class T, size_t DIM>		
-bool ntuple<T,DIM>::writeBinary(abstractCommHandle *fp)const
+bool ntuple<T,DIM>::writeBinary(std::ostream &out)const
 {
- using commUtil::writeBinary;
- 
- bool val(true);
- for(size_t n=0; n<DIM; ++n)
-   if (!writeBinary(fp,v_[n])){
-	   val = false;
-		 break;
-	 }
- return val;	 
+ for(size_t n=0; out && n<DIM; ++n)
+   out.write(reinterpret_cast<const char*>(&v_[n]), sizeof(T));
+
+ return out.good();	 
 }
 
 template <class T, size_t DIM>		
-bool ntuple<T,DIM>::readBinary(abstractCommHandle *fp)
+bool ntuple<T,DIM>::readBinary(std::istream &in)
 {
- using commUtil::readBinary;
-
- bool val(true);
- for(size_t n=0; n<DIM; ++n)
-   if (!readBinary(fp,v_[n])){
-	   val = false;
-		 break;
-	 }
- return val;	 
+ for(size_t n=0; in && n<DIM; ++n)
+   in.read(reinterpret_cast<char *>(&v_[n]), sizeof(T));
+   
+ return in.good();	 
 }
 
 template <class T, size_t DIM>		
 size_t ntuple<T,DIM>::binarySize(void)
-{
- using commUtil::binarySize;
- size_t val(0);
- val = DIM*binarySize(v_[0]);
- return val;	 
-}
+{ return DIM * sizeof(T); }
 
 template <class T, size_t DIM>		
 void ntuple<T,DIM>::write(std::ostream& os)const
 {
-  using commUtil::write;
-
  // width for "(" DIM*< <digit> " "|")" >
  size_t itemWidth( (os.width() - 1)>static_cast<int>(DIM)? ((os.width() - 1)/DIM - 1): 0 );
 
- os<<"(";
+ os << "(";
  for(size_t n=0; os && (n<DIM); ++n){
    os.width(itemWidth);
-   write(os,v_[n]);
-	 os<<(n<(DIM-1)?", ":")");  // 06.2009: new-format is (<number>, <number>, <number>) -- see if this breaks anything...
+   os << v_[n];
+	 os << (n<(DIM-1)?", ":")");  // 06.2009: new-format is (<number>, <number>, <number>) -- see if this breaks anything...
  }
 }
 
 template <class T, size_t DIM>		
 void ntuple<T,DIM>::read(std::istream& is)
 {
- using commUtil::read;
- 
  char ch;
  while(is){
    is.get(ch);
@@ -458,7 +439,7 @@ void ntuple<T,DIM>::read(std::istream& is)
  }
 
  for(size_t n=0; is && (n<DIM); ++n){
-   read(is,v_[n]);
+   is >> v_[n];
    if (n < DIM-1)
 	 while(is){
 		is.get(ch);
@@ -660,10 +641,10 @@ inline void conv(ntuple<T1,DIM>& dest, const ntuple<T2,DIM>& src)
 }
 
 template <class T, size_t DIM>
-inline bool writeBinary(abstractCommHandle *fp, const ntuple<T,DIM>& p) { return p.writeBinary(fp); }
+inline bool writeBinary(std::ostream &out, const ntuple<T,DIM>& p) { return p.writeBinary(out); }
 
 template <class T, size_t DIM>
-inline bool readBinary(abstractCommHandle *fp, ntuple<T,DIM>& p) { return p.readBinary(fp); }
+inline bool readBinary(std::istream &in, ntuple<T,DIM>& p) { return p.readBinary(in); }
 
 template <class T, size_t DIM>
 inline std::ostream& operator<<(std::ostream& os, const ntuple<T,DIM>& p) { p.write(os); return os; }
@@ -795,41 +776,38 @@ inline bool ntuple_interval<T,DIM>::operator!=(const ntuple_interval<T,DIM>& oth
 }
 
 template <class T, size_t DIM>
-bool ntuple_interval<T,DIM>::writeBinary(abstractCommHandle *fp)const
+bool ntuple_interval<T,DIM>::writeBinary(std::ostream &out)const
 {
-  using commUtil::writeBinary;
   bool status(false);
   
-  status = (status && start_.writeBinary());
-  status = (status && end_.writeBinary());
-  status = (status && writeBinary(fp, left_epsilon_));
-  status = (status && writeBinary(fp, right_epsilon_));
+  status = (status && start_.writeBinary(out));
+  status = (status && end_.writeBinary(out));
+  status = (status && out.write(reinterpret_cast<const char *>(&left_epsilon_), sizeof(T)));
+  status = (status && out.write(reinterpret_cast<const char *>(&right_epsilon_), sizeof(T)));
   return status;
 }
 
 template <class T, size_t DIM>
-bool ntuple_interval<T,DIM>::readBinary(abstractCommHandle *fp)
+bool ntuple_interval<T,DIM>::readBinary(std::istream &in)
 {
-  using commUtil::readBinary;
   bool status(false);
   
-  status = (status && start_.readBinary());
-  status = (status && end_.readBinary());
-  status = (status && readBinary(fp, left_epsilon_));
-  status = (status && readBinary(fp, right_epsilon_));
+  status = (status && start_.readBinary(in));
+  status = (status && end_.readBinary(in));
+  status = (status && in.read(reinterpret_cast<char *>(&left_epsilon_), sizeof(T)));
+  status = (status && in.read(reinterpret_cast<char *>(&right_epsilon_), sizeof(T)));
   return status;
 }
 
 template <class T, size_t DIM>
 size_t ntuple_interval<T,DIM>::binarySize(void)const
 {
-  using commUtil::binarySize;
   size_t val(0);
   
   val += start_.binarySize();
   val += end_.binarySize();
-  val += binarySize(left_epsilon_);
-  val += binarySize(right_epsilon_);
+  val += sizeof(T);
+  val += sizeof(T);
   return val;
 }
 
@@ -925,12 +903,12 @@ ntuple_interval<T,DIM>::ntuple_interval(void)
 { }
 
 template <class T, size_t DIM>
-inline bool writeBinary(abstractCommHandle *fp, const ntuple_interval<T,DIM>& p)
-{ return p.writeBinary(fp); }
+inline bool writeBinary(std::ostream &out, const ntuple_interval<T,DIM>& p)
+{ return p.writeBinary(out); }
 
 template <class T, size_t DIM>
-inline bool readBinary(abstractCommHandle *fp, ntuple_interval<T,DIM>& p)
-{ return p.readBinary(fp); }
+inline bool readBinary(std::istream &in, ntuple_interval<T,DIM>& p)
+{ return p.readBinary(in); }
 
 template <class T, size_t DIM>
 inline std::ostream& operator<<(std::ostream& os, const ntuple_interval<T,DIM>& p)

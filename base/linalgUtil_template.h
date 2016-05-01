@@ -416,51 +416,43 @@ namespace commUtil{
 //
 
 template<class T>
-bool writeBinary(abstractCommHandle *fp, const std::vector<T>& V)
+bool writeBinary(std::ostream &out, const std::vector<T>& V)
 {
-   bool rVal = true;
+   using commUtil::writeBinary;
+   bool status(true);
    
    // write size:
    size_t nSize = V.size();
-   rVal = (rVal && (1 == write(&nSize, sizeof(size_t), 1, fp)));
+   status = status && out.write(reinterpret_cast<const char *>(&nSize), sizeof(size_t));
 
    if (0 < nSize)
-     for (typename std::vector<T>::const_iterator itV = V.begin(), itEnd = V.end();
-     
-          itV != itEnd;
-          
-          ++itV){
-       rVal = (rVal && writeBinary(fp, *itV));
-       if (!rVal)
-         break;
-     }
+     for (typename std::vector<T>::const_iterator itV = V.begin(), itEnd = V.end();     
+          status && itV != itEnd;          
+          ++itV)
+       status = status && writeBinary(out, *itV);
         
-   return rVal;
+   return status;
 }
 
 
 template<class T>
-bool readBinary(abstractCommHandle *fp, std::vector<T>& V)
+bool readBinary(std::istream &in, std::vector<T>& V)
 {
-   bool rVal = true;
+   using commUtil::readBinary;
+   bool status(true);
    
    // read size
-   size_t nSize;
-   rVal = (rVal && (1 == read(&nSize, sizeof(size_t), 1, fp)));
-   V.resize( nSize ); 
+   size_t nSize(0);
+   status = status && in.read(reinterpret_cast<char *>(&nSize), sizeof(size_t));
+   V.resize(nSize); 
 
-   if (0 < nSize)
-     for (typename std::vector<T>::iterator itV = V.begin(), itEnd = V.end();
-     
-          itV != itEnd;
-          
-          ++itV){
-       rVal = (rVal && readBinary(fp, *itV));
-       if (!rVal)
-         break;
-     }
+   if (nSize)
+     for (typename std::vector<T>::iterator itV = V.begin(), itEnd = V.end();     
+          status && itV != itEnd;          
+          ++itV)
+       status = status && readBinary(in, *itV);
 
-   return rVal;
+   return status;
 }
 
 
@@ -482,58 +474,52 @@ size_t binarySize(const std::vector<T>& V)
 }
 
 template <class T>
-inline bool writeBinary(abstractCommHandle *fp, const gmm::slvector<T>& V)
-{
- return gmm::writeBinary(fp, V);
-}
+inline bool writeBinary(std::ostream &out, const gmm::slvector<T>& V)
+{ return gmm::writeBinary(out, V); }
 
 template <class T>
-inline bool readBinary(abstractCommHandle *fp, gmm::slvector<T>& V)
-{
- return gmm::readBinary(fp, V);
-}
+inline bool readBinary(std::istream &in, gmm::slvector<T>& V)
+{ return gmm::readBinary(in, V); }
 
 template <class T>
 inline size_t binarySize(const gmm::slvector<T>& V)
-{
- return gmm::binarySize(V);
-}
+{ return gmm::binarySize(V); }
 
 // binary read and write for std::list:
 template<class T>
-bool writeBinary(abstractCommHandle *fp, const std::list<T>& U)
+bool writeBinary(std::ostream &out, const std::list<T>& U)
 {
-   bool status = true;
+   using commUtil::writeBinary;
+   bool status(true);
    
    // write size:
    size_t nSize = U.size();
-   status = (status && (1 == write(&nSize, sizeof(size_t), 1, fp)));
+   status = status && out.write(reinterpret_cast<const char *>(&nSize), sizeof(size_t));
 
-   if (0 < nSize)
-     for (typename std::list<T>::const_iterator itU = U.begin(), itUEnd = U.end();
-     
-          status && (itU != itUEnd);
-          
+   if (nSize)
+     for (typename std::list<T>::const_iterator itU = U.begin(), itUEnd = U.end();    
+          status && itU != itUEnd;          
           ++itU)
-       status = (status && writeBinary(fp, *itU));
+       status = status && writeBinary(out, *itU);
         
    return status;
 }
 
 
 template<class T>
-bool readBinary(abstractCommHandle *fp, std::list<T>& U)
+bool readBinary(std::istream &in, std::list<T>& U)
 {
+   using commUtil::readBinary;
    bool status = true;
    
    // read size
    size_t nSize(0);
-   status = (status && (1 == read(&nSize, sizeof(size_t), 1, fp)));
+   status = status && in.read(reinterpret_cast<char *>(&nSize), sizeof(size_t));
    // U.reserve(nSize); 
 
    T tmp /* (zero<T>()) */;  // do _not_ assume "T" is a numerical type
-   for (size_t n = 0; status && (n < nSize); ++n){
-     status = (status && readBinary(fp, tmp));
+   for (size_t n = 0; status && n < nSize; ++n){
+     status = (status && readBinary(in, tmp));
      if (status)
        U.push_back(tmp);
    }
@@ -851,120 +837,110 @@ namespace commUtil{
 // binary read and write for gmm::dense_matrix:
 
 template<class T>
-inline bool writeBinary(abstractCommHandle *fp, const gmm::dense_matrix<T>& M)
-{
- return gmm::writeBinary(fp, M);
-}
+inline bool writeBinary(std::ostream &out, const gmm::dense_matrix<T>& M)
+{ return gmm::writeBinary(out, M); }
 
 
 template<class T>
-inline bool readBinary(abstractCommHandle *fp, gmm::dense_matrix<T>& M )
-{
- return gmm::readBinary(fp, M);
-}
+inline bool readBinary(std::istream &in, gmm::dense_matrix<T>& M )
+{ return gmm::readBinary(in, M); }
 
 template<class T>
 inline size_t binarySize(const gmm::dense_matrix<T>& M )
-{
- return gmm::binarySize(M);
-}
+{ return gmm::binarySize(M); }
 
 // binary read and write for gmm::row_matrix< gmm::slvector<T> >:
 template <class T>
-inline bool writeBinary(abstractCommHandle *fp, const gmm::row_matrix< gmm::slvector<T> >& M)
-{ 
-  return gmm::writeBinary(fp,M);
-}
+inline bool writeBinary(std::ostream &out, const gmm::row_matrix< gmm::slvector<T> >& M)
+{ return gmm::writeBinary(out, M); }
 
 template <class T>
-inline bool readBinary(abstractCommHandle *fp, gmm::row_matrix< gmm::slvector<T> >& M )
-{
-  return gmm::readBinary(fp,M);
-}
+inline bool readBinary(std::istream &in, gmm::row_matrix< gmm::slvector<T> >& M )
+{ return gmm::readBinary(in, M); }
 
 template <class T>
 inline size_t binarySize(const gmm::row_matrix< gmm::slvector<T> >& M)
-{ 
-  return gmm::binarySize(M);
-}
+{ return gmm::binarySize(M); }
 
 // binary read and write for std::map:
 
 template <class KEY, class DATA>
-bool writeBinary(abstractCommHandle *fp, const std::map<KEY,DATA>& M)
+bool writeBinary(std::ostream &out, const std::map<KEY,DATA>& M)
 {
- bool status(true);
- const size_t N(M.size());
- 
- status = writeBinary(fp, N); 
- for (typename std::map<KEY,DATA>::const_iterator itM = M.begin(), itMEnd = M.end();
-      status && (itM != itMEnd);
-			++itM)
-   status = (status && writeBinary( fp, (*itM).first ) && writeBinary( fp, (*itM).second ) );
- 
- return status;	 
+  using commUtil::writeBinary;
+  bool status(true);
+  const size_t N(M.size());
+
+  status = writeBinary(out, N); 
+  for (typename std::map<KEY,DATA>::const_iterator itM = M.begin(), itMEnd = M.end();
+       status && (itM != itMEnd);
+			 ++itM)
+    status = status && writeBinary(out, (*itM).first) && writeBinary(out, (*itM).second);
+
+  return status;	 
 }
 
 template <class KEY, class DATA>
-bool readBinary(abstractCommHandle *fp,  std::map<KEY,DATA>& M)
+bool readBinary(std::istream &in,  std::map<KEY,DATA>& M)
 {
- bool status(true);
- size_t N(0);
- 
- status = readBinary(fp, N); 
- if (status){
-   M.clear();
-   M.reserve(N);
-   for(size_t n=1; status && (n<=N); ++n){
-     typename std::map<KEY,DATA>::value_type item;
-	   status = (status && readBinary(fp, item));
-		 if (status)		  
-		   M.insert(item);
-   }
- }
- 
- return status;	 
+  using commUtil::readBinary;
+  bool status(true);
+  size_t N(0);
+
+  status = readBinary(in, N); 
+  if (status){
+    M.clear();
+    M.reserve(N);
+    for(size_t n=1; status && (n<=N); ++n){
+      typename std::map<KEY,DATA>::value_type item;
+	    status = status && readBinary(in, item);
+		  if (status)		  
+		    M.insert(item);
+    }
+  }
+
+  return status;	 
 }
 
 template <class KEY, class DATA>
 size_t binarySize(const std::map<KEY,DATA>& M)
 {
- size_t val(0);
- 
- // write size:
- val += sizeof(size_t);
+  size_t val(0);
 
- for (typename std::map<KEY,DATA>::const_iterator itM = M.begin(), itMEnd = M.end();
-      itM != itMEnd;
-			++itM)
-   val += binarySize(*itM);
- 
- return val;	 
+  // write size:
+  val += sizeof(size_t);
+
+  for (typename std::map<KEY,DATA>::const_iterator itM = M.begin(), itMEnd = M.end();
+       itM != itMEnd;
+			 ++itM)
+    val += binarySize(*itM);
+
+  return val;	 
 }
 
 // binary read and write for std::pair:
 
 template <class T1, class T2>
-bool writeBinary(abstractCommHandle *fp, const std::pair<T1,T2>& p)
+bool writeBinary(std::ostream &out, const std::pair<T1,T2>& p)
 {
- return
-   writeBinary(fp, p.first)
-	 && writeBinary(fp, p.second);
+  using commUtil::writeBinary;
+  return
+    writeBinary(out, p.first)
+	  && writeBinary(out, p.second);
 }
 
 template <class T1, class T2>
-bool readBinary(abstractCommHandle *fp, std::pair<T1,T2>& p)
+bool readBinary(std::istream &in, std::pair<T1,T2>& p)
 {
- return
-   readBinary(fp, p.first)
-	 && readBinary(fp, p.second);
+  using commUtil::readBinary;
+  return
+    readBinary(in, p.first)
+	  && readBinary(in, p.second);
 }
 
 template <class T1, class T2>
 inline size_t binarySize(const std::pair<T1,T2>& p)
-{
- return binarySize(p.first) + binarySize(p.second);
-}
+{ return binarySize(p.first) + binarySize(p.second); }
 
 } // namespace commUtil
 
@@ -973,28 +949,32 @@ namespace linalg{
 
 template <class T>
 void saveVectorData(const std::vector<T>& V, const std::string& sFileName)
-{                    
-    abstractCommHandle *fp = open(sFileName.c_str(),"wb");
-    if (NULL==fp)
-      throw std::runtime_error(std::string("Error: unable to open file ") + sFileName + " for write");
+{ 
+  using commUtil::writeBinary;
+                    
+  std::ofstream out(sFileName.c_str(), std::ios_base::out | std::ios_base::binary);
+  if (!out)
+    throw std::runtime_error(std::string("Error: unable to open file ") + sFileName + " for binary write");
 
-    if (!writeBinary( fp, V ))
-      throw std::runtime_error(std::string("I/O error writing to file ") + sFileName);
-		    
-    close(fp);    
+  if (!writeBinary(out, V ))
+    throw std::runtime_error(std::string("I/O error writing to file ") + sFileName);
+
+  out.close();   
 } 
 
 template <class T>
 void loadVectorData(std::vector<T>& V, const std::string& sFileName)
 {                    
-    abstractCommHandle *fp = open(sFileName.c_str(),"rb");
-    if (NULL==fp)
-      throw std::runtime_error(std::string("Error: unable to open file ") + sFileName + " for read");
+  using commUtil::readBinary;
+  
+  std::ifstream in(sFileName.c_str(), std::ios_base::in | std::ios_base::binary);
+  if (!in)
+    throw std::runtime_error(std::string("Error: unable to open file ") + sFileName + " for binary read");
 
-    if (!readBinary( fp, V ))
-      throw std::runtime_error(std::string("I/O error reading from file ") + sFileName);
-		    
-    close(fp);    
+  if (!readBinary(in, V ))
+    throw std::runtime_error(std::string("I/O error reading from file ") + sFileName);
+
+  in.close();    
 }
  
 #if 1 // compiler work-around (gcc 4.1.1 not selecting overloaded "fabs", "real", "imag") moved from numericalConstants_template.h
@@ -2017,182 +1997,177 @@ void normalDist(const ntuple<R,3>& mean, const R& variance, ntuple<R,3>& p)
 namespace gmm{
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u)
+inline bool writeBinary(std::ostream &out, const U& u)
+{ return gmm::writeBinary(out, u, typename linalg_traits<U>::linalg_type()); }
+
+template <class U>
+inline bool writeBinary(std::ostream &out, const U& u, abstract_vector)
 {
- return gmm::writeBinary(fp, u, typename linalg_traits<U>::linalg_type());
+  using commUtil::writeBinary;
+  bool status(true);
+  status = status && writeBinary(out, vect_size(u));
+
+  return 
+    status
+    && writeBinary(out, u, abstract_vector(), typename linalg_traits<U>::storage_type());
 }
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector)
+bool writeBinary(std::ostream &out, const U& u, abstract_vector, abstract_dense)
 {
- using commUtil::writeBinary;
- bool status(true);
- status = ( status && writeBinary(fp, vect_size(u)) );
- 
- return 
-   status
-   && writeBinary(fp, u, abstract_vector(), typename linalg_traits<U>::storage_type());
+  using commUtil::writeBinary;
+  bool status(true);
+
+  // iterate and write elementwise:
+  for(typename linalg_traits<U>::const_iterator 
+        itU = vect_const_begin(u), itUEnd = vect_const_end(u);
+      status && (itU != itUEnd);
+      ++itU)
+	  status = status && writeBinary(out, *itU);	 
+
+  return status;    
 }
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_dense)
+bool writeBinary(std::ostream &out, const U& u, abstract_vector, abstract_skyline)
 {
- using commUtil::writeBinary;
- bool status(true);
+  using commUtil::writeBinary;
+  bool status(true);
+  const size_t 
+    size_(linalg_traits<U>::size(u)),
+    data_size_( /* linalg_traits<U>:: */ nnz(u)),
+    shift_(linalg_traits<U>::origin(u)->first()); 
 
- // iterate and write elementwise:
- for(typename linalg_traits<U>::const_iterator 
-       itU = vect_const_begin(u), itUEnd = vect_const_end(u);
-     status && (itU != itUEnd);
-     ++itU)
-	 status = (status && writeBinary(fp, *itU) );	 
+  status = ( status && writeBinary(out, size_) ); // redundant write (to outer above) but simplest to _leave_ in (for purposes of read-back verify).
+  status = ( status && writeBinary(out, data_size_) );
+  status = ( status && writeBinary(out, shift_) ); 
 
- return status;    
+  // iterate and write elementwise:
+  for(typename linalg_traits<U>::const_iterator 
+        itU = vect_const_begin(u), itUEnd = vect_const_end(u);
+      status && (itU != itUEnd);
+      ++itU)
+	  status = (status && writeBinary(out, *itU) );	 
+
+  return status;    
 }
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_vector, abstract_skyline)
+inline bool writeBinary(std::ostream &out, const U& u, abstract_matrix)
 {
- using commUtil::writeBinary;
- bool status(true);
- const size_t 
-   size_(linalg_traits<U>::size(u)),
-   data_size_( /* linalg_traits<U>:: */ nnz(u)),
-   shift_(linalg_traits<U>::origin(u)->first()); 
-   
- status = ( status && writeBinary(fp, size_) ); // redundant write (to outer above) but simplest to _leave_ in (for purposes of read-back verify).
- status = ( status && writeBinary(fp, data_size_) );
- status = ( status && writeBinary(fp, shift_) ); 
-  
- // iterate and write elementwise:
- for(typename linalg_traits<U>::const_iterator 
-       itU = vect_const_begin(u), itUEnd = vect_const_end(u);
-     status && (itU != itUEnd);
-     ++itU)
-	 status = (status && writeBinary(fp, *itU) );	 
+  using commUtil::writeBinary;
+  bool status(true);
 
- return status;    
+  // write the size information:
+  status = status && writeBinary(out, mat_nrows(u));
+  status = status && writeBinary(out, mat_ncols(u));
+
+  return 
+    status
+    && gmm::writeBinary(
+         out, u, 
+         typename principal_orientation_type
+           <typename linalg_traits<U>::sub_orientation>::potype());
 }
 
 template <class U>
-inline bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, abstract_matrix)
+bool writeBinary(std::ostream &out, const U& u, row_major)
 {
- using commUtil::writeBinary;
- bool status(true);
- 
- // write the size information:
- status = (status && writeBinary(fp, mat_nrows(u) ));
- status = (status && writeBinary(fp, mat_ncols(u) ));
+  bool status(true);
 
- return 
-   status
-   && gmm::writeBinary(fp, u, 
-                  typename principal_orientation_type
-                    <typename linalg_traits<U>::sub_orientation>::potype());
+  // iterate and write by row vector:
+  for(typename linalg_traits<U>::const_row_iterator 
+        itRow = mat_row_const_begin(u), itRowEnd = mat_row_const_end(u);
+      status && (itRow != itRowEnd);
+      ++itRow)
+    status = status && writeBinary(out, linalg_traits<U>::row(itRow));   
+
+  return status;   
 }
 
 template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, row_major)
+bool writeBinary(std::ostream &out, const U& u, col_major)
 {
- bool status(true);
- 
- // iterate and write by row vector:
- for(typename linalg_traits<U>::const_row_iterator 
-       itRow = mat_row_const_begin(u), itRowEnd = mat_row_const_end(u);
-     status && (itRow != itRowEnd);
-     ++itRow)
-   status = (status && writeBinary(fp, linalg_traits<U>::row(itRow)));   
- 
- return status;   
-}
+  bool status(true);
 
-template <class U>
-bool writeBinary(commUtil::abstractCommHandle *fp, const U& u, col_major)
-{
- bool status(true);
- 
- // iterate and write by column vector:
- for(typename linalg_traits<U>::const_col_iterator 
-       itCol = mat_col_const_begin(u), itColEnd = mat_col_const_end(u);
-     status && (itCol != itColEnd);
-     ++itCol)
-   status = (status && writeBinary(fp, linalg_traits<U>::col(itCol)));     
+  // iterate and write by column vector:
+  for(typename linalg_traits<U>::const_col_iterator 
+        itCol = mat_col_const_begin(u), itColEnd = mat_col_const_end(u);
+      status && (itCol != itColEnd);
+      ++itCol)
+    status = status && writeBinary(out, linalg_traits<U>::col(itCol));     
 
- return status;   
+  return status;   
 }
 
 // _allow_ references => do _not_ necessarily resize destinations:
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u)
-{
- return readBinary(fp, u, typename linalg_traits<U>::linalg_type(), typename linalg_traits<U>::is_reference());
-}
+inline bool readBinary(std::istream &in, U& u)
+{ return readBinary(in, u, typename linalg_traits<U>::linalg_type(), typename linalg_traits<U>::is_reference()); }
 
 // allow "const reference" to temporary (this is the gmm reference type, which may actually be modifiable!).
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, const U& u)
+inline bool readBinary(std::istream &in, const U& u)
+{ return readBinary(in, linalg_const_cast(u)); }
+
+template <class U>
+inline bool readBinary(std::istream &in, U& u, abstract_vector, linalg_false)
 {
- return readBinary(fp, linalg_const_cast(u));
+  using commUtil::readBinary;
+  bool status(true);
+
+  size_t N(0);
+  status = status && readBinary(in, N);
+
+  resize( u, N );
+
+  return
+    status
+    && readBinary(in, u, abstract_vector(), typename linalg_traits<U>::storage_type());
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_false)
+inline bool readBinary(std::istream &in, U& u, abstract_vector, linalg_modifiable)
 {
- using commUtil::readBinary;
- bool status(true);
- 
- size_t N(0);
- status = ( status && readBinary(fp, N) );
- 
- resize( u, N );
+  using commUtil::readBinary;
+  bool status(true);
 
- return
-   status
-   && readBinary(fp, u, abstract_vector(), typename linalg_traits<U>::storage_type());
+  size_t N(0);
+  status = status && readBinary(in, N);
+
+  if (N != vect_size(u))
+    throw std::runtime_error("gmm::readBinary(abstractCommHandle *, U&, abstract_vector, linalg_modifiable): size of destination doesn't match read size");
+
+  return
+    status
+    && gmm::readBinary(in, u, abstract_vector(), typename linalg_traits<U>::storage_type());	 
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_modifiable)
+inline bool readBinary(std::istream &in, U& u, abstract_vector, linalg_const)
 {
- using commUtil::readBinary;
- bool status(true);
- 
- size_t N(0);
- status = ( status && readBinary(fp, N) );
- 
- if (N != vect_size(u))
-   throw std::runtime_error("gmm::readBinary(abstractCommHandle *, U&, abstract_vector, linalg_modifiable): size of destination doesn't match read size");
-
- return
-   status
-   && gmm::readBinary(fp, u, abstract_vector(), typename linalg_traits<U>::storage_type());	 
+  throw std::runtime_error("gmm::readBinary: can't modify a const reference");
+  return false;
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, linalg_const)
+inline bool readBinary(std::istream &in, U& u, abstract_vector, abstract_dense)
 {
- throw std::runtime_error("gmm::readBinary: can't modify a const reference");
- return false;
+  using commUtil::readBinary;
+  bool status(true);
+
+  // iterate and read elementwise:
+  for(typename linalg_traits<U>::iterator 
+        itU = vect_begin(u), itUEnd = vect_end(u);
+      status && (itU != itUEnd);
+      ++itU)
+	  status = status && readBinary(in, *itU);	 
+
+  return status;     
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_dense)
-{
- using commUtil::readBinary;
- bool status(true);
-
- // iterate and read elementwise:
- for(typename linalg_traits<U>::iterator 
-       itU = vect_begin(u), itUEnd = vect_end(u);
-     status && (itU != itUEnd);
-     ++itU)
-	 status = (status && readBinary(fp, *itU) );	 
-
- return status;     
-}
-
-template <class U>
-bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstract_skyline)
+bool readBinary(std::istream &in, U& u, abstract_vector, abstract_skyline)
 {
  using commUtil::readBinary;
  bool status(true);
@@ -2204,9 +2179,9 @@ bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstrac
    data_size_(0),
    shift_(0); 
    
- status = ( status && readBinary(fp, size_) );
- status = ( status && readBinary(fp, data_size_) );
- status = ( status && readBinary(fp, shift_) ); 
+ status = status && readBinary(in, size_);
+ status = status && readBinary(in, data_size_);
+ status = status && readBinary(in, shift_); 
  
  if (status){ 
    // This is the only efficient (hopefully) and _legal_ way to set the "shift" (apart from re-writing gmm code).
@@ -2218,7 +2193,7 @@ bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstrac
          itU = vect_begin(u_), itUEnd = vect_end(u_);
        status && (itU != itUEnd);
        ++itU)
-	   status = (status && readBinary(fp, *itU) );
+	   status = status && readBinary(in, *itU);
      
    if (status)
      std::swap(*linalg_traits<U>::origin(u), u_);   	 
@@ -2228,80 +2203,80 @@ bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_vector, abstrac
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_false)
+inline bool readBinary(std::istream &in, U& u, abstract_matrix, linalg_false)
 {
- using commUtil::readBinary;
- bool status(true);
- 
- // read size information:
- size_t nrows(0), ncols(0);
- status = (status && readBinary(fp, nrows ));
- status = (status && readBinary(fp, ncols ));
- 
- resize(u, nrows, ncols); 
- 	
- return 
-   status
-	 && readBinary(fp, u, 
-        typename principal_orientation_type <typename linalg_traits<U>::sub_orientation>::potype() );	    
+  using commUtil::readBinary;
+  bool status(true);
+
+  // read size information:
+  size_t nrows(0), ncols(0);
+  status = status && readBinary(in, nrows );
+  status = status && readBinary(in, ncols );
+
+  resize(u, nrows, ncols); 
+
+  return 
+    status
+	  && readBinary(in, u, 
+         typename principal_orientation_type <typename linalg_traits<U>::sub_orientation>::potype() );	    
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_modifiable)
+inline bool readBinary(std::istream &in, U& u, abstract_matrix, linalg_modifiable)
 {
- using commUtil::readBinary;
- bool status(true);
- 
- // read size information:
- size_t nrows(0), ncols(0);
- status = (status && readBinary(fp, nrows ));
- status = (status && readBinary(fp, ncols ));
-  
- // don't resize _reference_ types:
- if ( (mat_nrows(u) != nrows) || (mat_ncols(u) != ncols) )
-   throw std::runtime_error("gmm::readBinary(abstractCommHandle*, U&, abstract_matrix, linalg_modifiable): size of destination doesn't match read size");
-	 	
- return 
-   status
-	 && readBinary(fp, u, 
-        typename principal_orientation_type <typename linalg_traits<U>::sub_orientation>::potype());	 
+  using commUtil::readBinary;
+  bool status(true);
+
+  // read size information:
+  size_t nrows(0), ncols(0);
+  status = status && readBinary(in, nrows);
+  status = status && readBinary(in, ncols);
+
+  // don't resize _reference_ types:
+  if ((mat_nrows(u) != nrows) || (mat_ncols(u) != ncols))
+    throw std::runtime_error("gmm::readBinary(abstractCommHandle*, U&, abstract_matrix, linalg_modifiable): size of destination doesn't match read size");
+
+  return 
+    status
+	  && readBinary(in, u, 
+         typename principal_orientation_type <typename linalg_traits<U>::sub_orientation>::potype());	 
 }
 
 template <class U>
-inline bool readBinary(commUtil::abstractCommHandle *fp, U& u, abstract_matrix, linalg_const)
+inline bool readBinary(std::istream &in, U& u, abstract_matrix, linalg_const)
 {
- throw std::runtime_error("gmm::readBinary: can't modify a const reference");
- return false;
+  throw std::runtime_error("gmm::readBinary: can't modify a const reference");
+  return false;
 }
 
 template <class U>
-bool readBinary(commUtil::abstractCommHandle *fp, U& u, row_major)
+bool readBinary(std::istream &in, U& u, row_major)
 {
- bool status(true);
+  bool status(true);
 
- // iterate and read by row vector:
- for(typename linalg_traits< U >::row_iterator 
-       itRow = mat_row_begin(u), itRowEnd = mat_row_end(u);
-     status && (itRow != itRowEnd);
-     ++itRow)
-   status = (status && readBinary(fp, linalg_traits<U>::row(itRow)));  
- 
- return status;   
+  // iterate and read by row vector:
+  for(typename linalg_traits< U >::row_iterator 
+        itRow = mat_row_begin(u), itRowEnd = mat_row_end(u);
+      status && (itRow != itRowEnd);
+      ++itRow)
+    status = status && readBinary(in, linalg_traits<U>::row(itRow));  
+
+  return status;   
 }
 
 template <class U>
- bool readBinary(commUtil::abstractCommHandle *fp, U& u, col_major)
+ bool readBinary(std::istream &in, U& u, col_major)
 {
- bool status(true);
+  bool status(true);
 
- // iterate and read by col vector:
- for(typename linalg_traits< U >::col_iterator 
-       itCol = mat_col_begin(u), itColEnd = mat_col_end(u);
-     status && (itCol != itColEnd);
-     ++itCol)
-   status = (status && readBinary(fp, linalg_traits<U>::col(itCol)));  
- 
- return status;   
+  // iterate and read by col vector:
+  for(typename linalg_traits< U >::col_iterator 
+        itCol = mat_col_begin(u), itColEnd = mat_col_end(u);
+      status && (itCol != itColEnd);
+      ++itCol)
+    status = status && readBinary(in, linalg_traits<U>::col(itCol));  
+
+  return status;   
 }
 
 

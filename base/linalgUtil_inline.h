@@ -39,64 +39,70 @@ inline std::vector<size_t> inverse_row_major_index(size_t n, const std::vector<s
 
 namespace commUtil{
 
-inline bool writeBinary(commUtil::abstractCommHandle* fp, const linalg::CSYS_KIND& e) 
-{ return writeBinary(fp,static_cast<long>(e)); }
-
-inline bool readBinary(commUtil::abstractCommHandle* fp, linalg::CSYS_KIND& e)
-{
- bool val(true);
-
- long n;
- val = (val && readBinary(fp,n));
- e = static_cast<linalg::CSYS_KIND>(n);
- return val;
+inline bool writeBinary(std::ostream &out, const linalg::CSYS_KIND& e) 
+{ 
+  out.write(reinterpret_cast<const char *>(static_cast<long>(e)), sizeof(long));
+  
+  return out.good();
 }
 
-inline size_t binarySize(const linalg::CSYS_KIND& e) { return binarySize(static_cast<long>(e)); }
+inline bool readBinary(std::istream &in, linalg::CSYS_KIND& e)
+{
+  long n;
+  in.read(reinterpret_cast<char *>(&n), sizeof(long));
+  e = static_cast<linalg::CSYS_KIND>(n);
+
+  return in.good();
+}
+
+inline size_t binarySize(const linalg::CSYS_KIND& e)
+{ 
+  return sizeof(long);
+}
 
 
 inline void write(std::ostream& os, const linalg::CSYS_KIND& e)
 {
- std::string s;
- switch (e){
-   case linalg::NO_CSYS:
-	   s = "NO_CSYS";
-	 break;
-	 case linalg::CARTESIAN:
-	   s = "CARTESIAN";
-	 break;
-	 case linalg::CYLINDRICAL:
-	   s = "CYLINDRICAL";
-	 break;
-	 case linalg::SPHERICAL:
-	   s = "SPHERICAL";
-	 break;
-	 default:
-	   throw std::runtime_error("write(std::ostream& os, const CSYS_KIND& e): invalid CSYS_KIND");
-//	 break;
- };
- os<<s;
+  std::string s;
+  switch (e){
+    case linalg::NO_CSYS:
+	    s = "NO_CSYS";
+	  break;
+	  case linalg::CARTESIAN:
+	    s = "CARTESIAN";
+	  break;
+	  case linalg::CYLINDRICAL:
+	    s = "CYLINDRICAL";
+	  break;
+	  case linalg::SPHERICAL:
+	    s = "SPHERICAL";
+	  break;
+	  default:
+	    throw std::runtime_error("write(std::ostream& os, const CSYS_KIND& e): invalid CSYS_KIND");
+ //	 break;
+  };
+  os<<s;
 }
 
 inline void read(std::istream& is, linalg::CSYS_KIND& e)
 {
- std::string s;
- is >> s;
- if (is){
-   if (s == "NO_CSYS")
-     e = linalg::NO_CSYS;
-	 else
-	 if (s == "CARTESIAN")
-	   e = linalg::CARTESIAN;
-	 else
-	 if (s == "CYLINDRICAL")
-	   e = linalg::CYLINDRICAL;
-	 else
-	 if (s == "SPHERICAL")
-	   e = linalg::SPHERICAL;
-	 else
-	   throw std::runtime_error("read(std::istream& is, CSYS_KIND& e): invalid CSYS_KIND");	    	 
- }
+  std::string s;
+  is >> s;
+  if (is){
+    if (s == "NO_CSYS")
+      e = linalg::NO_CSYS;
+	  else
+	  if (s == "CARTESIAN")
+	    e = linalg::CARTESIAN;
+	  else
+	  if (s == "CYLINDRICAL")
+	    e = linalg::CYLINDRICAL;
+	  else
+	  if (s == "SPHERICAL")
+	    e = linalg::SPHERICAL;
+	  else
+	    throw std::runtime_error("read(std::istream& is, CSYS_KIND& e): invalid CSYS_KIND");	    	 
+  }
 }
 
 inline std::ostream& operator<<(std::ostream& os, const linalg::CSYS_KIND& e) { write(os,e); return os; }
@@ -106,397 +112,406 @@ inline std::istream& operator>>(std::istream& is, linalg::CSYS_KIND& e) { read(i
 #if defined(__specialize_POD_binary__)	
 // specializations for contiguous POD types:
 template<>
-inline bool writeBinary<double>(abstractCommHandle *fp, const std::vector<double>& V)
+inline bool writeBinary<double>(std::ostream &out, const std::vector<double>& V)
 {
-   bool rVal = true;
-   
-   // write size:
-   size_t nSize = V.size();
-   rVal = (rVal && (1 == write(&nSize, sizeof(size_t), 1, fp)));
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == write(&(*V.begin()), sizeof(double)*nSize, 1, fp)));
-        
-   return rVal;
+  // write size:
+  size_t nSize = V.size();
+  status = status && out.write(reinterpret_cast<const char *>(&nSize), sizeof(size_t));
+
+  if (nSize)
+    status = status && out.write(reinterpret_cast<const char *>(&(*V.begin())), sizeof(double) * nSize);
+
+  return status;
 }
 
 template<>
-inline bool readBinary<double>(abstractCommHandle *fp, std::vector<double>& V )
+inline bool readBinary<double>(std::istream &in, std::vector<double>& V )
 {
-   bool rVal = true;
-   
-   // read size
-   size_t nSize;
-   rVal = (rVal && (1 == read(&nSize, sizeof(size_t), 1, fp)));
-   V.resize( nSize ); 
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == read(&(*V.begin()), sizeof(double)*nSize, 1, fp)));
+  // read size
+  size_t nSize;
+  status = status && in.read(reinterpret_cast<char *>(&nSize), sizeof(size_t));
+  if (status)
+    V.resize( nSize ); 
 
-   return rVal;
+  if (nSize)
+    status = status && in.read(reinterpret_cast<char *>(&(*V.begin())), sizeof(double) * nSize);
+
+  return status;
 }
 
 template<>
-inline bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const std::vector<std::complex<double> >& V)
+inline bool writeBinary<std::complex<double> >(std::ostream &out, const std::vector<std::complex<double> >& V)
 {
-   bool rVal = true;
-   
-   // write size:
-   size_t nSize = V.size();
-   rVal = (rVal && (1 == write(&nSize, sizeof(size_t), 1, fp)));
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == write(&(*V.begin()), sizeof(std::complex<double>)*nSize, 1, fp)));
-        
-   return rVal;
+  // write size:
+  size_t nSize = V.size();
+  status = status && out.write(reinterpret_cast<const char *>(&nSize), sizeof(size_t));
+
+  if (nSize)
+    status = status && out.write(reinterpret_cast<const char *>(&(*V.begin())), sizeof(std::complex<double>) * nSize);
+
+  return status;
 }
 
 template<>
-inline bool readBinary<std::complex<double> >(abstractCommHandle *fp, std::vector<std::complex<double> >& V )
+inline bool readBinary<std::complex<double> >(std::istream &in, std::vector<std::complex<double> >& V )
 {
-   bool rVal = true;
-   
-   // read size
-   size_t nSize;
-   rVal = (rVal && (1 == read(&nSize, sizeof(size_t), 1, fp)));
-   V.resize( nSize ); 
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == read(&(*V.begin()), sizeof(std::complex<double>)*nSize, 1, fp)));
+  // read size
+  size_t nSize;
+  status = status && in.read(reinterpret_cast<char *>(&nSize), sizeof(size_t));
+  if (status)
+    V.resize( nSize ); 
 
-   return rVal;
+  if (nSize)
+    status = status && in.read(reinterpret_cast<char *>(&(*V.begin())), sizeof(std::complex<double>) * nSize);
+
+  return status;
 }
 
 template<>
-inline bool writeBinary<long>(abstractCommHandle *fp, const std::vector<long>& V)
+inline bool writeBinary<long>(std::ostream &out, const std::vector<long>& V)
 {
-   bool rVal = true;
-   
-   // write size:
-   size_t nSize = V.size();
-   rVal = (rVal && (1 == write(&nSize, sizeof(size_t), 1, fp)));
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == write(&(*V.begin()), sizeof(long)*nSize, 1, fp)));
-        
-   return rVal;
+  // write size:
+  size_t nSize = V.size();
+  status = status && out.write(reinterpret_cast<const char *>(&nSize), sizeof(size_t));
+
+  if (nSize)
+    status = status && out.write(reinterpret_cast<const char *>(&(*V.begin())), sizeof(long) * nSize);
+
+  return status;
 }
 
 template<>
-inline bool readBinary<long>(abstractCommHandle *fp, std::vector<long>& V )
+inline bool readBinary<long>(std::istream &in, std::vector<long>& V )
 {
-   bool rVal = true;
-   
-   // read size
-   size_t nSize;
-   rVal = (rVal && (1 == read(&nSize, sizeof(size_t), 1, fp)));
-   V.resize( nSize ); 
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == read(&(*V.begin()), sizeof(long)*nSize, 1, fp)));
+  // read size
+  size_t nSize;
+  status = status && in.read(reinterpret_cast<char *>(&nSize), sizeof(size_t));
+  if (status)
+    V.resize( nSize ); 
 
-   return rVal;
+  if (nSize)
+    status = status && in.read(reinterpret_cast<char *>(&(*V.begin())), sizeof(long) * nSize);
+
+  return status;
 }
 
 template<>
-inline bool writeBinary<size_t>(abstractCommHandle *fp, const std::vector<size_t>& V)
+inline bool writeBinary<size_t>(std::ostream &out, const std::vector<size_t>& V)
 {
-   bool rVal = true;
-   
-   // write size:
-   size_t nSize = V.size();
-   rVal = (rVal && (1 == write(&nSize, sizeof(size_t), 1, fp)));
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == write(&(*V.begin()), sizeof(size_t)*nSize, 1, fp)));
-        
-   return rVal;
+  // write size:
+  size_t nSize = V.size();
+  status = status && out.write(reinterpret_cast<const char *>(&nSize), sizeof(size_t));
+
+  if (nSize)
+    status = status && out.write(reinterpret_cast<const char *>(&(*V.begin())), sizeof(size_t) * nSize);
+
+  return status;
 }
 
 template<>
-inline bool readBinary<size_t>(abstractCommHandle *fp, std::vector<size_t>& V )
+inline bool readBinary<size_t>(std::istream &in, std::vector<size_t>& V )
 {
-   bool rVal = true;
-   
-   // read size
-   size_t nSize;
-   rVal = (rVal && (1 == read(&nSize, sizeof(size_t), 1, fp)));
-   V.resize( nSize ); 
+  bool status(true);
 
-   if (0 < nSize)
-     rVal = (rVal && (1 == read(&(*V.begin()), sizeof(size_t)*nSize, 1, fp)));
+  // read size
+  size_t nSize;
+  status = status && in.read(reinterpret_cast<char *>(&nSize), sizeof(size_t));
+  if (status)
+    V.resize( nSize ); 
 
-   return rVal;
+  if (nSize)
+    status = status && in.read(reinterpret_cast<char *>(&(*V.begin())), sizeof(size_t) * nSize);
+
+  return status;
 }
+
 #endif
 
 
 #if defined(__specialize_POD_binary__)
 // specializations for contiguous POD types:
 template <>
-inline bool writeBinary<double>(abstractCommHandle *fp, const gmm::dense_matrix<double>& M)
+inline bool writeBinary<double>(std::ostream &out, const gmm::dense_matrix<double>& M)
 {
-   bool rVal = true;
-   
-   // write size:
-   const size_t 
-     nr(gmm::mat_nrows(M)),
-     nc(gmm::mat_ncols(M));
-   rVal = (rVal && (1 == write(&nr, sizeof(size_t), 1, fp)));
-   rVal = (rVal && (1 == write(&nc, sizeof(size_t), 1, fp)));
+  bool status(true);
 
-   if (0 < nr*nc)
-     rVal = (rVal && (1 == write(&(M(0,0)), sizeof(double)*nr*nc, 1, fp)));
-        
-   return rVal;
+  // write size:
+  const size_t 
+    nr(gmm::mat_nrows(M)),
+    nc(gmm::mat_ncols(M));
+  status = status && out.write(reinterpret_cast<const char *>(&nr), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&nc), sizeof(size_t));
+
+  if (0 < nr * nc)
+   status = status && out.write(reinterpret_cast<const char *>(&(M(0,0))), sizeof(double) * nr * nc);
+
+  return status;
 }
 
 template <>
-inline bool readBinary<double>(abstractCommHandle *fp, gmm::dense_matrix<double>& M )
+inline bool readBinary<double>(std::istream &in, gmm::dense_matrix<double>& M )
 {
-   bool rVal = true;
-   
-   // read size
-   size_t nr,nc;
-   rVal = (rVal && (1 == read(&nr, sizeof(size_t), 1, fp)));
-   rVal = (rVal && (1 == read(&nc, sizeof(size_t), 1, fp)));
+  bool status(true);
 
-   if (rVal)
-     gmm::resize(M, nr, nc); 
+  // read size
+  size_t nr,nc;
+  status = status && in.read(reinterpret_cast<char *>(&nr), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&nc), sizeof(size_t));
 
-   if (0 < nr*nc)
-     rVal = (rVal && (1 == read(&(M(0,0)), sizeof(double)*nr*nc, 1, fp)));
+  if (status)
+    gmm::resize(M, nr, nc); 
 
-   return rVal;
+  if (0 < nr * nc)
+    status = status && in.read(reinterpret_cast<char *>(&(M(0,0))), sizeof(double) * nr * nc);
+
+  return status;
 }
 
 template <>
-inline bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const gmm::dense_matrix<std::complex<double> >& M)
+inline bool writeBinary<std::complex<double> >(std::ostream &out, const gmm::dense_matrix<std::complex<double> >& M)
 {
-   bool rVal = true;
-   
-   // write size:
-   const size_t 
-     nr(gmm::mat_nrows(M)),
-     nc(gmm::mat_ncols(M));
-   rVal = (rVal && (1 == write(&nr, sizeof(size_t), 1, fp)));
-   rVal = (rVal && (1 == write(&nc, sizeof(size_t), 1, fp)));
+  bool status(true);
 
-   if (0 < nr*nc)
-     rVal = (rVal && (1 == write(&(M(0,0)), sizeof(std::complex<double>)*nr*nc, 1, fp)));
-        
-   return rVal;
+  // write size:
+  const size_t 
+    nr(gmm::mat_nrows(M)),
+    nc(gmm::mat_ncols(M));
+  status = status && out.write(reinterpret_cast<const char *>(&nr), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&nc), sizeof(size_t));
+
+  if (0 < nr * nc)
+   status = status && out.write(reinterpret_cast<const char *>(&(M(0,0))), sizeof(std::complex<double>) * nr * nc);
+
+  return status;
+}
+
+
+template <>
+inline bool readBinary<std::complex<double> >(std::istream &in, gmm::dense_matrix<std::complex<double> >& M )
+{
+  bool status(true);
+
+  // read size
+  size_t nr,nc;
+  status = status && in.read(reinterpret_cast<char *>(&nr), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&nc), sizeof(size_t));
+
+  if (status)
+    gmm::resize(M, nr, nc); 
+
+  if (0 < nr * nc)
+    status = status && in.read(reinterpret_cast<char *>(&(M(0,0))), sizeof(std::complex<double>) * nr * nc);
+
+  return status;
 }
 
 template <>
-inline bool readBinary<std::complex<double> >(abstractCommHandle *fp, gmm::dense_matrix<std::complex<double> >& M )
+inline bool writeBinary<double>(std::ostream &out, const gmm::slvector<double>& V)
 {
-   bool rVal = true;
-   
-   // read size
-   size_t nr,nc;
-   rVal = (rVal && (1 == read(&nr, sizeof(size_t), 1, fp)));
-   rVal = (rVal && (1 == read(&nc, sizeof(size_t), 1, fp)));
+  bool status(true);
+  const size_t 
+    size_(gmm::vect_size(V)),
+    data_size_(gmm::nnz(V)),
+    shift_(V.first()); 
 
-   if (rVal)
-     gmm::resize(M, nr, nc); 
+  status = status && out.write(reinterpret_cast<const char *>(&size_), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&data_size_), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&shift_), sizeof(size_t));
 
-   if (0 < nr*nc)
-     rVal = (rVal && (1 == read(&(M(0,0)), sizeof(std::complex<double>)*nr*nc, 1, fp)));
+  // write the contiguous section:
+  status = status && out.write(reinterpret_cast<const char *>(&(*V.data_begin())), data_size_ * sizeof(double));
 
-   return rVal;
+  return status;    
 }
 
 template <>
-inline bool writeBinary<double>(abstractCommHandle *fp, const gmm::slvector<double>& V)
+inline bool readBinary<double>(std::istream &in, gmm::slvector<double>& V )
 {
- bool status(true);
- const size_t 
-   size_(gmm::vect_size(V)),
-   data_size_(gmm::nnz(V)),
-   shift_(V.first()); 
-   
- status = ( status && (1 == write(&size_, sizeof(size_t), 1, fp) ) ); 
- status = ( status && (1 == write(&data_size_, sizeof(size_t), 1, fp) ) );
- status = ( status && (1 == write(&shift_, sizeof(size_t), 1, fp) ) ); 
+  bool status(true);
+  size_t 
+    size_(0),
+    data_size_(0),
+    shift_(0); 
+
+  status = status && in.read(reinterpret_cast<char *>(&size_), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&data_size_), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&shift_), sizeof(size_t)); 
+
+  if (status){ 
+    // This is the only efficient (hopefully) and _legal_ way to set the "shift" (apart from re-writing gmm code).
+    // (here it is assumed that "swap" swaps the data pointers).
+    gmm::slvector<double> u_(size_, data_size_, shift_);
+
+    // read the contiguous section:
+    status = status && in.read(reinterpret_cast<char *>(&(*u_.data_begin())), data_size_ * sizeof(double)); 
+
+    if (status)
+      std::swap(V, u_);   	 
+  }
+
+  return status;    
+}
+
+template <>
+inline bool writeBinary<std::complex<double> >(std::ostream &out, const gmm::slvector<std::complex<double> >& V)
+{
+  bool status(true);
+  const size_t 
+    size_(gmm::vect_size(V)),
+    data_size_(gmm::nnz(V)),
+    shift_(V.first()); 
+
+  status = status && out.write(reinterpret_cast<const char *>(&size_), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&data_size_), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&shift_), sizeof(size_t));
+
+  // write the contiguous section:
+  status = status && out.write(reinterpret_cast<const char *>(&(*V.data_begin())), data_size_ * sizeof(std::complex<double>));
+
+  return status;    
+}
+
+template <>
+inline bool readBinary<std::complex<double> >(std::istream &in, gmm::slvector<std::complex<double> >& V )
+{
+  bool status(true);
+  size_t 
+    size_(0),
+    data_size_(0),
+    shift_(0); 
+
+  status = status && in.read(reinterpret_cast<char *>(&size_), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&data_size_), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&shift_), sizeof(size_t)); 
+
+  if (status){ 
+    // This is the only efficient (hopefully) and _legal_ way to set the "shift" (apart from re-writing gmm code).
+    // (here it is assumed that "swap" swaps the data pointers).
+    gmm::slvector<std::complex<double> > u_(size_, data_size_, shift_);
+
+    // read the contiguous section:
+    status = status && in.read(reinterpret_cast<char *>(&(*u_.data_begin())), data_size_ * sizeof(std::complex<double>)); 
+
+    if (status)
+      std::swap(V, u_);   	 
+  }
   
- // write the contiguous section:
- status = (status && (1 == write(&(*V.data_begin()), data_size_*sizeof(double), 1, fp))); 
-
- return status;    
+  return status;
 }
 
 template <>
-inline bool readBinary<double>(abstractCommHandle *fp, gmm::slvector<double>& V )
+inline bool writeBinary<double>(std::ostream &out, const gmm::row_matrix< gmm::slvector<double> >& M)
 {
- bool status(true);
- size_t 
-   size_(0),
-   data_size_(0),
-   shift_(0); 
-   
- status = ( status && (1 == read(&size_, sizeof(size_t), 1, fp) ) ); 
- status = ( status && (1 == read(&data_size_, sizeof(size_t), 1, fp) ) );
- status = ( status && (1 == read(&shift_, sizeof(size_t), 1, fp) ) ); 
-  
- if (status){ 
-   // This is the only efficient (hopefully) and _legal_ way to set the "shift" (apart from re-writing gmm code).
-   // (here it is assumed that "swap" swaps the data pointers).
-   gmm::slvector<double> u_(size_, data_size_, shift_);
+  bool status(true);
 
-   // read the contiguous section:
-   status = (status && (1 == read(&(*u_.data_begin()), data_size_*sizeof(double), 1, fp))); 
-     
-   if (status)
-     std::swap(V, u_);   	 
- }
- 
- return status;    
+  typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<double> > > traits;
+
+  // write size:
+  const size_t 
+    nr(gmm::mat_nrows(M)),
+    nc(gmm::mat_ncols(M));
+  status = status && out.write(reinterpret_cast<const char *>(&nr), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&nc), sizeof(size_t));
+
+  // iterate and write by row vector:
+  for(traits::const_row_iterator 
+        itRow = gmm::mat_row_const_begin(M), itRowEnd = gmm::mat_row_const_end(M);
+      status && (itRow != itRowEnd);
+      ++itRow)  // write the row slvector<double> itself:
+    status = status && writeBinary(out, *gmm::linalg_traits<traits::const_sub_row_type>::origin(traits::row(itRow)));   
+
+  return status;   
 }
 
 template <>
-inline bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const gmm::slvector<std::complex<double> >& V)
+inline bool readBinary<double>(std::istream &in, gmm::row_matrix< gmm::slvector<double> >& M )
 {
- bool status(true);
- const size_t 
-   size_(gmm::vect_size(V)),
-   data_size_(gmm::nnz(V)),
-   shift_(V.first()); 
-   
- status = ( status && (1 == write(&size_, sizeof(size_t), 1, fp) ) ); 
- status = ( status && (1 == write(&data_size_, sizeof(size_t), 1, fp) ) );
- status = ( status && (1 == write(&shift_, sizeof(size_t), 1, fp) ) ); 
-  
- // write the contiguous section:
- status = (status && (1 == write(&(*V.data_begin()), data_size_*sizeof(std::complex<double>), 1, fp))); 
+  bool status(true);
 
- return status;    
+  typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<double> > > traits;
+
+  // read size
+  size_t nr,nc;
+  status = status && in.read(reinterpret_cast<char *>(&nr), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&nc), sizeof(size_t));
+
+  if (status)
+    gmm::resize(M, nr, nc); 
+
+  // iterate and read by row vector:
+  for(traits::row_iterator 
+        itRow = gmm::mat_row_begin(M), itRowEnd = gmm::mat_row_end(M);
+      status && (itRow != itRowEnd);
+      ++itRow)  // read the row slvector<double> itself:
+    status = status && readBinary(in, *const_cast<gmm::slvector<double>* >(gmm::linalg_traits<traits::sub_row_type>::origin(traits::row(itRow))));   
+
+  return status;   
 }
 
 template <>
-inline bool readBinary<std::complex<double> >(abstractCommHandle *fp, gmm::slvector<std::complex<double> >& V )
+inline bool writeBinary<std::complex<double> >(std::ostream &out, const gmm::row_matrix< gmm::slvector<std::complex<double> > >& M)
 {
- bool status(true);
- size_t 
-   size_(0),
-   data_size_(0),
-   shift_(0); 
-   
- status = ( status && (1 == read(&size_, sizeof(size_t), 1, fp) ) ); 
- status = ( status && (1 == read(&data_size_, sizeof(size_t), 1, fp) ) );
- status = ( status && (1 == read(&shift_, sizeof(size_t), 1, fp) ) ); 
-  
- if (status){ 
-   // This is the only efficient (hopefully) and _legal_ way to set the "shift" (apart from re-writing gmm code).
-   // (here it is assumed that "swap" swaps the data pointers).
-   gmm::slvector<std::complex<double> > u_(size_, data_size_, shift_);
+  bool status(true);
 
-   // read the contiguous section:
-   status = (status && (1 == read(&(*u_.data_begin()), data_size_*sizeof(std::complex<double>), 1, fp))); 
-     
-   if (status)
-     std::swap(V, u_);   	 
- }
- 
- return status;    
+  typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<std::complex<double> > > > traits;
+
+  // write size:
+  const size_t 
+    nr(gmm::mat_nrows(M)),
+    nc(gmm::mat_ncols(M));
+  status = status && out.write(reinterpret_cast<const char *>(&nr), sizeof(size_t));
+  status = status && out.write(reinterpret_cast<const char *>(&nc), sizeof(size_t));
+
+  // iterate and write by row vector:
+  for(traits::const_row_iterator 
+        itRow = gmm::mat_row_const_begin(M), itRowEnd = gmm::mat_row_const_end(M);
+      status && (itRow != itRowEnd);
+      ++itRow)  // write the row slvector<std::complex<double> > itself:
+    status = status && writeBinary(out, *gmm::linalg_traits<traits::const_sub_row_type>::origin(traits::row(itRow)));   
+
+  return status;   
 }
 
 template <>
-inline bool writeBinary<double>(abstractCommHandle *fp, const gmm::row_matrix< gmm::slvector<double> >& M)
+inline bool readBinary<std::complex<double> >(std::istream &in, gmm::row_matrix< gmm::slvector<std::complex<double> > >& M )
 {
- bool status(true);
- 
- typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<double> > > traits;
-   
- // write size:
- const size_t 
-   nr(gmm::mat_nrows(M)),
-   nc(gmm::mat_ncols(M));
- status = (status && (1 == write(&nr, sizeof(size_t), 1, fp)));
- status = (status && (1 == write(&nc, sizeof(size_t), 1, fp)));
+  bool status(true);
 
- // iterate and write by row vector:
- for(traits::const_row_iterator 
-       itRow = gmm::mat_row_const_begin(M), itRowEnd = gmm::mat_row_const_end(M);
-     status && (itRow != itRowEnd);
-     ++itRow)  // write the row slvector<double> itself:
-   status = (status && writeBinary(fp,*gmm::linalg_traits<traits::const_sub_row_type>::origin(traits::row(itRow)) ));   
+  typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<std::complex<double> > > > traits;
 
- return status;   
-}
+  // read size
+  size_t nr,nc;
+  status = status && in.read(reinterpret_cast<char *>(&nr), sizeof(size_t));
+  status = status && in.read(reinterpret_cast<char *>(&nc), sizeof(size_t));
 
-template <>
-inline bool readBinary<double>(abstractCommHandle *fp, gmm::row_matrix< gmm::slvector<double> >& M )
-{
- bool status(true);
- 
- typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<double> > > traits;
-   
- // read size
- size_t nr,nc;
- status = (status && (1 == read(&nr, sizeof(size_t), 1, fp)));
- status = (status && (1 == read(&nc, sizeof(size_t), 1, fp)));
+  if (status)
+    gmm::resize(M, nr, nc); 
 
- if (status)
-   gmm::resize(M, nr, nc); 
+  // iterate and read by row vector:
+  for(traits::row_iterator 
+        itRow = gmm::mat_row_begin(M), itRowEnd = gmm::mat_row_end(M);
+      status && (itRow != itRowEnd);
+      ++itRow)  // read the row slvector<std::complex<double> > itself:
+    status = status && readBinary(
+      in,
+      *const_cast<gmm::slvector<std::complex<double> >* >(gmm::linalg_traits<traits::sub_row_type>::origin(traits::row(itRow)))
+    );   
 
- // iterate and read by row vector:
- for(traits::row_iterator 
-       itRow = gmm::mat_row_begin(M), itRowEnd = gmm::mat_row_end(M);
-     status && (itRow != itRowEnd);
-     ++itRow)  // read the row slvector<double> itself:
-   status = (status && readBinary(fp,*const_cast<gmm::slvector<double>* >(gmm::linalg_traits<traits::sub_row_type>::origin(traits::row(itRow))) ));   
-
- return status;   
-}
-
-template <>
-inline bool writeBinary<std::complex<double> >(abstractCommHandle *fp, const gmm::row_matrix< gmm::slvector<std::complex<double> > >& M)
-{
- bool status(true);
- 
- typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<std::complex<double> > > > traits;
-
- // write size:
- const size_t 
-   nr(gmm::mat_nrows(M)),
-   nc(gmm::mat_ncols(M));
- status = (status && (1 == write(&nr, sizeof(size_t), 1, fp)));
- status = (status && (1 == write(&nc, sizeof(size_t), 1, fp)));
- 
- // iterate and write by row vector:
- for(traits::const_row_iterator 
-       itRow = gmm::mat_row_const_begin(M), itRowEnd = gmm::mat_row_const_end(M);
-     status && (itRow != itRowEnd);
-     ++itRow)  // write the row slvector<double> itself:
-   status = (status && writeBinary(fp,*gmm::linalg_traits<traits::const_sub_row_type>::origin(traits::row(itRow)) ));   
-
- return status;   
-}
-
-template <>
-inline bool readBinary<std::complex<double> >(abstractCommHandle *fp, gmm::row_matrix< gmm::slvector<std::complex<double> > >& M )
-{
- bool status(true);
- 
- typedef gmm::linalg_traits<gmm::row_matrix< gmm::slvector<std::complex<double> > > > traits;
-   
- // read size
- size_t nr,nc;
- status = (status && (1 == read(&nr, sizeof(size_t), 1, fp)));
- status = (status && (1 == read(&nc, sizeof(size_t), 1, fp)));
-
- if (status)
-   gmm::resize(M, nr, nc); 
- 
- // iterate and read by row vector:
- for(traits::row_iterator 
-       itRow = gmm::mat_row_begin(M), itRowEnd = gmm::mat_row_end(M);
-     status && (itRow != itRowEnd);
-     ++itRow)  // read the row slvector<double> itself:
-   status = (status && readBinary(fp,*const_cast<gmm::slvector<std::complex<double> >* >(gmm::linalg_traits<traits::sub_row_type>::origin(traits::row(itRow))) ));   
-
- return status;   
+  return status;   
 }
 
 #endif

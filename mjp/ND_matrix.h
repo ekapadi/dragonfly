@@ -162,8 +162,8 @@ class row_major_index: public ntuple<N, NDIM>{
     static bool wrap(const row_major_index& x1, const row_major_index& x2, const shape_type& shape,
                      row_major_index& wrap_dim);
 
-    bool writeBinary(commUtil::abstractCommHandle* fp)const;
-    bool readBinary(commUtil::abstractCommHandle* fp);
+    bool writeBinary(std::ostream &out)const;
+    bool readBinary(std::istream &in);
     size_t binarySize(void)const;
 
 #if !defined(__INTEL_COMPILER) && !defined(__PGI)

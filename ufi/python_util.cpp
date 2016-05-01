@@ -76,10 +76,18 @@
 #endif
 
 #include "cross_platform.h"
+
+#if 0 // ------- *Temporarily* omit "commUtil" dependency. ------
+      // ("std::iostream" upgrade.)
 #include "commUtil.h"
 using commUtil::abstractCommHandle;
 using commUtil::readBinary;
 using commUtil::writeBinary;
+#else
+#include "commUtil_stub.h"
+using commUtil::readBinary;
+using commUtil::writeBinary;
+#endif
 
 #include "numberTraits.h"
 using number::numberTraits;
@@ -359,39 +367,37 @@ void simple_object_base::free_pointers_(object_map& m)
 }
 
 
-bool simple_object_base::readBinary_(commUtil::abstractCommHandle *fp, object_list& l)
+bool simple_object_base::readBinary_(std::istream &in, object_list& l)
 {
-   using commUtil::readBinary;
    bool status = true;
    
    free_pointers_(l);
    
    // read size
    size_t size_;
-   status = (status && readBinary(fp, size_));
-   l.resize(size_,NULL); 
+   status = status && in.read(reinterpret_cast<char *>(&size_), sizeof(size_t));
+   l.resize(size_, NULL); 
 
    if (0 < size_)
      for (object_list::iterator itL = l.begin(), itLEnd = l.end();     
           status && (itL != itLEnd);          
           ++itL){           
-       status = (status && readBinaryVirtual(fp, *itL));
+       status = (status && readBinaryVirtual(in, *itL));
      }
    return status;
 }
 
-bool simple_object_base::writeBinary_(commUtil::abstractCommHandle *fp, const object_list& l)
+bool simple_object_base::writeBinary_(std::ostream &out, const object_list& l)
 {
-  using commUtil::writeBinary;
   bool status(true);
   
   size_t size_(l.size()); // explicitely control output-type
-  status = (status && writeBinary(fp, size_));  
+  status = status && out.write(reinterpret_cast<const char *>(&size_), sizeof(size_t));  
    if (0 < size_)
      for (object_list::const_iterator itL = l.begin(), itLEnd = l.end();     
           status && (itL != itLEnd);          
           ++itL)
-       status = (status && writeBinaryVirtual(fp, *itL));
+       status = status && writeBinaryVirtual(out, *itL);
 
    return status;
 }
@@ -413,7 +419,7 @@ size_t simple_object_base::binarySize_(const object_list& l)
 }
 
 
-bool simple_object_base::readBinary_(commUtil::abstractCommHandle *fp, object_map& m)
+bool simple_object_base::readBinary_(std::istream &in, object_map& m)
 {
   using commUtil::readBinary;
   bool status = true;
@@ -422,14 +428,14 @@ bool simple_object_base::readBinary_(commUtil::abstractCommHandle *fp, object_ma
 
   // read size
   size_t size_;
-  status = (status && readBinary(fp, size_));
+  status = status && in.read(reinterpret_cast<char *>(&size_), sizeof(size_t));
 
   std::string key;
   if (0 < size_)
     for (size_t n = 0; status && (n < size_); ++n){
       simple_object_base *val(NULL); // will be cloned when read (init to NULL, otherwise object deleted by "readBinaryVirtual"!)
-      status = (status && readBinary(fp, key)); 
-      status = (status && readBinaryVirtual(fp, val));
+      status = (status && readBinary(in, key)); 
+      status = (status && readBinaryVirtual(in, val));
       if (status)
         m[key] = val;
     }     
@@ -437,21 +443,21 @@ bool simple_object_base::readBinary_(commUtil::abstractCommHandle *fp, object_ma
   return status;
 }
 
-bool simple_object_base::writeBinary_(commUtil::abstractCommHandle *fp, const object_map& m)
+bool simple_object_base::writeBinary_(std::ostream &out, const object_map& m)
 {
   using commUtil::writeBinary;
   bool status = true;
 
   // write size (explicitely control output type):
   size_t size_(m.size());
-  status = (status && writeBinary(fp, size_));
+  status = status && out.write(reinterpret_cast<const char *>(&size_), sizeof(size_t));
 
   if (0 < size_)
     for (object_map::const_iterator itM = m.begin(), itMEnd = m.end();
          status && (itM != itMEnd);
          ++itM){
-      status = (status && writeBinary(fp, (*itM).first)); 
-      status = (status && writeBinaryVirtual(fp, (*itM).second));
+      status = status && writeBinary(out, (*itM).first); 
+      status = status && writeBinaryVirtual(out, (*itM).second);
     }     
 
   return status;
@@ -528,13 +534,13 @@ void simple_object_base::set_named_object(object_map& map, const std::string& ke
 
 
 // methods to allow binary read and write from pointer to base-class:
-bool simple_object_base::readBinaryVirtual(commUtil::abstractCommHandle *fp, simple_object_base*& pobject)
+bool simple_object_base::readBinaryVirtual(std::istream &in, simple_object_base*& pobject)
 {
   using commUtil::readBinary;
   bool status(true);
   
   long etype_(static_cast<long>(NONE_TYPE));
-  status = (status && readBinary(fp, etype_));
+  status = (status && readBinary(in, etype_));
 
   if (status){
     #if 0
@@ -591,19 +597,19 @@ bool simple_object_base::readBinaryVirtual(commUtil::abstractCommHandle *fp, sim
       // break;    
     }
     // call the appropriate virtual readBinary:
-    status = (status && pobject->readBinary(fp));    
+    status = (status && pobject->readBinary(in));    
   }
   
   return status;  
 }
 
-bool simple_object_base::writeBinaryVirtual(commUtil::abstractCommHandle *fp, const simple_object_base* pobject)
+bool simple_object_base::writeBinaryVirtual(std::ostream &out, const simple_object_base* pobject)
 {
   using commUtil::writeBinary;
   bool status(true);
   
-  status = (status && writeBinary(fp, static_cast<long>(enum_from_type_info(pobject->type()))));
-  status = (status && pobject->writeBinary(fp)); // virtual writeBinary(...)
+  status = (status && writeBinary(out, static_cast<long>(enum_from_type_info(pobject->type()))));
+  status = (status && pobject->writeBinary(out)); // virtual writeBinary(...)
   return status;  
 }
 
@@ -616,7 +622,7 @@ size_t simple_object_base::binarySizeVirtual(const simple_object_base* pobject)
   return val;
 }
 
-bool simple_object_base::readBinary(commUtil::abstractCommHandle *fp)
+bool simple_object_base::readBinary(std::istream &in)
 { 
   #if 0
   throw std::runtime_error(std::string("simple_object_base::readBinary: _pure_(?!) simple_object_base with ") 
@@ -627,7 +633,7 @@ bool simple_object_base::readBinary(commUtil::abstractCommHandle *fp)
   #endif
 }
 
-bool simple_object_base::writeBinary(commUtil::abstractCommHandle *fp)const      
+bool simple_object_base::writeBinary(std::ostream &out) const      
 { 
   #if 0
   throw std::runtime_error(std::string("simple_object_base::writeBinary: _pure_(?!) simple_object_base with ") 
@@ -694,17 +700,17 @@ simple_object_base::simple_object_base(generic_ptr_base* pg)
 
 // note: the read/writeBinary methods are "virtual": they cannot be inlined:
 
-bool simple_object<simple_object_base::object_list>::readBinary(commUtil::abstractCommHandle *fp)
-{ return simple_object_base::readBinary_(fp, as_<object_list>()); }
+bool simple_object<simple_object_base::object_list>::readBinary(std::istream &in)
+{ return simple_object_base::readBinary_(in, as_<object_list>()); }
 
-bool simple_object<simple_object_base::object_list>::writeBinary(commUtil::abstractCommHandle *fp)const      
-{ return simple_object_base::writeBinary_(fp, as_<object_list>()); }
+bool simple_object<simple_object_base::object_list>::writeBinary(std::ostream &out) const      
+{ return simple_object_base::writeBinary_(out, as_<object_list>()); }
 
-size_t simple_object<simple_object_base::object_list>::binarySize(void)const
+size_t simple_object<simple_object_base::object_list>::binarySize(void) const
 { return simple_object_base::binarySize_(as_<object_list>()); }
 
 
-const std::type_info& simple_object<simple_object_base::object_list>::type(void)const
+const std::type_info& simple_object<simple_object_base::object_list>::type(void) const
 {
   return typeid(simple_object_base::object_list);
 }
@@ -803,11 +809,11 @@ simple_object<simple_object_base::object_list>::simple_object(const object_list&
 
 // note: the read/writeBinary methods are "virtual": they cannot be inlined:
 
-bool simple_object<simple_object_base::object_map>::readBinary(commUtil::abstractCommHandle *fp)
-{ return simple_object_base::readBinary_(fp, as_<object_map>()); }
+bool simple_object<simple_object_base::object_map>::readBinary(std::istream &in)
+{ return simple_object_base::readBinary_(in, as_<object_map>()); }
 
-bool simple_object<simple_object_base::object_map>::writeBinary(commUtil::abstractCommHandle *fp)const      
-{ return simple_object_base::writeBinary_(fp, as_<object_map>()); }
+bool simple_object<simple_object_base::object_map>::writeBinary(std::ostream &out) const      
+{ return simple_object_base::writeBinary_(out, as_<object_map>()); }
 
 size_t simple_object<simple_object_base::object_map>::binarySize(void)const
 { return simple_object_base::binarySize_(as_<object_map>()); }

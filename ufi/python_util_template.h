@@ -804,15 +804,14 @@ void simple_object<T>::resize_(size_t new_size, bool new_own_data)
 //   more general pointer-object ownership does not need to be dealt with in these methods.
 
 template <class T>
-inline bool simple_object<T>::readBinary(commUtil::abstractCommHandle *fp)
+inline bool simple_object<T>::readBinary(std::istream &in)
 {
-  using commUtil::readBinary;
   bool status(true);
   
   free_pointers_();
   
   size_t len(0);
-  status = (status && readBinary(fp, len));
+  status = status && in.read(reinterpret_cast<char *>(&len), sizeof(size_t));
   
   if (status && (len > 0)){
     // binary-read => data-ownership:
@@ -821,24 +820,24 @@ inline bool simple_object<T>::readBinary(commUtil::abstractCommHandle *fp)
     for(T *it = ptr_<T>(), *itEnd = it + size_;
         status && (it != itEnd);
         ++it)
-      status = (status && readBinary(fp, *it));  
+      status = status && in.read(reinterpret_cast<char *>(it), sizeof(T));  
   }
     
   return status; 
 }
 
 template <class T>
-inline bool simple_object<T>::writeBinary(commUtil::abstractCommHandle *fp)const      
+inline bool simple_object<T>::writeBinary(std::ostream &out) const      
 {
   using commUtil::writeBinary;
   bool status(true);
   
-  status = (status && writeBinary(fp, size_));
+  status = status && out.write(reinterpret_cast<const char *>(&size_), sizeof(size_t));
   
   for(const T *it = ptr_<T>(), *itEnd = it + size_;
       status && (it != itEnd);
       ++it)
-    status = (status && writeBinary(fp, *it));  
+    status = status && out.write(reinterpret_cast<const char *>(it), sizeof(T));  
   
   return status; 
 }
@@ -1240,7 +1239,7 @@ inline extensible_parameters_base<T>& extensible_parameters_base<T>::operator=(c
 
 
 template <class T>
-bool extensible_parameters_base<T>::readBinary(commUtil::abstractCommHandle *fp)
+bool extensible_parameters_base<T>::readBinary(std::istream &in)
 {
   bool status(true);
   if (pobject_ != NULL){
@@ -1248,7 +1247,7 @@ bool extensible_parameters_base<T>::readBinary(commUtil::abstractCommHandle *fp)
     pobject_ = NULL;
   }
 
-  status = (status && simple_object_base::readBinaryVirtual(fp, pobject_));
+  status = (status && simple_object_base::readBinaryVirtual(in, pobject_));
   if (status && !enforce_usage())
     throw std::runtime_error("extensible_parameters_base<T>::readBinary: object as read does not have correct structure: \n"
                       "   (<name>, <coefficients list>, ...)");
@@ -1256,10 +1255,10 @@ bool extensible_parameters_base<T>::readBinary(commUtil::abstractCommHandle *fp)
 }
 
 template <class T>
-bool extensible_parameters_base<T>::writeBinary(commUtil::abstractCommHandle *fp)const      
+bool extensible_parameters_base<T>::writeBinary(std::ostream &out) const      
 {
   bool status(true);
-  status = (status && simple_object_base::writeBinaryVirtual(fp, pobject_));
+  status = (status && simple_object_base::writeBinaryVirtual(out, pobject_));
   return status;
 }
 
@@ -1573,7 +1572,7 @@ inline options_map<T>& options_map<T>::operator=(const options_map& other)
  *
  */
 template <class T>
-inline bool options_map<T>::readBinary(commUtil::abstractCommHandle *fp)
+inline bool options_map<T>::readBinary(std::istream &in)
 {
   bool status(true);
   if (pobject_ != NULL){
@@ -1581,7 +1580,7 @@ inline bool options_map<T>::readBinary(commUtil::abstractCommHandle *fp)
     pobject_ = NULL;
   }
 
-  status = (status && simple_object_base::readBinaryVirtual(fp, pobject_));
+  status = (status && simple_object_base::readBinaryVirtual(in, pobject_));
   if (status){
     if (!enforce_usage())
     throw std::runtime_error("options_map<T>::readBinary: object as read does not have correct structure: \n"
@@ -1594,10 +1593,10 @@ inline bool options_map<T>::readBinary(commUtil::abstractCommHandle *fp)
 }
 
 template <class T>
-inline bool options_map<T>::writeBinary(commUtil::abstractCommHandle *fp)const 
+inline bool options_map<T>::writeBinary(std::ostream &out) const 
 {
   bool status(true);
-  status = (status && simple_object_base::writeBinaryVirtual(fp, pobject_));
+  status = (status && simple_object_base::writeBinaryVirtual(out, pobject_));
   return status;
 }
      

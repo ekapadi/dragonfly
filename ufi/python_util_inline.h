@@ -107,22 +107,22 @@ inline simple_object_base* generic_object<C,R,Z>::ptr(void)
 
 
 template <class C, class R, class Z>
-inline bool generic_object<C,R,Z>::readBinary(commUtil::abstractCommHandle *fp)
+inline bool generic_object<C,R,Z>::readBinary(std::istream &in)
 { 
   if (NULL != ptr_){
     // all re-allocation handled outside of "readBinaryVirtual": 
     delete ptr_;
     ptr_ = NULL;
   }
-  return simple_object_base::readBinaryVirtual(fp, ptr_); 
+  return simple_object_base::readBinaryVirtual(in, ptr_); 
 }
 
 template <class C, class R, class Z>
-inline bool generic_object<C,R,Z>::writeBinary(commUtil::abstractCommHandle *fp)const      
-{ return simple_object_base::writeBinaryVirtual(fp, ptr_); }
+inline bool generic_object<C,R,Z>::writeBinary(std::ostream &out) const      
+{ return simple_object_base::writeBinaryVirtual(out, ptr_); }
 
 template <class C, class R, class Z>
-inline size_t generic_object<C,R,Z>::binarySize(void)const
+inline size_t generic_object<C,R,Z>::binarySize(void) const
 { return simple_object_base::binarySizeVirtual(ptr_); }
 
 

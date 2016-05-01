@@ -226,12 +226,12 @@ class simple_object_base{
     
     static PyObject* NULL_insert_func(const simple_object_base* src);
     
-    static bool readBinary_(commUtil::abstractCommHandle *fp, object_list& l);
-    static bool writeBinary_(commUtil::abstractCommHandle *fp, const object_list& l);      
+    static bool writeBinary_(std::ostream &out, const object_list& l);      
+    static bool readBinary_(std::istream &in, object_list& l);
     static size_t binarySize_(const object_list& l);
 
-    static bool readBinary_(commUtil::abstractCommHandle *fp, object_map& m);
-    static bool writeBinary_(commUtil::abstractCommHandle *fp, const object_map& m);      
+    static bool writeBinary_(std::ostream &out, const object_map& m);      
+    static bool readBinary_(std::istream &in, object_map& m);
     static size_t binarySize_(const object_map& m);
               
   public:
@@ -364,12 +364,12 @@ class simple_object_base{
     void write(std::ostream &dest)const;        
 
     // methods to allow binary read and write from pointer to base-class:
-    static bool readBinaryVirtual(commUtil::abstractCommHandle *fp, simple_object_base*& pobject);
-    static bool writeBinaryVirtual(commUtil::abstractCommHandle *fp, const simple_object_base* pobject);
+    static bool writeBinaryVirtual(std::ostream &out, const simple_object_base* pobject);
+    static bool readBinaryVirtual(std::istream &in, simple_object_base*& pobject);
     static size_t binarySizeVirtual(const simple_object_base* pobject);
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    virtual bool writeBinary(std::ostream &out) const;      
+    virtual bool readBinary(std::istream &in);
     virtual size_t binarySize(void)const;
 
     // --------------------------------------------------------------------------------------------
@@ -456,7 +456,7 @@ class generic_object{
   { return ptr_->as<T>(); }
 #endif
  
-  inline operator simple_object_base*(void)const;
+  inline operator simple_object_base*(void) const;
 
   inline operator simple_object_base*(void);
   
@@ -465,11 +465,11 @@ class generic_object{
   inline simple_object_base* ptr(void);
   
   
-  inline bool readBinary(commUtil::abstractCommHandle *fp);
-  
-  inline bool writeBinary(commUtil::abstractCommHandle *fp)const;      
-  
-  inline size_t binarySize(void)const;
+  inline bool writeBinary(std::ostream &out) const;      
+
+  inline bool readBinary(std::istream &in);
+    
+  inline size_t binarySize(void) const;
 
 
   // ------------------- conversion to and from PyObject*: ----------------------------
@@ -525,8 +525,8 @@ class simple_object: public simple_object_base{
     typedef base_class::object_list object_list;
     typedef base_class::object_map object_map;
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
+    virtual bool writeBinary(std::ostream &out) const;      
+    virtual bool readBinary(std::istream &in);
     virtual size_t binarySize(void)const;
 
     virtual const std::type_info& type(void)const;
@@ -609,11 +609,11 @@ class simple_object<simple_object_base::object_list>: public simple_object_base{
     typedef base_class::object_list object_list;
     typedef base_class::object_map object_map;
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
-    virtual size_t binarySize(void)const;
+    virtual bool writeBinary(std::ostream &out) const;      
+    virtual bool readBinary(std::istream &in);
+    virtual size_t binarySize(void) const;
 
-    virtual const std::type_info& type(void)const;
+    virtual const std::type_info& type(void) const;
 
     /**
      * @brief Allow contiguous storage arrays (type method will return type of value-type).
@@ -688,11 +688,11 @@ class simple_object<simple_object_base::object_map>: public simple_object_base{
     typedef base_class::object_list object_list;
     typedef base_class::object_map object_map;
 
-    virtual bool readBinary(commUtil::abstractCommHandle *fp);
-    virtual bool writeBinary(commUtil::abstractCommHandle *fp)const;      
-    virtual size_t binarySize(void)const;
+    virtual bool writeBinary(std::ostream &out) const;      
+    virtual bool readBinary(std::istream &in);
+    virtual size_t binarySize(void) const;
 
-    virtual const std::type_info& type(void)const;
+    virtual const std::type_info& type(void) const;
 
     /**
      * @brief Allow contiguous storage arrays (type method will return type of value-type).
@@ -856,9 +856,9 @@ class extensible_parameters_base{
     extensible_parameters_base& operator=(const extensible_parameters_base& other);
 
 
-    bool readBinary(commUtil::abstractCommHandle *fp);
-    bool writeBinary(commUtil::abstractCommHandle *fp)const;      
-    size_t binarySize(void)const;
+    bool writeBinary(std::ostream &out) const;      
+    bool readBinary(std::istream &in);
+    size_t binarySize(void) const;
 
     // for the following methods, break-out number types as explicit parameters
     // (this keeps module independent from namespace TMatrix, otherwise, I need
@@ -972,9 +972,9 @@ class options_map{
     options_map& operator=(const options_map& other);
 
 
-    bool readBinary(commUtil::abstractCommHandle *fp);
-    bool writeBinary(commUtil::abstractCommHandle *fp)const;      
-    size_t binarySize(void)const;
+    bool writeBinary(std::ostream &out) const;      
+    bool readBinary(std::istream &in);
+    size_t binarySize(void) const;
 
     // for the following methods, break-out number types as explicit parameters
     // (this keeps module independent from namespace TMatrix, otherwise, I need

@@ -72,10 +72,17 @@ using std::endl;
 
 #include "cross_platform.h"
 
+#if 0 // ----------- *Temporarily* omit "commUtil" dependency. -----------
+      // (Upgrading to "std::iostream".)
 #include "commUtil.h"
 using commUtil::abstractCommHandle;
 using commUtil::readBinary;
 using commUtil::writeBinary;
+#else
+#include "commUtil_stub.h"
+using commUtil::readBinary;
+using commUtil::writeBinary;
+#endif
 
 #include "numberTraits.h"
 using number::numberTraits;

@@ -159,9 +159,9 @@ class ntuple{
 
     static void apply( T (*func)(const T&), const ntuple<T,DIM>& src, ntuple<T,DIM>& dest);
 		
-    bool writeBinary(abstractCommHandle *fp)const;
+    bool writeBinary(std::ostream &out)const;
 		
-		bool readBinary(abstractCommHandle *fp);
+		bool readBinary(std::istream &in);
     
 		size_t binarySize(void);
 
@@ -237,10 +237,10 @@ template <class T1, class T2, size_t DIM>
 inline void conv(ntuple<T1,DIM>& dest, const ntuple<T2,DIM>& src);
 
 template <class T, size_t DIM>
-inline bool writeBinary(abstractCommHandle *fp, const ntuple<T,DIM>& p);
+inline bool writeBinary(std::ostream &out, const ntuple<T,DIM>& p);
 
 template <class T, size_t DIM>
-inline bool readBinary(abstractCommHandle *fp, ntuple<T,DIM>& p);
+inline bool readBinary(std::istream &in, ntuple<T,DIM>& p);
 
 template <class T, size_t DIM>
 inline std::ostream& operator<<(std::ostream& os, const ntuple<T,DIM>& p);
@@ -279,8 +279,8 @@ class ntuple_interval{
     bool operator!=(const ntuple_interval<T,DIM>& other)const;
 
 
-    bool writeBinary(abstractCommHandle *fp)const;
-    bool readBinary(abstractCommHandle *fp);
+    bool writeBinary(std::ostream &out)const;
+    bool readBinary(std::istream &in);
     size_t binarySize(void)const;
 
     
@@ -360,10 +360,10 @@ class ntuple_interval{
 
 
 template <class T, size_t DIM>
-inline bool writeBinary(abstractCommHandle *fp, const ntuple_interval<T,DIM>& p);
+inline bool writeBinary(std::ostream &out, const ntuple_interval<T,DIM>& p);
 
 template <class T, size_t DIM>
-inline bool readBinary(abstractCommHandle *fp, ntuple_interval<T,DIM>& p);
+inline bool readBinary(std::istream &in, ntuple_interval<T,DIM>& p);
 
 template <class T, size_t DIM>
 inline std::ostream& operator<<(std::ostream& os, const ntuple_interval<T,DIM>& p);

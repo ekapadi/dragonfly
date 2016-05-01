@@ -62,6 +62,8 @@ using std::endl;
 #include <type_traits>
 
 #include "cross_platform.h"
+
+#if 0 // ------------ *temporarily* remove this dependency: --------------
 #include "commUtil.h"
 using commUtil::abstractCommHandle;
 using commUtil::fileHandle;
@@ -74,6 +76,11 @@ using commUtil::write;
 using commUtil::close;
 using commUtil::readBinary;
 using commUtil::writeBinary;
+#else
+#include "commUtil_stub.h"
+using commUtil::readBinary;
+using commUtil::writeBinary;
+#endif
 
 // MPI debugging output messages:
 #if !defined(__NO_DEBUG_OUTPUT__)

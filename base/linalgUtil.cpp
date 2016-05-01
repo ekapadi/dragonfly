@@ -80,6 +80,7 @@ using std::conj;
 #include "cross_platform.h"
 // #define __verbose__ 0
 
+#if 0 // ------------ *temporarily* remove this dependency: --------------
 #include <commUtil.h>
 using commUtil::abstractCommHandle;
 using commUtil::fileHandle;
@@ -92,6 +93,11 @@ using commUtil::write;
 using commUtil::close;
 using commUtil::readBinary;
 using commUtil::writeBinary;
+#else
+#include "commUtil_stub.h"
+using commUtil::readBinary;
+using commUtil::writeBinary;
+#endif
 
 #include "parallelUtil.h"
 // #include "statusUtil.h"

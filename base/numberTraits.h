@@ -310,12 +310,12 @@ namespace commUtil{
 
 
 template<>
-inline bool writeBinary(abstractCommHandle *fp, const std::complex<double>& c)
-{ return writeBinary_POD_dispatch_(fp, c, std::true_type()); }
+inline bool writeBinary(std::ostream &out, const std::complex<double>& c)
+{ return writeBinary_POD_dispatch_(out, c, std::true_type()); }
 
 template<>
-inline bool readBinary(abstractCommHandle *fp, std::complex<double>& c)
-{ return readBinary_POD_dispatch_(fp, c, std::true_type()); }
+inline bool readBinary(std::istream &in, std::complex<double>& c)
+{ return readBinary_POD_dispatch_(in, c, std::true_type()); }
 
 
 template <>

@@ -56,9 +56,12 @@ using number::numberTraits;
 #endif
 #include "factorial.h"
 
-
+#if 0 // ------------ *temporarily* remove this dependency: --------------
 #include "commUtil.h"
 using commUtil::abstractCommHandle;
+#else
+#include "commUtil_stub.h"
+#endif
 
 #include "hash_combine.h"
 #include "ntuple.h"

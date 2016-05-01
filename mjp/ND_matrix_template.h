@@ -191,12 +191,12 @@ bool row_major_index<N,NDIM>::wrap(const row_major_index& x1, const row_major_in
 }                                           
 
 template <class N, size_t NDIM>        
-inline bool row_major_index<N,NDIM>::writeBinary(commUtil::abstractCommHandle* fp)const
-{ return base_class::writeBinary(fp); }
+inline bool row_major_index<N,NDIM>::writeBinary(std::ostream &out)const
+{ return base_class::writeBinary(out); }
 
 template <class N, size_t NDIM>        
-inline bool row_major_index<N,NDIM>::readBinary(commUtil::abstractCommHandle* fp)
-{ return base_class::readBinary(fp); }
+inline bool row_major_index<N,NDIM>::readBinary(std::istream &in)
+{ return base_class::readBinary(in); }
 
 template <class N, size_t NDIM>        
 inline size_t row_major_index<N,NDIM>::binarySize(void)const
