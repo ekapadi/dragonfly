@@ -34,9 +34,9 @@ namespace python_util{
  * Modularization of interface allows isolation of implementation using ``boost::python'' classes. 
  * boost::python utilization occurs only at source-file level 
  *  (this is intended to eventually function as a stand-alone library module, 
- *   and/or possibly to be replace by a separate custom parser of restricted python syntax).
+ *   and/or possibly to be replaced by a separate custom parser of restricted python syntax).
  *
- * Implementation note: due to its wide-use Python C/API type "PyObject*" _will_ be visible outside this module;
+ * Implementation note: due to its wide-use, the Python C/API type "PyObject*" _will_ be visible outside this module;
  *   participating in "insert" (to the PyObject*) and "extract" (from the PyObject*) methods.
  *
  */

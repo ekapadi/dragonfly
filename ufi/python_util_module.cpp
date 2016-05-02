@@ -23,6 +23,7 @@
 
 #if 1 
 #include <Python.h>
+
 #if !defined(EMBEDDED_PYTHON)
 #define NO_IMPORT_ARRAY
 #else
@@ -65,6 +66,8 @@ using std::endl;
 
 #include <algorithm>
 #include <numeric>
+#include <atomic>
+
 #include <unordered_map>
 
 #include <typeinfo>
@@ -185,12 +188,6 @@ std::string python_error_string(void)
   }
   
   return msg;
-}
-
-
-void unload_interpreter(void){
-  if (Py_IsInitialized())
-    Py_Finalize();
 }
 
 
@@ -781,7 +778,36 @@ void write_pickle<mere::C, mere::R, mere::Z>
 #else
 // ====================================== python C/API only version ====================================================================================
 
+namespace{
+
+
+std::atomic_bool _module_initialized(false);
+void _init_module(void);
+void _deinit_module(void);
+
+void _initialize_module(void)
+{
+  if (!_module_initialized){
+    Py_Initialize();
+    import_array();
+    _module_initialized = true;
+  }
+}
+
+void _deinitialize_module(void)
+{
+  if (_module_initialized){
+    Py_Finalize();
+    _module_initialized = false;
+  }
+}
+
+
+} // namespace
+
 namespace python_util{
+
+
 namespace implementation_module{
 
 std::string python_error_string(void)
@@ -852,11 +878,8 @@ std::string python_error_string(void)
   return msg;
 }
 
-void unload_interpreter(void){
-  if (Py_IsInitialized())
-    Py_Finalize();
-}
-
+void unload_interpreter(void)
+{ _deinitialize_module(); }
 
 // ------------ explicit template specializations: ---------------------------
 
@@ -871,12 +894,7 @@ void extract_simple_object<std::complex<double>, double, long>
   typedef long Z;
   
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -927,20 +945,20 @@ void extract_simple_object<std::complex<double>, double, long>
 
     dest = extract<C,R,Z>(extractable_);
     
-    #if 1
-    Py_Finalize();
+    #if 0
+    _deinitialize_module();
     #endif
   }
   catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     throw x;
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   
@@ -955,12 +973,7 @@ void insert_simple_object<std::complex<double>, double, long>
   typedef long Z;
   
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -997,20 +1010,20 @@ void insert_simple_object<std::complex<double>, double, long>
     
     Py_DECREF(dest_);
    
-    #if 1
-    Py_Finalize();
+    #if 0
+    _deinitialize_module();
     #endif
   }
   catch(std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     throw x;
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   
@@ -1025,12 +1038,7 @@ void read_pickle<std::complex<double>, double, long>
   typedef long Z;
   
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -1064,20 +1072,20 @@ void read_pickle<std::complex<double>, double, long>
  
     dest = extract<C,R,Z>(extractable);
 
-    #if 1
-    Py_Finalize();
+    #if 0
+    _deinitialize_module();
     #endif
   }
   catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     throw x;
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   
@@ -1092,12 +1100,7 @@ void write_pickle<std::complex<double>, double, long>
   typedef long Z;
 
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -1134,20 +1137,20 @@ void write_pickle<std::complex<double>, double, long>
     
     Py_DECREF(src_);
     
-    #if 1
-    Py_Finalize();
+    #if 0
+    _deinitialize_module();
     #endif
   }
   catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     throw x;
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   
@@ -1169,12 +1172,7 @@ void extract_simple_object<mere::C, mere::R, mere::Z>
   typedef mere::Z Z;
   
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -1226,19 +1224,19 @@ void extract_simple_object<mere::C, mere::R, mere::Z>
     dest = extract<C,R,Z>(extractable_);
     
     #if 1
-    Py_Finalize();
+    _deinitialize_module();
     #endif
   }
   catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     throw x;
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   
@@ -1253,12 +1251,7 @@ void insert_simple_object<mere::C, mere::R, mere::Z>
   typedef mere::Z Z;
   
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -1295,19 +1288,19 @@ void insert_simple_object<mere::C, mere::R, mere::Z>
     
     Py_DECREF(dest_);
    
-    #if 1
-    Py_Finalize();
+    #if 0
+    _deinitialize_module();
     #endif
   }
   catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   
@@ -1322,12 +1315,7 @@ void read_pickle<mere::C, mere::R, mere::Z>
   typedef mere::Z Z;
 
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -1361,20 +1349,20 @@ void read_pickle<mere::C, mere::R, mere::Z>
  
     dest = extract<C,R,Z>(extractable);
 
-    #if 1
-    Py_Finalize();
+    #if 0
+    _deinitialize_module();
     #endif
   }
   catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     throw x;
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   
@@ -1389,12 +1377,7 @@ void write_pickle<mere::C, mere::R, mere::Z>
   typedef mere::Z Z;
 
   try{
-    if (!Py_IsInitialized()){
-      Py_Initialize();
-      #if defined(EMBEDDED_PYTHON) && 0
-      import_array();
-      #endif
-    }
+    _initialize_module();
 
     // "PyImport_AddModule" returns borrowed ref:
     // "PyModule_GetDict" returns borrowed ref:
@@ -1431,20 +1414,20 @@ void write_pickle<mere::C, mere::R, mere::Z>
     
     Py_DECREF(src_);
     
-    #if 1
-    Py_Finalize();
+    #if 0
+    _deinitialize_module();
     #endif
   }
   catch(const std::runtime_error& x)
   {
     #if 0
     PyErr_Print();
-    Py_Finalize();
+    _deinitialize_module();
     throw x;
     #else
     std::string msg(x.what());
     msg += ":\n" + python_error_string();
-    Py_Finalize();
+    _deinitialize_module();
     throw std::runtime_error(msg);
     #endif
   }   

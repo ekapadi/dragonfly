@@ -18,7 +18,7 @@ endif()
 
 if (OS_LINUX)
   if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-std=c++11 -fPIC -ggdb -O0 -Wall)
+    add_definitions(-std=c++11 -fPIC -ggdb -O0 -Wall -Wno-write-strings -Wno-unused-local-typedefs)
     # add_definitions(-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC)
   endif()
 
@@ -111,7 +111,9 @@ set (SOURCES ${SOURCES}
   ${BASE_DIR}/linalgUtil_inline.h
   ${BASE_DIR}/linalgUtil_template.h
   ${BASE_DIR}/linalgUtil.cpp
+
   ${BASE_DIR}/numberTraits.h
+
   ${BASE_DIR}/factorial.h
   ${BASE_DIR}/factorial.cpp
   ${BASE_DIR}/ntuple.h
@@ -121,6 +123,7 @@ set (SOURCES ${SOURCES}
   ${BASE_DIR}/parallelUtil_template.h
   ${BASE_DIR}/parallelUtil.cpp
 )
+add_definitions(-DEMBEDDED_PYTHON)
 
 if (OS_LINUX)
   set (LIBS ${LIBS}
@@ -141,18 +144,13 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 if(OS_WINDOWS)
   target_link_libraries(${PROJECT_NAME}
     ${LIBS}
-    
-#    debug PocoFoundationmdd    
-#    optimized PocoFoundationmd    
+    ${PYTHON_LIBRARY}
   )
 
 else()
   target_link_libraries(${PROJECT_NAME}
     ${LIBS}
-    
-#    debug PocoFoundationd
-
-#    optimized PocoFoundation
+    ${PYTHON_LIBRARY}    
   )
 endif()
 
